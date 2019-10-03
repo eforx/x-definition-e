@@ -49,9 +49,9 @@ public class XmlValidator {
             validator.validate(xmlSource);
             return true;
         } catch (SAXException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return false;

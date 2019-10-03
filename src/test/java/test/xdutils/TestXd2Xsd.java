@@ -12,6 +12,8 @@ import test.utils.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -26,9 +28,9 @@ public class TestXd2Xsd extends XDTester {
                     "Data directory does not exists or is not a directory!");
         }
 
-        _inputFilesRoot = initFolder(dataDir, "xd2xsd2/input");
-        _refFilesRoot = initFolder(dataDir, "xd2xsd2/ref");
-        _dataFilesRoot = initFolder(dataDir, "xd2xsd2/data");
+        _inputFilesRoot = initFolder(dataDir, "xd2xsd_2");
+        _refFilesRoot = initFolder(dataDir, "xd2xsd_2");
+        _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -43,14 +45,14 @@ public class TestXd2Xsd extends XDTester {
     private File getFile(final String path, final String fileName, final String fileExt) throws FileNotFoundException {
         File xdFile = new File(path, fileName + fileExt);
         if (xdFile == null || !xdFile.exists() || !xdFile.isFile()) {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException("Path: " + path + fileName + fileExt);
         }
 
         return xdFile;
     }
 
     private XDPool compileXd(final String fileName) throws FileNotFoundException {
-        return compile(getFile(_inputFilesRoot.getAbsolutePath(), fileName, ".xdef"), this.getClass());
+        return compile(getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xdef"), this.getClass());
     }
 
     private FileReader createFileReader(final String filePath, final String fileName, final String fileExt) throws FileNotFoundException {
@@ -58,11 +60,11 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private FileReader createRefFileReader(final String fileName, final String fileExt) throws FileNotFoundException {
-        return createFileReader(_refFilesRoot.getAbsolutePath(), fileName, fileExt);
+        return createFileReader(_refFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, fileExt);
     }
 
-    private File getXmlDataFile(final String fileName) throws FileNotFoundException {
-        return getFile(_dataFilesRoot.getAbsolutePath(), fileName, ".xml");
+    private File getXmlDataFile(final String testCase, final String fileName) throws FileNotFoundException {
+        return getFile(_dataFilesRoot.getAbsolutePath() + "\\" + testCase, fileName, ".xml");
     }
 
     private XmlSchema getRefSchema(final String fileName) throws FileNotFoundException {
@@ -89,12 +91,12 @@ public class TestXd2Xsd extends XDTester {
         return outputStream;
     }
 
-    private void validateXml(final File xmlFile, final ByteArrayOutputStream xsdStream) throws FileNotFoundException {
+    private void validateXml(final File xmlFile, final ByteArrayOutputStream xsdStream, boolean expectedResult) throws FileNotFoundException {
         XmlValidator validator = new XmlValidator(new StreamSource(xmlFile), new StreamSource(new ByteArrayInputStream(xsdStream.toByteArray())));
-        assertTrue(validator.validate());
+        assertEq(expectedResult, validator.validate());
     }
 
-    private void convertXd2Xsd(final String fileName) {
+    private void convertXd2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
@@ -107,8 +109,15 @@ public class TestXd2Xsd extends XDTester {
             // Compare XSD schemas
             ByteArrayOutputStream outputSchemaStream = compareSchemas(getRefSchema(fileName), outputSchema);
 
-            // Validate XML file against XSD schema
-            validateXml(getXmlDataFile(fileName), outputSchemaStream);
+            // Validate valid XML file against XSD schema
+            for (String testingFile : validTestingData) {
+                validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, true);
+            }
+
+            // Validate invalid XML file against XSD schema
+            for (String testingFile : invalidTestingData) {
+                validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, false);
+            }
 
             assertNoErrors(reporter);
         } catch (Exception ex) {fail(ex);}
@@ -118,7 +127,7 @@ public class TestXd2Xsd extends XDTester {
     public void test() {
         init();
 
-        convertXd2Xsd("t000");
+        convertXd2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
     }
 
     ////////////////////////////////////////////////////////////////////////////////
