@@ -106,20 +106,28 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
             final Set<XMNode> processed,
             String outputPrefix) {
 
-        if (!processed.add(xn)) {
+        if (outputPrefix != null && !processed.add(xn)) {
             System.out.println(outputPrefix + " * ref " + xn.getXDPosition());
             return null;
         }
 
         short xdElemKind = xn.getKind();
         switch (xdElemKind) {
-            case XNode.XMATTRIBUTE:
+            case XNode.XMATTRIBUTE: {
+                XMData xd = (XMData) xn;
+                if (outputPrefix != null) {
+                    out.print(outputPrefix + "|-- XMAttr: ");
+                    displayDesriptor((XData)xn, out);
+                }
+                return xsdBuilder.createAttribute(xd.getName(), xd);
+            }
             case XNode.XMTEXT: {
                 XData xd = (XData) xn;
-                out.print(outputPrefix + "|-- XMAttr: ");
-                out.print(" - ");
-                displayDesriptor(xd, out);
-                return null;
+                if (outputPrefix != null) {
+                    out.print(outputPrefix + "|-- XMText: ");
+                    displayDesriptor(xd, out);
+                }
+                return xsdBuilder.createSimpleContent(xd);
             }
             case XNode.XMELEMENT: {
                 XElement defEl = (XElement)xn;
@@ -129,6 +137,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                 XmlSchemaElement xsdElem = xsdBuilder.createElement(defEl.getName());
                 XmlSchemaComplexType complexType = xsdBuilder.createComplexType();
                 XmlSchemaGroupParticle group = null;
+                boolean attrInsideContent = false;
 
                 XMNode[] attrs = defEl.getXDAttrs();
 
@@ -142,17 +151,26 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         group = (XmlSchemaGroupParticle)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
                         complexType.setParticle(group);
                         outputPrefix += "|   ";
+                    } else if (childrenKind == XNode.XMTEXT) {
+                        XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                        for (int j = 0; j < attrs.length; j++) {
+                            ((XmlSchemaSimpleContentExtension)simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef)convertTree(attrs[j], out, processed, null));
+                        }
+                        complexType.setContentModel(simpleContent);
+                        attrInsideContent = true;
                     } else {
                         XmlSchemaSequenceMember xsdChild = (XmlSchemaSequenceMember)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
                         ((XmlSchemaSequence) group).getItems().add(xsdChild);
                     }
                 }
 
-                List<XmlSchemaAttributeOrGroupRef> xsdAttrList = convertAttrs(attrs);
-                complexType.getAttributes().addAll(xsdAttrList);
-                xsdElem.setType(complexType);
+                if (attrInsideContent == false) {
+                    for (int i = 0; i < attrs.length; i++) {
+                        complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[i], out, processed, null));
+                    }
+                }
 
-                //out.println(outputPrefix + "|-- End XMElement: " + xn.getName());
+                xsdElem.setType(complexType);
                 return xsdElem;
             }
             case XNode.XMSELECTOR_END:

@@ -1,6 +1,8 @@
 package org.xdef.impl.util.conv.xd2schemas;
 
 import org.apache.ws.commons.schema.*;
+import org.xdef.XDParser;
+import org.xdef.XDValue;
 import org.xdef.impl.XNode;
 import org.xdef.model.XMData;
 import org.xdef.model.XMOccurrence;
@@ -57,6 +59,21 @@ public class XsdBuilder {
 
 
         return attr;
+    }
+
+    public XmlSchemaSimpleContent createSimpleContent(final XMData xmData) {
+        XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
+        XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
+
+        final String parserName = xmData.getParserName();
+        XDValue parseMethod = xmData.getParseMethod();
+        // TODO: Has to be instance of XDParser?
+        if (parseMethod instanceof XDParser) {
+            contentExtension.setBaseTypeName(XD2XsdUtils.parserNameToQName(parserName));
+        }
+
+        content.setContent(contentExtension);
+        return content;
     }
 
     /**

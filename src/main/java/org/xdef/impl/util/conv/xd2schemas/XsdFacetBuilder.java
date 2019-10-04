@@ -3,11 +3,13 @@ package org.xdef.impl.util.conv.xd2schemas;
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
-import org.xdef.msg.SYS;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Used for detailed description of restriction elements
+ */
 public class XsdFacetBuilder {
 
     private final XDNamedValue params[];

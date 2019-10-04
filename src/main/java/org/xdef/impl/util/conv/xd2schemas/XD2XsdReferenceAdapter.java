@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
@@ -12,6 +13,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.model.XMNode;
 
+import javax.xml.namespace.QName;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,23 +83,12 @@ public class XD2XsdReferenceAdapter {
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            if ("CDATA".equals(parserName)) {
-                restriction = XsdReferenceBuilder.stringReference(xData, parameters);
-            } else if ("string".equals(parserName)) {
-                restriction = XsdReferenceBuilder.stringReference(xData, parameters);
-            } else if ("int".equals(parserName)) {
-                restriction = XsdReferenceBuilder.intReference(xData, parameters);
-            } else if ("long".equals(parserName)) {
-                restriction = XsdReferenceBuilder.longReference(xData, parameters);
-            } else if ("double".equals(parserName)) {
-                restriction = XsdReferenceBuilder.doubleReference(xData, parameters);
-            } else if ("float".equals(parserName)) {
-                restriction = XsdReferenceBuilder.floatReference(xData, parameters);
-            } else {
-                System.out.println("Unknown reference type parser: "+ parserName);
+            QName qName = XD2XsdUtils.parserNameToQName(parserName);
+            if (qName != null) {
+                restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
             }
         } else {
-            restriction = XsdReferenceBuilder.stringReference(xData, null);
+            restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
         }
 
         if (restriction == null) {
