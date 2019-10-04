@@ -1,16 +1,30 @@
 package org.xdef.impl.util.conv.xd2schemas;
 
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaComplexType;
-import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.*;
+import org.xdef.impl.XNode;
+import org.xdef.model.XMData;
+import org.xdef.model.XMOccurrence;
+
+import javax.xml.namespace.QName;
+import java.security.InvalidParameterException;
 
 public class XsdBuilder {
 
-    public static void addElement(final XmlSchema schema, final XmlSchemaElement element) {
+    private final XmlSchema schema;
+
+    public XsdBuilder(XmlSchema schema) {
+        this.schema = schema;
+    }
+
+    public void addElement(final XmlSchemaElement element) {
         schema.getItems().add(element);
     }
 
-    public static XmlSchemaElement createElement(final XmlSchema schema, final String name) {
+    /**
+     * Create named xsd element
+     * Example: <element name="elem_name">
+     */
+    public XmlSchemaElement createElement(final String name) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
         elem.setName(name);
         /*hostElement.setMinOccurs(1);
@@ -19,7 +33,59 @@ public class XsdBuilder {
         return elem;
     }
 
-    public static XmlSchemaComplexType createComplexType(final XmlSchema schema) {
+    /**
+     * Create complexType element
+     * Output: <complexType>
+     */
+    public XmlSchemaComplexType createComplexType() {
         return new XmlSchemaComplexType(schema, false);
+    }
+
+    public XmlSchemaAttribute createAttribute(final String name, final XMData xmData) {
+        XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
+        attr.setName(name);
+        if (xmData.isOptional() || xmData.getOccurence().isOptional()) {
+            attr.setUse(XmlSchemaUse.OPTIONAL);
+        } else if (xmData.isRequired() || xmData.getOccurence().isRequired()) {
+            attr.setUse(XmlSchemaUse.REQUIRED);
+        }
+
+        // TODO: Handling of reference namespaces?
+        if (xmData.getRefTypeName() != null) {
+            attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
+        }
+
+
+        return attr;
+    }
+
+    /**
+     *
+     * @param groupType
+     * @return
+     */
+    public XmlSchemaGroupParticle createGroup(short groupType, final XMOccurrence occurrence) {
+        XmlSchemaGroupParticle particle = null;
+        switch (groupType) {
+            case XNode.XMSEQUENCE: {
+                particle = new XmlSchemaSequence();
+                break;
+            }
+            case XNode.XMMIXED: {
+                throw new InvalidParameterException("GgroupType mixed not supported yet");
+            }
+            case XNode.XMCHOICE: {
+                particle = new XmlSchemaChoice();
+                break;
+            }
+            default: {
+                throw new InvalidParameterException("Unknown groupType");
+            }
+        }
+
+        particle.setMinOccurs(occurrence.minOccurs());
+        particle.setMaxOccurs(occurrence.maxOccurs());
+
+        return particle;
     }
 }

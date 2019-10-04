@@ -1,25 +1,26 @@
 package org.xdef.impl.util.conv.xd2schemas;
 
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.*;
 import org.xdef.model.XMData;
 import org.xdef.model.XMDefinition;
-import org.xdef.model.XMElement;
 import org.xdef.model.XMNode;
 
 import java.io.PrintStream;
 import java.util.*;
 
-public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema> {
+public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
     private Map<String, String> schemaNamespaces = new HashMap<String, String>();
     private XmlSchema schema = null;
+    private XsdBuilder xsdBuilder = null;
 
     public XD2XsdAdapter(final String xsdPrefix) {
         if (xsdPrefix != null) {
-            schemaNamespaces.put(xsdPrefix, "http://www.w3.org/2001/XMLSchema");
+            schemaNamespaces.put(xsdPrefix, Constants.URI_2001_SCHEMA_XSD);
         }
     }
 
@@ -71,89 +72,106 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema> {
         }
 
         schema = new XmlSchema("", new XmlSchemaCollection());
+        xsdBuilder = new XsdBuilder(schema);
 
         // Namespace initialization
         NamespaceMap namespaceMap = new NamespaceMap();
         for (Map.Entry<String, String> entry : schemaNamespaces.entrySet()) {
             namespaceMap.add(entry.getKey(), entry.getValue());
         }
-        //schemaNamespaces.forEach((k, v) -> namespaceMap.add(k, v));
         schema.setNamespaceContext(namespaceMap);
 
-        convert(xdef);
+        // Extract all used references
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema);
+        referenceAdapter.convertReferences(xdef);
+
+        // Convert x-definition tree to xsd tree
+        Set<XMNode> processed = new HashSet<XMNode>();
+        convertTree(xdef, System.out, processed, "");
         return schema;
     }
 
-    private void convert(XMDefinition xdef) {
-        Set<XMNode> processed = new HashSet<XMNode>();
-        XmlSchemaElement rootElem = null;
-        convertRec(xdef, System.out, processed, "", rootElem);
+    private List<XmlSchemaAttributeOrGroupRef> convertAttrs(final XMNode[] xdAttrs) {
+        List<XmlSchemaAttributeOrGroupRef> xsdAttrList = new ArrayList<XmlSchemaAttributeOrGroupRef>();
+        for (XMNode x : xdAttrs) {
+            xsdAttrList.add(xsdBuilder.createAttribute(x.getName(), (XMData)x));
+        }
+
+        return xsdAttrList;
     }
 
-    private void convertRec(
+    private XmlSchemaObject convertTree(
             XMNode xn,
             final PrintStream out,
             final Set<XMNode> processed,
-            String outputPrefix,
-            XmlSchemaItemWithRef xsdElem
-            ) {
+            String outputPrefix) {
+
         if (!processed.add(xn)) {
             System.out.println(outputPrefix + " * ref " + xn.getXDPosition());
-            return;
+            return null;
         }
 
-        switch (xn.getKind()) {
+        short xdElemKind = xn.getKind();
+        switch (xdElemKind) {
             case XNode.XMATTRIBUTE:
             case XNode.XMTEXT: {
                 XData xd = (XData) xn;
                 out.print(outputPrefix + "|-- XMAttr: ");
+                out.print(" - ");
                 displayDesriptor(xd, out);
-                return;
+                return null;
             }
             case XNode.XMELEMENT: {
                 XElement defEl = (XElement)xn;
                 out.print(outputPrefix + "|-- XMElement: ");
                 displayDesriptor(defEl, out);
-                XNode[] attrs = defEl.getXDAttrs();
+
+                XmlSchemaElement xsdElem = xsdBuilder.createElement(defEl.getName());
+                XmlSchemaComplexType complexType = xsdBuilder.createComplexType();
+                XmlSchemaGroupParticle group = null;
+
+                XMNode[] attrs = defEl.getXDAttrs();
 
                 for(int i = 0; i < attrs.length; i++) {
-                    convertRec(attrs[i], out, processed, outputPrefix + "|   ", xsdElem);
+                    convertTree(attrs[i], out, processed, outputPrefix + "|   ");
                 }
-
-                XmlSchemaComplexType complexType = XsdBuilder.createComplexType(schema);
-                ((XmlSchemaElement)xsdElem).setType(complexType);
 
                 for (int i = 0; i < defEl._childNodes.length; i++) {
-                    convertRec(defEl._childNodes[i], out, processed, outputPrefix + "|   ", xsdElem);
-                    if (defEl._childNodes[i].getKind() == XNode.XMSEQUENCE ||
-                            defEl._childNodes[i].getKind() == XNode.XMMIXED ||
-                            defEl._childNodes[i].getKind() == XNode.XMCHOICE) {
+                    short childrenKind = defEl._childNodes[i].getKind();
+                    if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
+                        group = (XmlSchemaGroupParticle)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                        complexType.setParticle(group);
                         outputPrefix += "|   ";
+                    } else {
+                        XmlSchemaSequenceMember xsdChild = (XmlSchemaSequenceMember)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                        ((XmlSchemaSequence) group).getItems().add(xsdChild);
                     }
                 }
+
+                List<XmlSchemaAttributeOrGroupRef> xsdAttrList = convertAttrs(attrs);
+                complexType.getAttributes().addAll(xsdAttrList);
+                xsdElem.setType(complexType);
+
                 //out.println(outputPrefix + "|-- End XMElement: " + xn.getName());
-                return;
+                return xsdElem;
             }
             case XNode.XMSELECTOR_END:
                 out.println(outputPrefix + "|-- End of selector: ");
-                return;
+                return null;
             case XNode.XMSEQUENCE:
             case XNode.XMMIXED:
             case XNode.XMCHOICE:
                 displaySelector(xn, out, outputPrefix);
-                return;
+                return xsdBuilder.createGroup(xdElemKind, xn.getOccurence());
             case XNode.XMDEFINITION: {
                 XDefinition def = (XDefinition)xn;
                 out.print(outputPrefix + "XMDefinition: ");
                 displayDesriptor(def, out);
 
-               xsdElem = null;
                 if (def._rootSelection !=null && def._rootSelection.size() > 0) {
                     Iterator<String> e=def._rootSelection.keySet().iterator();
                     String name = e.next();
                     out.println("|-- Root: " + name);
-                    xsdElem = XsdBuilder.createElement(schema, name);
-                    XsdBuilder.addElement(schema, (XmlSchemaElement)xsdElem);
 
                     while (e.hasNext()) {
                         out.println("    | " + e.next());
@@ -162,22 +180,20 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema> {
                     out.println(outputPrefix + "|-- Root: null");
                 }
 
-                // TODO: What should we do if x-definition has no root element
-                if (xsdElem == null) {
-                    throw new RuntimeException("x-definition has no root element");
-                }
-
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
-                    convertRec(elems[i], out, processed, outputPrefix + "|   ", xsdElem);
+                    XmlSchemaElement xsdElem = (XmlSchemaElement)convertTree(elems[i], out, processed, outputPrefix + "|   ");
+                    xsdBuilder.addElement(xsdElem);
                 }
                 //out.println(outputPrefix + "=== End XMDefinition: " + def.getName() + "\n");
-                return;
+                return null;
             }
             default: {
                 out.println(outputPrefix + "UNKNOWN: " + xn.getName() + "; " + xn.getKind());
             }
         }
+
+        return null;
     }
 
     private static void displaySelector(final XMNode xn, final PrintStream out, final String outputPrefix) {

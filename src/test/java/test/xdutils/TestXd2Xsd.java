@@ -64,7 +64,7 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private File getXmlDataFile(final String testCase, final String fileName) throws FileNotFoundException {
-        return getFile(_dataFilesRoot.getAbsolutePath() + "\\" + testCase, fileName, ".xml");
+        return getFile(_dataFilesRoot.getAbsolutePath() + "\\" + testCase + "\\data", fileName, ".xml");
     }
 
     private XmlSchema getRefSchema(final String fileName) throws FileNotFoundException {
@@ -110,13 +110,17 @@ public class TestXd2Xsd extends XDTester {
             ByteArrayOutputStream outputSchemaStream = compareSchemas(getRefSchema(fileName), outputSchema);
 
             // Validate valid XML file against XSD schema
-            for (String testingFile : validTestingData) {
-                validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, true);
+            if (validTestingData != null) {
+                for (String testingFile : validTestingData) {
+                    validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, true);
+                }
             }
 
             // Validate invalid XML file against XSD schema
-            for (String testingFile : invalidTestingData) {
-                validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, false);
+            if (invalidTestingData != null) {
+                for (String testingFile : invalidTestingData) {
+                    validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, false);
+                }
             }
 
             assertNoErrors(reporter);
@@ -128,6 +132,7 @@ public class TestXd2Xsd extends XDTester {
         init();
 
         convertXd2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
+        convertXd2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
