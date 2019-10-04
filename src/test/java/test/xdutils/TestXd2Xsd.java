@@ -135,6 +135,7 @@ public class TestXd2Xsd extends XDTester {
         convertXd2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
         convertXd2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
         convertXd2Xsd("t003", Arrays.asList(new String[] {"t003"}), null);
+        convertXd2Xsd("t004", Arrays.asList(new String[] {"t004"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

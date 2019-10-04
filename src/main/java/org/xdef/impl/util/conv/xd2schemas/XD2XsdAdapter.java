@@ -161,10 +161,14 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         attrInsideContent = true;
                     } else {
                         XmlSchemaObjectBase xsdChild = convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
-                        if (group instanceof XmlSchemaSequence) {
-                            ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
-                        } else if (group instanceof XmlSchemaChoice) {
-                            ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
+                        if (xsdChild != null) {
+                            if (group instanceof XmlSchemaSequence) {
+                                ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
+                            } else if (group instanceof XmlSchemaChoice) {
+                                ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
+                            } else if (group instanceof XmlSchemaAll) {
+                                ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
+                            }
                         }
                     }
                 }

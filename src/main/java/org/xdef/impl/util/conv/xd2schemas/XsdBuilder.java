@@ -89,7 +89,8 @@ public class XsdBuilder {
                 break;
             }
             case XNode.XMMIXED: {
-                throw new InvalidParameterException("GgroupType mixed not supported yet");
+                particle = new XmlSchemaAll();
+                break;
             }
             case XNode.XMCHOICE: {
                 particle = new XmlSchemaChoice();
