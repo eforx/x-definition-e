@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2"
+  xd:name="t003"
+  xd:root="a">
+  <xd:declaration>
+    type a_Type string(1, 8);
+  </xd:declaration>
+  <xd:declaration>
+    type c_Type int(1, 8);
+  </xd:declaration>
+  <xd:declaration>
+    type b_Type string(1, 8);
+  </xd:declaration>
+  <a a="optional a_Type()">
+    <xd:choice xd:script="occurs 1">
+      <b xd:script="occurs 1"
+        b="optional b_Type()">
+        optional int()
+      </b>
+      <c xd:script="occurs 1"
+        c="optional c_Type()">
+        optional int()
+      </c>
+    </xd:choice>
+  </a>
+</xd:def>

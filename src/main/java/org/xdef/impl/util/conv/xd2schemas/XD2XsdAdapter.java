@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.XDPool;
 import org.xdef.impl.*;
 import org.xdef.model.XMData;
@@ -159,8 +160,12 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         complexType.setContentModel(simpleContent);
                         attrInsideContent = true;
                     } else {
-                        XmlSchemaSequenceMember xsdChild = (XmlSchemaSequenceMember)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
-                        ((XmlSchemaSequence) group).getItems().add(xsdChild);
+                        XmlSchemaObjectBase xsdChild = convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                        if (group instanceof XmlSchemaSequence) {
+                            ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
+                        } else if (group instanceof XmlSchemaChoice) {
+                            ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
+                        }
                     }
                 }
 
