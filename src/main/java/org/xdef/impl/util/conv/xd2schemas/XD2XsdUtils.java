@@ -19,6 +19,8 @@ public class XD2XsdUtils {
             return Constants.XSD_DOUBLE;
         } else if ("float".equals(parserName)) {
             return Constants.XSD_FLOAT;
+        } else if ("enum".equals(parserName)) {
+            return Constants.XSD_STRING;
         } else {
             System.out.println("Unknown reference type parser: "+ parserName);
         }

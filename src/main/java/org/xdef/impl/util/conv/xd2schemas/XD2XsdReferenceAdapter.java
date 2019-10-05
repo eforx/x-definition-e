@@ -28,16 +28,10 @@ public class XD2XsdReferenceAdapter {
 
     protected void convertReferences(XMNode xn) {
         references = new HashSet<String>();
-        Set<XMNode> processed = new HashSet<XMNode>();
-        convertTree(xn, processed);
+        extractRefsFromAttrs(xn);
     }
 
-    private void convertTree(XMNode xn, final Set<XMNode> processed) {
-
-        if (!processed.add(xn)) {
-            return;
-        }
-
+    private void extractRefsFromAttrs(XMNode xn) {
         short xdElemKind = xn.getKind();
         switch (xdElemKind) {
             case XNode.XMELEMENT: {
@@ -45,11 +39,11 @@ public class XD2XsdReferenceAdapter {
                 XMNode[] attrs = defEl.getXDAttrs();
 
                 for(int i = 0; i < attrs.length; i++) {
-                    addReference((XData)attrs[i]);
+                    addAttrTypeReference((XData)attrs[i]);
                 }
 
                 for (int i = 0; i < defEl._childNodes.length; i++) {
-                    convertTree(defEl._childNodes[i], processed);
+                    extractRefsFromAttrs(defEl._childNodes[i]);
                 }
 
                 return;
@@ -58,17 +52,17 @@ public class XD2XsdReferenceAdapter {
                 XDefinition def = (XDefinition)xn;
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
-                    convertTree(elems[i], processed);
+                    extractRefsFromAttrs(elems[i]);
                 }
                 return;
             }
         }
     }
 
-    private void addReference(final XData xData) {
+    private void addAttrTypeReference(final XData xData) {
         final String refTypeName = xData.getRefTypeName();
 
-        if (references.contains(refTypeName)) {
+        if (refTypeName == null || references.contains(refTypeName)) {
             return;
         }
 

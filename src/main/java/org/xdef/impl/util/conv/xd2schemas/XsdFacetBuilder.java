@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas;
 
 import org.apache.ws.commons.schema.*;
+import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
 
@@ -42,6 +43,10 @@ public class XsdFacetBuilder {
                     facets.add(maxInclusive(param, decimal));
                 } else if ("maxExclusive".equals(param.getName())) {
                     facets.add(maxExclusive(param, decimal));
+                } else if ("argument".equals(param.getName())) {
+                    enumeration(facets, param);
+                } else if ("length".equals(param.getName())) {
+                    facets.add(length(param));
                 } else {
                     System.out.println("Unknown reference type parameter: " + param.getName());
                 }
@@ -87,6 +92,12 @@ public class XsdFacetBuilder {
         return facet;
     }
 
+    public static XmlSchemaLengthFacet length(final XDNamedValue param) {
+        XmlSchemaLengthFacet facet = new XmlSchemaLengthFacet();
+        facet.setValue(param.getValue().intValue());
+        return facet;
+    }
+
     public static XmlSchemaWhiteSpaceFacet whitespace(final XDNamedValue param) {
         XmlSchemaWhiteSpaceFacet facet = new XmlSchemaWhiteSpaceFacet();
         facet.setValue(param.getValue().stringValue());
@@ -97,6 +108,18 @@ public class XsdFacetBuilder {
         XmlSchemaPatternFacet facet = new XmlSchemaPatternFacet();
         facet.setValue(param.getValue().stringValue());
         return facet;
+    }
+
+    public static void enumeration(final List<XmlSchemaFacet> facets, final XDNamedValue param) {
+        if (param.getValue().getItemId() == XDValue.XD_CONTAINER) {
+            for (XDValue value : ((XDContainer) param.getValue()).getXDItems()) {
+                XmlSchemaEnumerationFacet facet = new XmlSchemaEnumerationFacet();
+                // Remove all new lines and leading whitespaces on new line
+                String strValue = value.stringValue().replaceAll("\\n *", " ");
+                facet.setValue(strValue);
+                facets.add(facet);
+            }
+        }
     }
 
     private static void setDecimalValue(final XmlSchemaFacet facet, boolean decimal, XDValue xdValue) {

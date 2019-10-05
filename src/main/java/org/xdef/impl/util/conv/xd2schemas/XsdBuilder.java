@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas;
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
+import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.model.XMData;
 import org.xdef.model.XMOccurrence;
@@ -22,16 +23,19 @@ public class XsdBuilder {
         schema.getItems().add(element);
     }
 
+    public void addComplexType(final XmlSchemaComplexType complexType) {
+        schema.getItems().add(complexType);
+    }
+
     /**
      * Create named xsd element
      * Example: <element name="elem_name">
      */
-    public XmlSchemaElement createElement(final String name) {
+    public XmlSchemaElement createElement(final String name, final XElement xElement) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
         elem.setName(name);
-        /*hostElement.setMinOccurs(1);
-        hostElement.setMaxOccurs(1);*/
-
+        elem.setMinOccurs(xElement.getOccurence().minOccurs());
+        elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         return elem;
     }
 
@@ -55,8 +59,9 @@ public class XsdBuilder {
         // TODO: Handling of reference namespaces?
         if (xmData.getRefTypeName() != null) {
             attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
+        } else {
+            attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
         }
-
 
         return attr;
     }
@@ -102,7 +107,7 @@ public class XsdBuilder {
         }
 
         particle.setMinOccurs(occurrence.minOccurs());
-        particle.setMaxOccurs(occurrence.maxOccurs());
+        particle.setMaxOccurs((occurrence.isUnbounded() || occurrence.isMaxUnlimited()) ? Long.MAX_VALUE : occurrence.maxOccurs());
 
         return particle;
     }
