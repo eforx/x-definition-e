@@ -11,11 +11,11 @@ import org.xdef.model.XMOccurrence;
 import javax.xml.namespace.QName;
 import java.security.InvalidParameterException;
 
-public class XsdBuilder {
+public class XsdBaseBuilder {
 
     private final XmlSchema schema;
 
-    public XsdBuilder(XmlSchema schema) {
+    public XsdBaseBuilder(XmlSchema schema) {
         this.schema = schema;
     }
 
@@ -33,11 +33,35 @@ public class XsdBuilder {
      */
     public XmlSchemaElement createElement(final String name, final XElement xElement) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
-        int namespacePrefixPos = name.indexOf(':');
-        elem.setName(namespacePrefixPos == -1 ? name : name.substring(namespacePrefixPos + 1));
+        elem.setName(name);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         return elem;
+    }
+
+    public void resolveElementName(final XmlSchemaElement elem) {
+        final String name = elem.getName();
+        final String newName = getResolvedName(name);
+
+        if (!name.equals(newName)) {
+            elem.setName(newName);
+        } else if (isUnqualifiedName(name)) {
+            elem.setForm(XmlSchemaForm.UNQUALIFIED);
+        }
+    }
+
+    private String getResolvedName(final String name) {
+        // Element's name contains target namespace prefix, we can remove this prefix
+        if (schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix()) && name.charAt(schema.getSchemaNamespacePrefix().length()) == ':') {
+            return name.substring(schema.getSchemaNamespacePrefix().length() + 1);
+        }
+
+        return name;
+    }
+
+    private boolean isUnqualifiedName(final String name) {
+        // Element's name without namespace prefix, while xml is using target namespace
+        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null;
     }
 
     /**
@@ -62,6 +86,13 @@ public class XsdBuilder {
             attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
         } else {
             attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
+        }
+
+        String newName = getResolvedName(name);
+        if (!name.equals(newName)) {
+            attr.setName(newName);
+        } else if (isUnqualifiedName(name)) {
+            attr.setForm(XmlSchemaForm.UNQUALIFIED);
         }
 
         return attr;

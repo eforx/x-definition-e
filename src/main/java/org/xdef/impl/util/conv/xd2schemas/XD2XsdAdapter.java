@@ -4,6 +4,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
+import org.xdef.XDConstants;
 import org.xdef.XDParser;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
@@ -21,7 +22,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
     private boolean printXdTree = false;
     private Map<String, String> schemaNamespaces = new HashMap<String, String>();
     private XmlSchema schema = null;
-    private XsdBuilder xsdBuilder = null;
+    private XsdBaseBuilder xsdBuilder = null;
     private XmlSchemaForm elemSchemaForm;
     private XmlSchemaForm attrSchemaForm;
     private String targetNamespace = null;
@@ -98,7 +99,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         schema = new XmlSchema("", new XmlSchemaCollection());
         schema.setElementFormDefault(elemSchemaForm);
         schema.setAttributeFormDefault(attrSchemaForm);
-        xsdBuilder = new XsdBuilder(schema);
+        xsdBuilder = new XsdBaseBuilder(schema);
 
         // Namespace initialization
         NamespaceMap namespaceMap = new NamespaceMap();
@@ -107,7 +108,10 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         }
 
         for (Map.Entry<String, String> entry : ((XDefinition)xdef)._namespaces.entrySet()) {
-            if ("xml".equals(entry.getKey()) || "xd".equals(entry.getKey()) || "xmlns".equals(entry.getKey())) {
+            // Default prefixes
+            if (Constants.XML_NS_PREFIX.equals(entry.getKey())
+                    || Constants.XMLNS_ATTRIBUTE.equals(entry.getKey())
+                    || XDConstants.XDEF_NS_PREFIX.equals(entry.getKey())) {
                 continue;
             }
 
@@ -121,6 +125,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         schema.setNamespaceContext(namespaceMap);
         if (targetNamespace != null) {
             schema.setTargetNamespace(targetNamespace);
+            schema.setSchemaNamespacePrefix(namespaceMap.getPrefix(targetNamespace));
         }
 
         // Extract all used references
@@ -242,6 +247,8 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
                     xsdElem.setType(complexType);
                 }
+
+                xsdBuilder.resolveElementName(xsdElem);
                 return xsdElem;
             }
             case XNode.XMSELECTOR_END:
