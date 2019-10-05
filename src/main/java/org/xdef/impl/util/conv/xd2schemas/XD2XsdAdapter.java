@@ -20,6 +20,9 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
     private Map<String, String> schemaNamespaces = new HashMap<String, String>();
     private XmlSchema schema = null;
     private XsdBuilder xsdBuilder = null;
+    private XmlSchemaForm elemSchemaForm;
+    private XmlSchemaForm attrSchemaForm;
+    private String targetNamespace = null;
 
     public XD2XsdAdapter(final String xsdPrefix) {
         if (xsdPrefix != null) {
@@ -33,6 +36,18 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
     public void setPrintXdTree(boolean printXdTree) {
         this.printXdTree = printXdTree;
+    }
+
+    public void setElemSchemaForm(XmlSchemaForm elemSchemaForm) {
+        this.elemSchemaForm = elemSchemaForm;
+    }
+
+    public void setAttrSchemaForm(XmlSchemaForm attrSchemaForm) {
+        this.attrSchemaForm = attrSchemaForm;
+    }
+
+    public void setTargetNamespace(String targetNamespace) {
+        this.targetNamespace = targetNamespace;
     }
 
     public final Map<String, String> getSchemaNamespaces() {
@@ -79,6 +94,8 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         }
 
         schema = new XmlSchema("", new XmlSchemaCollection());
+        schema.setElementFormDefault(elemSchemaForm);
+        schema.setAttributeFormDefault(attrSchemaForm);
         xsdBuilder = new XsdBuilder(schema);
 
         // Namespace initialization
@@ -86,7 +103,23 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         for (Map.Entry<String, String> entry : schemaNamespaces.entrySet()) {
             namespaceMap.add(entry.getKey(), entry.getValue());
         }
+
+        for (Map.Entry<String, String> entry : ((XDefinition)xdef)._namespaces.entrySet()) {
+            if ("xml".equals(entry.getKey()) || "xd".equals(entry.getKey()) || "xmlns".equals(entry.getKey())) {
+                continue;
+            }
+
+            if (!namespaceMap.containsKey(entry.getKey())) {
+                namespaceMap.add(entry.getKey(), entry.getValue());
+            } else {
+                System.out.println("XSD schema already contains namespace " + entry.getKey());
+            }
+        }
+
         schema.setNamespaceContext(namespaceMap);
+        if (targetNamespace != null) {
+            schema.setTargetNamespace(targetNamespace);
+        }
 
         // Extract all used references
         XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema);

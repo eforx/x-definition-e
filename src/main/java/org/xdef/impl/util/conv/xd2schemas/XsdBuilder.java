@@ -33,7 +33,8 @@ public class XsdBuilder {
      */
     public XmlSchemaElement createElement(final String name, final XElement xElement) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
-        elem.setName(name);
+        int namespacePrefixPos = name.indexOf(':');
+        elem.setName(namespacePrefixPos == -1 ? name : name.substring(namespacePrefixPos + 1));
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         return elem;
