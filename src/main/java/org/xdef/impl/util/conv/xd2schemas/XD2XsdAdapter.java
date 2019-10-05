@@ -16,6 +16,7 @@ import java.util.*;
 
 public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
+    private boolean printXdTree = false;
     private Map<String, String> schemaNamespaces = new HashMap<String, String>();
     private XmlSchema schema = null;
     private XsdBuilder xsdBuilder = null;
@@ -28,6 +29,10 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
     public XD2XsdAdapter() {
         this("xs");
+    }
+
+    public void setPrintXdTree(boolean printXdTree) {
+        this.printXdTree = printXdTree;
     }
 
     public final Map<String, String> getSchemaNamespaces() {
@@ -109,7 +114,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
             String outputPrefix) {
 
         if (outputPrefix != null && !processed.add(xn)) {
-            System.out.println(outputPrefix + " * ref " + xn.getXDPosition());
+            System.out.println(outputPrefix + "Already processed node (reference): " + xn.getName() + " (" + xn.getXDPosition() + ")");
             return null;
         }
 
@@ -117,7 +122,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         switch (xdElemKind) {
             case XNode.XMATTRIBUTE: {
                 XMData xd = (XMData) xn;
-                if (outputPrefix != null) {
+                if (outputPrefix != null && printXdTree) {
                     out.print(outputPrefix + "|-- XMAttr: ");
                     displayDesriptor((XData)xn, out);
                 }
@@ -125,7 +130,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
             }
             case XNode.XMTEXT: {
                 XData xd = (XData) xn;
-                if (outputPrefix != null) {
+                if (outputPrefix != null && printXdTree) {
                     out.print(outputPrefix + "|-- XMText: ");
                     displayDesriptor(xd, out);
                 }
@@ -133,8 +138,10 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
             }
             case XNode.XMELEMENT: {
                 XElement defEl = (XElement)xn;
-                out.print(outputPrefix + "|-- XMElement: ");
-                displayDesriptor(defEl, out);
+                if (printXdTree) {
+                    out.print(outputPrefix + "|-- XMElement: ");
+                    displayDesriptor(defEl, out);
+                }
 
                 XmlSchemaElement xsdElem = xsdBuilder.createElement(defEl.getName(), defEl);
                 XmlSchemaComplexType complexType = xsdBuilder.createComplexType();
@@ -192,29 +199,38 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                 return xsdElem;
             }
             case XNode.XMSELECTOR_END:
-                out.println(outputPrefix + "|-- End of selector: ");
+                if (printXdTree) {
+                    out.println(outputPrefix + "|-- End of selector: ");
+                }
                 return null;
             case XNode.XMSEQUENCE:
             case XNode.XMMIXED:
             case XNode.XMCHOICE:
-                displaySelector(xn, out, outputPrefix);
+                if (printXdTree) {
+                    displaySelector(xn, out, outputPrefix);
+                }
                 return xsdBuilder.createGroup(xdElemKind, xn.getOccurence());
             case XNode.XMDEFINITION: {
                 XDefinition def = (XDefinition)xn;
-                out.print(outputPrefix + "XMDefinition: ");
-                displayDesriptor(def, out);
+                if (printXdTree) {
+                    out.print(outputPrefix + "XMDefinition: ");
+                    displayDesriptor(def, out);
+                }
 
                 String rootElemName = null;
                 if (def._rootSelection != null && def._rootSelection.size() > 0) {
                     Iterator<String> e=def._rootSelection.keySet().iterator();
                     rootElemName = e.next();
-                    out.println("|-- Root: " + rootElemName);
-
-                    while (e.hasNext()) {
-                        out.println("    | " + e.next());
+                    if (printXdTree) {
+                        out.println("|-- Root: " + rootElemName);
+                        while (e.hasNext()) {
+                            out.println("    | " + e.next());
+                        }
                     }
                 } else {
-                    out.println(outputPrefix + "|-- Root: null");
+                    if (printXdTree) {
+                        out.println(outputPrefix + "|-- Root: null");
+                    }
                 }
 
                 XElement[] elems = def.getXElements();
@@ -223,7 +239,6 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         XmlSchemaElement xsdElem = (XmlSchemaElement) convertTree(elems[i], out, processed, outputPrefix + "|   ");
                         xsdBuilder.addElement(xsdElem);
                     } else {
-                        System.out.println("Complex type reference definition");
                         XmlSchemaElement xsdElem = (XmlSchemaElement) convertTree(elems[i], out, processed, outputPrefix + "|   ");
                         XmlSchemaComplexType complexType = (XmlSchemaComplexType)xsdElem.getSchemaType();
                         complexType.setName(xsdElem.getName());

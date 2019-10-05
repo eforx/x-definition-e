@@ -17,9 +17,13 @@ import java.util.List;
 
 public class TestXd2Xsd extends XDTester {
 
+    static private boolean PRINT_SCHEMA_TO_OUTPUT = false;
+    static private boolean WRITE_SCHEMAS_INTO_FILE = true;
+
     private File _inputFilesRoot;
     private File _refFilesRoot;
     private File _dataFilesRoot;
+    private File _outputFilesRoot;
 
     private void init() {
         File dataDir = new File(getDataDir());
@@ -31,6 +35,7 @@ public class TestXd2Xsd extends XDTester {
         _inputFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _refFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
+        _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -79,12 +84,23 @@ public class TestXd2Xsd extends XDTester {
         return schemas[0];
     }
 
-    private ByteArrayOutputStream compareSchemas(XmlSchema ref, XmlSchema output) throws UnsupportedEncodingException {
+    private ByteArrayOutputStream compareSchemas(final String fileName, XmlSchema ref, XmlSchema output) throws UnsupportedEncodingException {
         ByteArrayOutputStream outputStreamRef = new ByteArrayOutputStream();
         ref.write(outputStreamRef);
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         output.write(outputStream);
+
+        if (WRITE_SCHEMAS_INTO_FILE == true) {
+            try {
+                BufferedWriter writerActual = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName + "_actual.xsd"));
+                output.write(writerActual);
+                BufferedWriter writerRef = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName + "_ref.xsd"));
+                ref.write(writerRef);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         assertEq(outputStream.toString(), outputStreamRef.toString());
 
@@ -101,13 +117,17 @@ public class TestXd2Xsd extends XDTester {
         setProperty("xdef.warnings", "true");
         try {
             XD2XsdAdapter adapter = new XD2XsdAdapter();
+            //adapter.setPrintXdTree(true);
+            
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
             XmlSchema outputSchema = adapter.createSchema(inputXD, fileName);
-            outputSchema.write(System.out);
+            if (PRINT_SCHEMA_TO_OUTPUT == true) {
+                outputSchema.write(System.out);
+            }
 
             // Compare XSD schemas
-            ByteArrayOutputStream outputSchemaStream = compareSchemas(getRefSchema(fileName), outputSchema);
+            ByteArrayOutputStream outputSchemaStream = compareSchemas(fileName, getRefSchema(fileName), outputSchema);
 
             // Validate valid XML file against XSD schema
             if (validTestingData != null) {
@@ -136,6 +156,7 @@ public class TestXd2Xsd extends XDTester {
         convertXd2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
         convertXd2Xsd("t003", Arrays.asList(new String[] {"t003"}), null);
         convertXd2Xsd("t004", Arrays.asList(new String[] {"t004"}), null);
+        convertXd2Xsd("t005", Arrays.asList(new String[] {"t005"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
