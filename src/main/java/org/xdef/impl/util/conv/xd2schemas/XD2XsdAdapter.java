@@ -4,7 +4,9 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
+import org.xdef.XDParser;
 import org.xdef.XDPool;
+import org.xdef.XDValue;
 import org.xdef.impl.*;
 import org.xdef.model.XMData;
 import org.xdef.model.XMDefinition;
@@ -193,29 +195,40 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         convertTree(attrs[i], out, processed, outputPrefix + "|   ");
                     }
 
-                    for (int i = 0; i < defEl._childNodes.length; i++) {
-                        short childrenKind = defEl._childNodes[i].getKind();
-                        if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                            group = (XmlSchemaGroupParticle)convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
-                            complexType.setParticle(group);
-                            outputPrefix += "|   ";
-                        } else if (childrenKind == XNode.XMTEXT) {
-                            XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
-                            for (int j = 0; j < attrs.length; j++) {
-                                ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[j], out, processed, null));
-                            }
+                    // If element contains only data, we dont have to create complexType
+                    if (attrs.length == 0 && defEl._childNodes.length == 1 && defEl._childNodes[0].getKind() == XNode.XMTEXT) {
+                        XData xd = (XData)defEl._childNodes[0];
+                        final String parserName = xd.getParserName();
+                        XDValue parseMethod = xd.getParseMethod();
+                        // TODO: Has to be instance of XDParser?
+                        if (parseMethod instanceof XDParser) {
+                            xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
+                        }
+                    } else {
+                        for (int i = 0; i < defEl._childNodes.length; i++) {
+                            short childrenKind = defEl._childNodes[i].getKind();
+                            if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
+                                group = (XmlSchemaGroupParticle) convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                                complexType.setParticle(group);
+                                outputPrefix += "|   ";
+                            } else if (childrenKind == XNode.XMTEXT) {
+                                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                                for (int j = 0; j < attrs.length; j++) {
+                                    ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[j], out, processed, null));
+                                }
 
-                            complexType.setContentModel(simpleContent);
-                            hasSimpleContent = true;
-                        } else {
-                            XmlSchemaObjectBase xsdChild = convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
-                            if (xsdChild != null) {
-                                if (group instanceof XmlSchemaSequence) {
-                                    ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
-                                } else if (group instanceof XmlSchemaChoice) {
-                                    ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
-                                } else if (group instanceof XmlSchemaAll) {
-                                    ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
+                                complexType.setContentModel(simpleContent);
+                                hasSimpleContent = true;
+                            } else {
+                                XmlSchemaObjectBase xsdChild = convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
+                                if (xsdChild != null) {
+                                    if (group instanceof XmlSchemaSequence) {
+                                        ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
+                                    } else if (group instanceof XmlSchemaChoice) {
+                                        ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
+                                    } else if (group instanceof XmlSchemaAll) {
+                                        ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
+                                    }
                                 }
                             }
                         }

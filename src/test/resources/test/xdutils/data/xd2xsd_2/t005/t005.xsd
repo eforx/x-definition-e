@@ -192,13 +192,7 @@
   </xs:complexType>
   <xs:complexType name="ZaznamPDN_ObjStrankaDN_type_cType">
     <xs:sequence>
-      <xs:element name="Misto">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Misto" type="xs:string"/>
     </xs:sequence>
     <xs:attribute name="DatumCasDN"
       type="DatumCasDN_user_Type"
@@ -241,13 +235,7 @@
       <xs:element name="JinaSkoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Drzitel" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Drzitel" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -333,13 +321,7 @@
       <xs:element name="JinaSkoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -383,13 +365,7 @@
       <xs:element name="JinaSkoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -433,13 +409,7 @@
       <xs:element name="JinaSkoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -462,13 +432,7 @@
       <xs:element name="JinaSkoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -482,13 +446,7 @@
       <xs:element name="Skoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -505,13 +463,7 @@
       <xs:element name="Skoda"
         type="ZaznamPDN_Skoda_type_cType"
         minOccurs="0"/>
-      <xs:element name="Vlastnik" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="Vlastnik" type="xs:string" minOccurs="0"/>
     </xs:all>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
@@ -538,41 +490,11 @@
         type="ZaznamPDN_Doklad_type_cType"
         minOccurs="0"
         maxOccurs="unbounded"/>
-      <xs:element name="PoruseniZakProvoz" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
-      <xs:element name="PoruseniZakPrest" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
-      <xs:element name="PoruseniZakTrest" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
-      <xs:element name="PoruseniZakOst" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
-      <xs:element name="Vazba" minOccurs="0">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string"/>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="PoruseniZakProvoz" type="xs:string" minOccurs="0"/>
+      <xs:element name="PoruseniZakPrest" type="xs:string" minOccurs="0"/>
+      <xs:element name="PoruseniZakTrest" type="xs:string" minOccurs="0"/>
+      <xs:element name="PoruseniZakOst" type="xs:string" minOccurs="0"/>
+      <xs:element name="Vazba" type="xs:string" minOccurs="0"/>
       <xs:element name="TrvalyPobyt"
         type="ZaznamPDN_Adresa_type_cType"
         minOccurs="0"/>
@@ -739,13 +661,7 @@
         <xs:element name="Rozhodnuti"
           type="ZaznamPDN_RozhodnutiDN_type_cType"
           minOccurs="0"/>
-        <xs:element name="Vyliceni">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string"/>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
+        <xs:element name="Vyliceni" type="xs:string"/>
         <xs:element name="ObjStranka"
           type="ZaznamPDN_ObjStrankaDN_type_cType"/>
         <xs:element name="Foto"

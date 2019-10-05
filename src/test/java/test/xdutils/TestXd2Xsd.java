@@ -2,6 +2,7 @@ package test.xdutils;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.XD2XsdAdapter;
@@ -112,13 +113,24 @@ public class TestXd2Xsd extends XDTester {
         assertEq(expectedResult, validator.validate());
     }
 
-    private void convertXd2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+    private void convertXd2Xsd(final String fileName,
+                               List<String> validTestingData, List<String> invalidTestingData,
+                               XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm) {
+        convertXd2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, null);
+    }
+
+    private void convertXd2Xsd(final String fileName,
+                               List<String> validTestingData, List<String> invalidTestingData,
+                               XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm, String targetNamespace) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
             XD2XsdAdapter adapter = new XD2XsdAdapter();
             //adapter.setPrintXdTree(true);
-            
+            adapter.setElemSchemaForm(elemSchemaForm);
+            adapter.setAttrSchemaForm(attrSchemaForm);
+            adapter.setTargetNamespace(targetNamespace);
+
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
             XmlSchema outputSchema = adapter.createSchema(inputXD, fileName);
@@ -151,12 +163,13 @@ public class TestXd2Xsd extends XDTester {
     public void test() {
         init();
 
-        convertXd2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
-        convertXd2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
-        convertXd2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
-        convertXd2Xsd("t003", Arrays.asList(new String[] {"t003"}), null);
-        convertXd2Xsd("t004", Arrays.asList(new String[] {"t004"}), null);
-        convertXd2Xsd("t005", Arrays.asList(new String[] {"t005"}), null);
+        convertXd2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t001", Arrays.asList(new String[] {"t001"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t002", Arrays.asList(new String[] {"t002"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t003", Arrays.asList(new String[] {"t003"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t004", Arrays.asList(new String[] {"t004"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t005", Arrays.asList(new String[] {"t005"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXd2Xsd("t007", Arrays.asList(new String[] {"t007"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
