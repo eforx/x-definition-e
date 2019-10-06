@@ -219,14 +219,15 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
                 if (isReference) {
                     if (XD2XsdUtils.isExternalRef(defEl, schema)) {
-                        xsdElem.setName(null);
                         xsdElem.getRef().setTargetQName(new QName(defEl.getNSUri(), defEl.getName()));
                     } else {
+                        xsdElem.setName(defEl.getName());
                         // TODO: reference namespace?
                         xsdElem.setSchemaTypeName(new QName("", XD2XsdUtils.getReferenceName(defEl.getReferencePos())));
                         xsdBuilder.resolveElementName(xsdElem);
                     }
                 } else {
+                    xsdElem.setName(defEl.getName());
                     XMNode[] attrs = defEl.getXDAttrs();
 
                     for(int i = 0; i < attrs.length; i++) {

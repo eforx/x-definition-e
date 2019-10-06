@@ -112,33 +112,47 @@ public class TestXd2Xsd extends XDTester {
     private List<ByteArrayOutputStream> compareSchemas(final String fileName, XmlSchema[] refSchemas, XmlSchema[] outputSchemas) throws UnsupportedEncodingException {
         assertEq(refSchemas.length, outputSchemas.length);
 
-        List<ByteArrayOutputStream> outputStreams = new ArrayList<ByteArrayOutputStream>();
-        int i = 0;
-        for (; i < outputSchemas.length; i++) {
+        // TODO: How to order schemas to compare it in single loop?
+
+        List<ByteArrayOutputStream> refSchemasByteList = new ArrayList<ByteArrayOutputStream>();
+        for (int i = 0; i < refSchemas.length - 1; i++) {
             ByteArrayOutputStream outputStreamRef = new ByteArrayOutputStream();
             refSchemas[i].write(outputStreamRef);
-            //outputStreams.add(outputStreamRef);
+            refSchemasByteList.add(outputStreamRef);
+        }
 
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputSchemas[i].write(outputStream);
-            outputStreams.add(outputStream);
+        List<ByteArrayOutputStream> outputSchemasByteList = new ArrayList<ByteArrayOutputStream>();
+        for (int i = 0; i < outputSchemas.length - 1; i++) {
+            ByteArrayOutputStream outputStreamRef = new ByteArrayOutputStream();
+            outputSchemas[i].write(outputStreamRef);
+            outputSchemasByteList.add(outputStreamRef);
+        }
 
-            if (WRITE_SCHEMAS_INTO_FILE == true) {
-                try {
-                    BufferedWriter writerActual = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName + (i > 0 ? "_" + i : "") + ".xsd"));
-                    outputSchemas[i].write(writerActual);
-                    BufferedWriter writerRef = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName  + (i > 0 ? "_" + i : "") + "_ref.xsd"));
-                    refSchemas[i].write(writerRef);
-                } catch (IOException e) {
-                    e.printStackTrace();
+        for (int i = 0; i < outputSchemasByteList.size(); i++) {
+            boolean schemaFound = false;
+            for (int j = 0; j < refSchemasByteList.size(); j++) {
+                schemaFound = outputSchemasByteList.get(i).toString().equals(refSchemasByteList.get(j).toString());
+                if (schemaFound) {
+                    if (WRITE_SCHEMAS_INTO_FILE == true) {
+                        try {
+                            BufferedWriter writerActual = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName + (i > 0 ? "_" + i : "") + ".xsd"));
+                            outputSchemas[i].write(writerActual);
+                            BufferedWriter writerRef = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName  + (i > 0 ? "_" + i : "") + "_ref.xsd"));
+                            refSchemas[j].write(writerRef);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    refSchemasByteList.remove(j);
+                    break;
                 }
             }
 
-            assertEq(outputStream.toString(), outputStreamRef.toString());
+            assertTrue(schemaFound, "No schema match found");
         }
 
-
-        return outputStreams;
+        return outputSchemasByteList;
     }
 
     private void validateXml(final File xmlFile, final ByteArrayOutputStream xsdStream, boolean expectedResult) throws FileNotFoundException {
@@ -271,6 +285,14 @@ public class TestXd2Xsd extends XDTester {
                 new String[] {"http://www.w3ctest.com", "http://www.w3schools.com"},
                 new XmlSchemaImportLocation[] {
                         new XmlSchemaImportLocation("http://www.w3ctest.com", "src\\\\test\\\\resources\\\\test\\\\xdutils\\\\data\\\\xd2xsd_2\\\\t011")
+                },
+                2);
+
+        convertXd2Xsd_Multiple("t012", Arrays.asList(new String[] {"t012"}), null,
+                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
+                new String[] {"http://a", null},
+                new XmlSchemaImportLocation[] {
+                        new XmlSchemaImportLocation("http://a", "src\\\\test\\\\resources\\\\test\\\\xdutils\\\\data\\\\xd2xsd_2\\\\t012")
                 },
                 2);
     }

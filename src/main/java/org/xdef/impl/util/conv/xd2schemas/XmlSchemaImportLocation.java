@@ -5,6 +5,9 @@ import java.util.Arrays;
 public class XmlSchemaImportLocation {
     private String namespaceUri;
     private String path;
+    /**
+     * If fileName is not set, then building of XML namespace location will use name of referenced x-definition
+     */
     private String fileName;
     private String fileExt = ".xsd";
 
