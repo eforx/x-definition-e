@@ -1,6 +1,8 @@
-package org.xdef.impl.util.conv.xsd;
+package org.xdef.impl.util.conv.xsd.validation;
 
+import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
 import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -36,12 +38,13 @@ public class XmlValidator {
         this.schemaSource = schemaSource;
     }
 
-    public boolean validate() {
+    public boolean validate(final String baseUri) {
         if (xmlSource == null || schemaSource == null) {
             throw new InternalException("xml == null || schema == null");
         }
 
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
         try {
             Schema schema = schemaFactory.newSchema(schemaSource);
 
@@ -49,9 +52,9 @@ public class XmlValidator {
             validator.validate(xmlSource);
             return true;
         } catch (SAXException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         } catch (IOException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
         return false;

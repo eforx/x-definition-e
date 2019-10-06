@@ -49,8 +49,8 @@ public class XD2XsdReferenceAdapter {
                     addAttrTypeReference((XData)attrs[i]);
                 }
 
-                if (defEl.isReference() && XD2XsdUtils.isExternalRef(defEl, schema)) {
-                    addSchemaImport(defEl);
+                if (defEl.isReference() && XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
+                    addSchemaImportFromElem(defEl.getNSUri(), defEl.getReferencePos());
                 }
 
                 for (int i = 0; i < defEl._childNodes.length; i++) {
@@ -73,37 +73,40 @@ public class XD2XsdReferenceAdapter {
     private void addAttrTypeReference(final XData xData) {
         final String refTypeName = xData.getRefTypeName();
 
-        if (refTypeName == null || !simpleTypeReferences.add(refTypeName)) {
+        // Simple type node
+        if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
+            XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, true);
+            itemType.setName(xData.getRefTypeName());
+
+            XmlSchemaSimpleTypeRestriction restriction = null;
+            final String parserName = xData.getParserName();
+            XDValue parseMethod = xData.getParseMethod();
+            if (parseMethod instanceof XDParser) {
+                XDParser parser = ((XDParser)parseMethod);
+                XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
+                QName qName = XD2XsdUtils.parserNameToQName(parserName);
+                if (qName != null) {
+                    restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
+                }
+            } else {
+                restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
+            }
+
+            if (restriction == null) {
+                throw new RuntimeException("Unknown reference type parser: " + parserName);
+            }
+
+            itemType.setContent(restriction);
             return;
         }
 
-        XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, true);
-        itemType.setName(xData.getRefTypeName());
-
-        XmlSchemaSimpleTypeRestriction restriction = null;
-        final String parserName = xData.getParserName();
-        XDValue parseMethod = xData.getParseMethod();
-        if (parseMethod instanceof XDParser) {
-            XDParser parser = ((XDParser)parseMethod);
-            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            QName qName = XD2XsdUtils.parserNameToQName(parserName);
-            if (qName != null) {
-                restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
-            }
-        } else {
-            restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
+        final String importNamespace = xData.getNSUri();
+        if (importNamespace != null && XD2XsdUtils.isExternalRef(xData.getName(), importNamespace, schema)) {
+            addSchemaImportFromAttr(importNamespace);
         }
-
-        if (restriction == null) {
-            throw new RuntimeException("Unknown reference type parser: " + parserName);
-        }
-
-        itemType.setContent(restriction);
     }
 
-    private void addSchemaImport(final XElement xElement) {
-        final String importNamespace = xElement.getNSUri();
-
+    private void addSchemaImportFromElem(final String importNamespace, final String referencePos) {
         if (importNamespace == null || !namespaceImports.add(importNamespace)) {
             return;
         }
@@ -111,9 +114,21 @@ public class XD2XsdReferenceAdapter {
         XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
         schemaImport.setNamespace(importNamespace);
         if (importSchemaLocations != null && importSchemaLocations.containsKey(importNamespace)) {
-            schemaImport.setSchemaLocation(importSchemaLocations.get(importNamespace).buildLocalition(XD2XsdUtils.getReferenceSystemId(xElement.getReferencePos())));
+            schemaImport.setSchemaLocation(importSchemaLocations.get(importNamespace).buildLocalition(XD2XsdUtils.getReferenceSystemId(referencePos)));
+        }
+    }
+
+    private void addSchemaImportFromAttr(final String importNamespace) {
+        if (importNamespace == null || !namespaceImports.add(importNamespace)) {
+            return;
         }
 
+        XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
+        schemaImport.setNamespace(importNamespace);
+        // TODO: Schema location?
+        if (importSchemaLocations != null && importSchemaLocations.containsKey(importNamespace)) {
+            schemaImport.setSchemaLocation(importSchemaLocations.get(importNamespace).buildLocalition(null));
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.xdef.XDConstants;
 import org.xdef.impl.XElement;
 
 import javax.xml.namespace.QName;
@@ -31,8 +32,8 @@ public class XD2XsdUtils {
     }
 
     // If name contains ":" or reference has different namespace, then element contains external reference
-    public static boolean isExternalRef(final XElement defEl, final XmlSchema schema) {
-        return defEl.getName().indexOf(':') != -1 || (defEl.getNSUri() != null && defEl.getNSUri().equals(schema.getTargetNamespace()));
+    public static boolean isExternalRef(final String nodeName, final String namespaceUri, final XmlSchema schema) {
+        return nodeName.indexOf(':') != -1 && (namespaceUri != null && !namespaceUri.equals(schema.getTargetNamespace()));
     }
 
     public static String getReferenceSystemId(final String reference) {
@@ -56,6 +57,11 @@ public class XD2XsdUtils {
         }
 
         return reference;
+    }
 
+    public static boolean isDefaultNamespacePrefix(final String prefix) {
+        return Constants.XML_NS_PREFIX.equals(prefix)
+                || Constants.XMLNS_ATTRIBUTE.equals(prefix)
+                || XDConstants.XDEF_NS_PREFIX.equals(prefix);
     }
 }

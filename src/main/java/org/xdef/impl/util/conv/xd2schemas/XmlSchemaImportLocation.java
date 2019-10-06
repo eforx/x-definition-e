@@ -11,6 +11,10 @@ public class XmlSchemaImportLocation {
     private String fileName;
     private String fileExt = ".xsd";
 
+    public XmlSchemaImportLocation(String namespaceUri) {
+        this.namespaceUri = namespaceUri;
+    }
+
     public XmlSchemaImportLocation(String namespaceUri, String path) {
         this.namespaceUri = namespaceUri;
         this.path = path;
@@ -55,7 +59,22 @@ public class XmlSchemaImportLocation {
     }
 
     public String buildLocalition(final String schemaName) {
-        return path + "\\" + (fileName == null ? schemaName : fileName) + fileExt;
+        String res = "";
+        if (path != null && !path.trim().isEmpty()) {
+            res += path + "\\";
+        }
+
+        if (fileName != null) {
+            res += fileName;
+        } else if (schemaName != null) {
+            res += schemaName;
+        } else {
+            throw new RuntimeException("Unknown reference file! schemaName: " + schemaName + ", namespaceUri: " + namespaceUri);
+        }
+
+        res += fileExt;
+
+        return res;
     }
 
     @Override

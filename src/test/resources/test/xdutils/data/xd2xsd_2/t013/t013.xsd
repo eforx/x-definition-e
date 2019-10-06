@@ -5,7 +5,7 @@
   elementFormDefault="qualified"
   xmlns:a="http://a">
   <xs:import namespace="http://a"
-    schemaLocation="src\\test\\resources\\test\\xdutils\\data\\xd2xsd_2\\t013\t013_1.xsd"/>
+    schemaLocation="t013_1.xsd"/>
   <xs:element name="elem">
     <xs:complexType>
       <xs:sequence>

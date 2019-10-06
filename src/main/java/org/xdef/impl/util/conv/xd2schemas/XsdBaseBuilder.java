@@ -74,25 +74,31 @@ public class XsdBaseBuilder {
 
     public XmlSchemaAttribute createAttribute(final String name, final XMData xmData) {
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
-        attr.setName(name);
+        final String importNamespace = xmData.getNSUri();
+        final String nodeName = xmData.getName();
+        if (importNamespace != null && XD2XsdUtils.isExternalRef(nodeName, importNamespace, schema)) {
+            attr.getRef().setTargetQName(new QName(importNamespace, nodeName));
+        } else {
+            attr.setName(name);
+            // TODO: Handling of reference namespaces?
+            if (xmData.getRefTypeName() != null) {
+                attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
+            } else {
+                attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
+            }
+
+            String newName = getResolvedName(name);
+            if (!name.equals(newName)) {
+                attr.setName(newName);
+            } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && isUnqualifiedName(name)) {
+                attr.setForm(XmlSchemaForm.UNQUALIFIED);
+            }
+        }
+
         if (xmData.isOptional() || xmData.getOccurence().isOptional()) {
             attr.setUse(XmlSchemaUse.OPTIONAL);
         } else if (xmData.isRequired() || xmData.getOccurence().isRequired()) {
             attr.setUse(XmlSchemaUse.REQUIRED);
-        }
-
-        // TODO: Handling of reference namespaces?
-        if (xmData.getRefTypeName() != null) {
-            attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
-        } else {
-            attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
-        }
-
-        String newName = getResolvedName(name);
-        if (!name.equals(newName)) {
-            attr.setName(newName);
-        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && isUnqualifiedName(name)) {
-            attr.setForm(XmlSchemaForm.UNQUALIFIED);
         }
 
         return attr;

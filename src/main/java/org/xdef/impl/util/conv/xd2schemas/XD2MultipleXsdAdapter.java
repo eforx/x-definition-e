@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
@@ -10,14 +11,16 @@ import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
 import org.xdef.model.XMDefinition;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchemaCollection> {
 
     private boolean printXdTree = false;
+    private Set<String> schemaNames = new HashSet<String>();
+
+    /**
+     * ================ Input parameters ================
+     */
 
     /**
      * Key:     schema namespace URI
@@ -31,6 +34,10 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
 
     public void setPrintXdTree(boolean printXdTree) {
         this.printXdTree = printXdTree;
+    }
+
+    public final Set<String> getSchemaNames() {
+        return schemaNames;
     }
 
     public void setSchemaNamespaceLocations(Map<String, XmlSchemaImportLocation> schemaNamespaceLocations) {
@@ -117,16 +124,22 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        schemaNames.clear();
+
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<String> xdefNamesFilterList = Arrays.asList(xdefNames);
         XD2XsdAdapter adapter = createAdapter();
+
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
         int j = 0;
         for (int i = 0; i < xmDefinitions.length; i++) {
             if (xmDefinitions[i].getName().equals(xdefNamesFilterList.contains(i))) {
-                createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                if (!schemaNames.add(schemaPair.getKey())) {
+                    throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
+                }
             }
         }
 
@@ -139,6 +152,8 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        schemaNames.clear();
+
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<Integer> xdefIndexesFilterList = Arrays.asList(xdefIndexes);
         XD2XsdAdapter adapter = createAdapter();
@@ -148,7 +163,10 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
         int j = 0;
         for (int i = 0; i < xmDefinitions.length; i++) {
             if (xdefIndexesFilterList.contains(i)) {
-                createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                if (!schemaNames.add(schemaPair.getKey())) {
+                    throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
+                }
             }
         }
 
@@ -161,19 +179,24 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        schemaNames.clear();
+
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         XD2XsdAdapter adapter = createAdapter();
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
         for (int i = 0; i < xmDefinitions.length; i++) {
-            createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], i);
+            Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], i);
+            if (!schemaNames.add(schemaPair.getKey())) {
+                throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
+            }
         }
 
         return xmlSchemaCollection;
     }
 
-    private XmlSchema createSchema(final XmlSchemaCollection xmlSchemaCollection, final XD2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
+    private Pair<String, XmlSchema> createSchema(final XmlSchemaCollection xmlSchemaCollection, final XD2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
         initAdapter(adapter, xmDefinition, index);
         return adapter.createSchema(xmDefinition, xmlSchemaCollection);
     }
@@ -183,25 +206,43 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
         NamespaceMap namespaceMap = new NamespaceMap();
         namespaceMap.add("xs", Constants.URI_2001_SCHEMA_XSD);
 
-        // TODO: remap targetNamespace prefixes? create dictionary for mapping?
+        Map<String, List<String>> xDeftargetNamespaces = new HashMap<String, List<String>>();
+
         for (int i = 0; i < xmDefinitions.length; i++) {
             for (Map.Entry<String, String> entry : ((XDefinition) xmDefinitions[i])._namespaces.entrySet()) {
-                // Default prefixes
-                if (Constants.XML_NS_PREFIX.equals(entry.getKey())
-                        || Constants.XMLNS_ATTRIBUTE.equals(entry.getKey())
-                        || XDConstants.XDEF_NS_PREFIX.equals(entry.getKey())) {
+                if (XD2XsdUtils.isDefaultNamespacePrefix(entry.getKey())) {
                     continue;
                 }
 
+                // TODO: remap targetNamespace prefixes? create dictionary for mapping?
                 if (!namespaceMap.containsKey(entry.getKey())) {
                     namespaceMap.add(entry.getKey(), entry.getValue());
                 } else {
                     System.out.println("XSD schema already contains namespace " + entry.getKey());
                 }
+
+                // Save target namespaces
+                if ("tns".equals(entry.getKey())) {
+                    final String xDefName = xmDefinitions[i].getName();
+                    List<String> xDefNames = xDeftargetNamespaces.get(entry.getValue());
+                    if (xDefNames == null) {
+                        xDeftargetNamespaces.put(entry.getValue(), Arrays.asList(xDefName));
+                    } else {
+                        xDefNames.add(xDefName);
+                    }
+                }
             }
         }
 
         xmlSchemaCollection.setNamespaceContext(namespaceMap);
+
+        // Update schema locations based on target namespaces
+        for (Map.Entry<String, XmlSchemaImportLocation> entry : importSchemaLocations.entrySet()) {
+            List<String> locationList = xDeftargetNamespaces.get(entry.getKey());
+            if (locationList != null && locationList.size() == 1 && entry.getValue().getFileName() == null) {
+                entry.getValue().setFileName(locationList.get(0));
+            }
+        }
     }
 
     private XD2XsdAdapter createAdapter() {
