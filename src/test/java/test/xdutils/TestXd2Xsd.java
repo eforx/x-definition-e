@@ -5,7 +5,9 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
+import org.xdef.impl.util.conv.xd2schemas.XD2MultipleXsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.XD2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xsd.XmlValidator;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
@@ -13,8 +15,7 @@ import test.utils.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -73,19 +74,19 @@ public class TestXd2Xsd extends XDTester {
         return getFile(_dataFilesRoot.getAbsolutePath() + "\\" + testCase + "\\data", fileName, ".xml");
     }
 
-    private XmlSchema getRefSchema(final String fileName) throws FileNotFoundException {
+    private XmlSchema[] getRefSchemas(final String fileName, int schemaCount) throws FileNotFoundException {
         XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
         schemaCollection.read(createRefFileReader(fileName, ".xsd"));
         XmlSchema[] schemas = schemaCollection.getXmlSchemas();
 
-        if (schemas.length != 2) {
+        if (schemas.length != schemaCount + 1) {
             throw new RuntimeException("Invalid number of reference schemas, expected: 2, actual: " + schemas.length);
         }
 
-        return schemas[0];
+        return schemas;
     }
 
-    private ByteArrayOutputStream compareSchemas(final String fileName, XmlSchema ref, XmlSchema output) throws UnsupportedEncodingException {
+    private ByteArrayOutputStream compareSchema(final String fileName, XmlSchema ref, XmlSchema output) throws UnsupportedEncodingException {
         ByteArrayOutputStream outputStreamRef = new ByteArrayOutputStream();
         ref.write(outputStreamRef);
 
@@ -106,6 +107,38 @@ public class TestXd2Xsd extends XDTester {
         assertEq(outputStream.toString(), outputStreamRef.toString());
 
         return outputStream;
+    }
+
+    private List<ByteArrayOutputStream> compareSchemas(final String fileName, XmlSchema[] refSchemas, XmlSchema[] outputSchemas) throws UnsupportedEncodingException {
+        assertEq(refSchemas.length, outputSchemas.length);
+
+        List<ByteArrayOutputStream> outputStreams = new ArrayList<ByteArrayOutputStream>();
+        int i = 0;
+        for (; i < outputSchemas.length; i++) {
+            ByteArrayOutputStream outputStreamRef = new ByteArrayOutputStream();
+            refSchemas[i].write(outputStreamRef);
+            //outputStreams.add(outputStreamRef);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputSchemas[i].write(outputStream);
+            outputStreams.add(outputStream);
+
+            if (WRITE_SCHEMAS_INTO_FILE == true) {
+                try {
+                    BufferedWriter writerActual = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName + (i > 0 ? "_" + i : "") + ".xsd"));
+                    outputSchemas[i].write(writerActual);
+                    BufferedWriter writerRef = new BufferedWriter(new FileWriter(_outputFilesRoot.getAbsolutePath() + "\\" + fileName  + (i > 0 ? "_" + i : "") + "_ref.xsd"));
+                    refSchemas[i].write(writerRef);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            assertEq(outputStream.toString(), outputStreamRef.toString());
+        }
+
+
+        return outputStreams;
     }
 
     private void validateXml(final File xmlFile, final ByteArrayOutputStream xsdStream, boolean expectedResult) throws FileNotFoundException {
@@ -134,12 +167,13 @@ public class TestXd2Xsd extends XDTester {
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
             XmlSchema outputSchema = adapter.createSchema(inputXD, fileName);
+
             if (PRINT_SCHEMA_TO_OUTPUT == true) {
                 outputSchema.write(System.out);
             }
 
             // Compare XSD schemas
-            ByteArrayOutputStream outputSchemaStream = compareSchemas(fileName, getRefSchema(fileName), outputSchema);
+            ByteArrayOutputStream outputSchemaStream = compareSchema(fileName, getRefSchemas(fileName, 1)[0], outputSchema);
 
             // Validate valid XML file against XSD schema
             if (validTestingData != null) {
@@ -152,6 +186,65 @@ public class TestXd2Xsd extends XDTester {
             if (invalidTestingData != null) {
                 for (String testingFile : invalidTestingData) {
                     validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStream, false);
+                }
+            }
+
+            assertNoErrors(reporter);
+        } catch (Exception ex) {fail(ex);}
+    }
+
+    private void convertXd2Xsd_Multiple(final String fileName,
+                                        List<String> validTestingData, List<String> invalidTestingData,
+                                        XmlSchemaForm[] elemSchemaForms, XmlSchemaForm[] attrSchemaForms, String[] targetNamespaces,
+                                        XmlSchemaImportLocation[] schemaImportLocations, int schemaCount) {
+        ArrayReporter reporter = new ArrayReporter();
+        setProperty("xdef.warnings", "true");
+        try {
+            XD2MultipleXsdAdapter adapter = new XD2MultipleXsdAdapter();
+            //adapter.setPrintXdTree(true);
+            Map<String, XmlSchemaImportLocation> schemaNamespaceLocations = new HashMap<String, XmlSchemaImportLocation>();
+            for (int i = 0; i < schemaImportLocations.length; i++) {
+                schemaNamespaceLocations.put(schemaImportLocations[i].getNamespaceUri(), schemaImportLocations[i]);
+            }
+            adapter.setSchemaNamespaceLocations(schemaNamespaceLocations);
+
+            for (int i = 0; i < elemSchemaForms.length; i++) {
+                adapter.setElemSchemaForm(i, elemSchemaForms[i]);
+            }
+
+            for (int i = 0; i < attrSchemaForms.length; i++) {
+                adapter.setAttrSchemaForm(i, attrSchemaForms[i]);
+            }
+
+            for (int i = 0; i < targetNamespaces.length; i++) {
+                adapter.setTargetNamespace(i, targetNamespaces[i]);
+            }
+
+            // Convert XD -> XSD Schema
+            XDPool inputXD = compileXd(fileName);
+            XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
+            XmlSchema[] outputXmlSchemas = outputXmlSchemaCollection.getXmlSchemas();
+
+            if (PRINT_SCHEMA_TO_OUTPUT == true) {
+                for (XmlSchema outputSchema : outputXmlSchemas) {
+                    outputSchema.write(System.out);
+                }
+            }
+
+            // Compare XSD schemas
+            List<ByteArrayOutputStream> outputSchemaStreams = compareSchemas(fileName, getRefSchemas(fileName, schemaCount), outputXmlSchemas);
+
+            // Validate valid XML file against XSD schema
+            if (validTestingData != null) {
+                for (String testingFile : validTestingData) {
+                    validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStreams.get(0), true);
+                }
+            }
+
+            // Validate invalid XML file against XSD schema
+            if (invalidTestingData != null) {
+                for (String testingFile : invalidTestingData) {
+                    validateXml(getXmlDataFile(fileName, testingFile), outputSchemaStreams.get(0), false);
                 }
             }
 
@@ -172,6 +265,14 @@ public class TestXd2Xsd extends XDTester {
         convertXd2Xsd("t007", Arrays.asList(new String[] {"t007"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
         convertXd2Xsd("t009", Arrays.asList(new String[] {"t009"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
         convertXd2Xsd("t010", Arrays.asList(new String[] {"t010"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, "http://www.w3schools.com");
+
+        convertXd2Xsd_Multiple("t011", Arrays.asList(new String[] {"t011"}), null,
+                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
+                new String[] {"http://www.w3ctest.com", "http://www.w3schools.com"},
+                new XmlSchemaImportLocation[] {
+                        new XmlSchemaImportLocation("http://www.w3ctest.com", "src\\\\test\\\\resources\\\\test\\\\xdutils\\\\data\\\\xd2xsd_2\\\\t011")
+                },
+                2);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

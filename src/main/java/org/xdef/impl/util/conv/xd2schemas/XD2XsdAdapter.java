@@ -20,25 +20,42 @@ import java.util.*;
 public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
     private boolean printXdTree = false;
-    private Map<String, String> schemaNamespaces = new HashMap<String, String>();
+    private XDPool xdPool = null;
     private XmlSchema schema = null;
     private XsdBaseBuilder xsdBuilder = null;
-    private XmlSchemaForm elemSchemaForm;
-    private XmlSchemaForm attrSchemaForm;
+
+    /**
+     * Key:     namespace prefix
+     * Value:   namespace URI
+     */
+    private Map<String, String> schemaNamespaces = new HashMap<String, String>();
+    /**
+     * Key:     schema namespace
+     * Value:   schema location
+     */
+    private Map<String, XmlSchemaImportLocation> importSchemaLocations = new HashMap<String, XmlSchemaImportLocation>();
+    private XmlSchemaForm elemSchemaForm = null;
+    private XmlSchemaForm attrSchemaForm = null;
     private String targetNamespace = null;
-
-    public XD2XsdAdapter(final String xsdPrefix) {
-        if (xsdPrefix != null) {
-            schemaNamespaces.put(xsdPrefix, Constants.URI_2001_SCHEMA_XSD);
-        }
-    }
-
-    public XD2XsdAdapter() {
-        this("xs");
-    }
 
     public void setPrintXdTree(boolean printXdTree) {
         this.printXdTree = printXdTree;
+    }
+
+    public void setSchemaNamespaces(Map<String, String> schemaNamespaces) {
+        this.schemaNamespaces = schemaNamespaces;
+    }
+
+    public void addSchemaNamespace(String prefix, String namespaceUri) {
+        schemaNamespaces.put(prefix, namespaceUri);
+    }
+
+    public void setSchemaNamespaceLocations(Map<String, XmlSchemaImportLocation> schemaNamespaceLocations) {
+        this.importSchemaLocations = schemaNamespaceLocations;
+    }
+
+    public void addSchemaNamespaceLocation(String namespaceUri, XmlSchemaImportLocation location) {
+        importSchemaLocations.put(namespaceUri, location);
     }
 
     public void setElemSchemaForm(XmlSchemaForm elemSchemaForm) {
@@ -51,14 +68,6 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
     public void setTargetNamespace(String targetNamespace) {
         this.targetNamespace = targetNamespace;
-    }
-
-    public final Map<String, String> getSchemaNamespaces() {
-        return schemaNamespaces;
-    }
-
-    public void addSchemaNamespace(String prefix, String namespaceUri) {
-        schemaNamespaces.put(prefix, namespaceUri);
     }
 
     @Override
@@ -86,23 +95,51 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
     }
 
     @Override
+    public XmlSchema createSchema(XDPool xdPool, int xdefIndex) {
+        if (xdPool == null) {
+            throw new IllegalArgumentException("xdPool = null");
+        }
+
+        if (xdefIndex < 0) {
+            throw new IllegalArgumentException("xdefIndex < 0");
+        }
+
+        XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
+
+        if (xdefIndex > xmDefinitions.length) {
+            throw new IllegalArgumentException("xdefIndex > xmDefinitions.length");
+        }
+
+        return createSchema(xmDefinitions[xdefIndex]);
+    }
+
+    @Override
     public XmlSchema createSchema(final XMDefinition xdef) {
+        return createSchema(xdef, new XmlSchemaCollection());
+    }
+
+    public XmlSchema createSchema(final XMDefinition xdef, final XmlSchemaCollection xmlSchemaCollection) {
 
         if (xdef == null) {
             throw new IllegalArgumentException("xdef = null");
         }
 
-        if (schemaNamespaces == null) {
-            throw new IllegalArgumentException("schemaNamespaces = null");
+        this.xdPool = xdef.getXDPool();
+
+        schema = new XmlSchema(targetNamespace, xdef.getName(), xmlSchemaCollection);
+        if (elemSchemaForm != null) {
+            schema.setElementFormDefault(elemSchemaForm);
+        }
+        if (attrSchemaForm != null) {
+            schema.setAttributeFormDefault(attrSchemaForm);
         }
 
-        schema = new XmlSchema("", new XmlSchemaCollection());
-        schema.setElementFormDefault(elemSchemaForm);
-        schema.setAttributeFormDefault(attrSchemaForm);
         xsdBuilder = new XsdBaseBuilder(schema);
 
         // Namespace initialization
         NamespaceMap namespaceMap = new NamespaceMap();
+        namespaceMap.add("xs", Constants.URI_2001_SCHEMA_XSD);
+
         for (Map.Entry<String, String> entry : schemaNamespaces.entrySet()) {
             namespaceMap.add(entry.getKey(), entry.getValue());
         }
@@ -124,27 +161,18 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
         schema.setNamespaceContext(namespaceMap);
         if (targetNamespace != null) {
-            schema.setTargetNamespace(targetNamespace);
+            //schema.setTargetNamespace(targetNamespace);
             schema.setSchemaNamespacePrefix(namespaceMap.getPrefix(targetNamespace));
         }
 
         // Extract all used references
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema);
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, importSchemaLocations);
         referenceAdapter.convertReferences(xdef);
 
         // Convert x-definition tree to xsd tree
         Set<XMNode> processed = new HashSet<XMNode>();
         convertTree(xdef, System.out, processed, "");
         return schema;
-    }
-
-    private List<XmlSchemaAttributeOrGroupRef> convertAttrs(final XMNode[] xdAttrs) {
-        List<XmlSchemaAttributeOrGroupRef> xsdAttrList = new ArrayList<XmlSchemaAttributeOrGroupRef>();
-        for (XMNode x : xdAttrs) {
-            xsdAttrList.add(xsdBuilder.createAttribute(x.getName(), (XMData)x));
-        }
-
-        return xsdAttrList;
     }
 
     private XmlSchemaObject convertTree(
@@ -190,9 +218,14 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                 boolean isReference = defEl.isReference();
 
                 if (isReference) {
-                    int xdefNameSeparatorPos = defEl.getReferencePos().indexOf('#');
-                    String refName = xdefNameSeparatorPos == -1 ? defEl.getReferencePos() : defEl.getReferencePos().substring(xdefNameSeparatorPos + 1);
-                    xsdElem.setSchemaTypeName(new QName("", refName));
+                    if (XD2XsdUtils.isExternalRef(defEl, schema)) {
+                        xsdElem.setName(null);
+                        xsdElem.getRef().setTargetQName(new QName(defEl.getNSUri(), defEl.getName()));
+                    } else {
+                        // TODO: reference namespace?
+                        xsdElem.setSchemaTypeName(new QName("", XD2XsdUtils.getReferenceName(defEl.getReferencePos())));
+                        xsdBuilder.resolveElementName(xsdElem);
+                    }
                 } else {
                     XMNode[] attrs = defEl.getXDAttrs();
 
@@ -210,13 +243,15 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                             xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
                         }
                     } else {
+                        // Convert all children nodes
                         for (int i = 0; i < defEl._childNodes.length; i++) {
                             short childrenKind = defEl._childNodes[i].getKind();
+                            // Particle nodes (sequence, choice, all)
                             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
                                 group = (XmlSchemaGroupParticle) convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
                                 complexType.setParticle(group);
                                 outputPrefix += "|   ";
-                            } else if (childrenKind == XNode.XMTEXT) {
+                            } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTree(defEl._childNodes[i], out, processed, outputPrefix + "|   ");
                                 for (int j = 0; j < attrs.length; j++) {
                                     ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[j], out, processed, null));
@@ -246,9 +281,9 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                     }
 
                     xsdElem.setType(complexType);
+                    xsdBuilder.resolveElementName(xsdElem);
                 }
 
-                xsdBuilder.resolveElementName(xsdElem);
                 return xsdElem;
             }
             case XNode.XMSELECTOR_END:
@@ -270,14 +305,17 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                     displayDesriptor(def, out);
                 }
 
-                String rootElemName = null;
+                List<String> rootElemNames = new ArrayList<String>();
                 if (def._rootSelection != null && def._rootSelection.size() > 0) {
                     Iterator<String> e=def._rootSelection.keySet().iterator();
-                    rootElemName = e.next();
+                    rootElemNames.add(e.next());
                     if (printXdTree) {
-                        out.println("|-- Root: " + rootElemName);
-                        while (e.hasNext()) {
-                            out.println("    | " + e.next());
+                        out.println("|-- Root: " + rootElemNames.get(0));
+                    }
+                    while (e.hasNext()) {
+                        rootElemNames.add(e.next());
+                        if (printXdTree) {
+                            out.println("    | " + rootElemNames.get(rootElemNames.size() - 1));
                         }
                     }
                 } else {
@@ -288,7 +326,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
 
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
-                    if (elems[i].getName().equals(rootElemName)) {
+                    if (rootElemNames.contains(elems[i].getName())) {
                         XmlSchemaElement xsdElem = (XmlSchemaElement) convertTree(elems[i], out, processed, outputPrefix + "|   ");
                         xsdBuilder.addElement(xsdElem);
                     } else {
@@ -298,7 +336,6 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                         xsdBuilder.addComplexType(complexType);
                     }
                 }
-                //out.println(outputPrefix + "=== End XMDefinition: " + def.getName() + "\n");
                 return null;
             }
             default: {
