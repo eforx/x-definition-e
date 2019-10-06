@@ -45,7 +45,7 @@ public class XsdBaseBuilder {
 
         if (!name.equals(newName)) {
             elem.setName(newName);
-        } else if (isUnqualifiedName(name)) {
+        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault()) && isUnqualifiedName(name)) {
             elem.setForm(XmlSchemaForm.UNQUALIFIED);
         }
     }
@@ -91,7 +91,7 @@ public class XsdBaseBuilder {
         String newName = getResolvedName(name);
         if (!name.equals(newName)) {
             attr.setName(newName);
-        } else if (isUnqualifiedName(name)) {
+        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && isUnqualifiedName(name)) {
             attr.setForm(XmlSchemaForm.UNQUALIFIED);
         }
 
