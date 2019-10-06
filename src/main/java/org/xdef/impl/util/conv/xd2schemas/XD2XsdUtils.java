@@ -3,7 +3,6 @@ package org.xdef.impl.util.conv.xd2schemas;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDConstants;
-import org.xdef.impl.XElement;
 
 import javax.xml.namespace.QName;
 
@@ -24,7 +23,24 @@ public class XD2XsdUtils {
             return Constants.XSD_FLOAT;
         } else if ("enum".equals(parserName)) {
             return Constants.XSD_STRING;
+        } else if ("gMonth".equals(parserName)) {
+            return Constants.XSD_MONTH;
+        } else if ("gMonthDay".equals(parserName)) {
+            return Constants.XSD_MONTHDAY;
+        } else if ("gYear".equals(parserName) || "ISOyear".equals(parserName)) {
+            return Constants.XSD_YEAR;
+        } else if ("gDay".equals(parserName)) {
+            return Constants.XSD_DAY;
+        } else if ("time".equals(parserName)) {
+            return Constants.XSD_TIME;
+        } else if ("dateTime".equals(parserName) || "ISOdateTime".equals(parserName)) {
+            return Constants.XSD_DATETIME;
+        } else if ("ISOyearMonth".equals(parserName)) {
+            return Constants.XSD_YEARMONTH;
+        } else if ("ISOdate".equals(parserName)) {
+            return Constants.XSD_DATE;
         } else {
+
             System.out.println("Unknown reference type parser: "+ parserName);
         }
 

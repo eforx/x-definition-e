@@ -43,10 +43,14 @@ public class XsdFacetBuilder {
                     facets.add(maxInclusive(param, decimal));
                 } else if ("maxExclusive".equals(param.getName())) {
                     facets.add(maxExclusive(param, decimal));
-                } else if ("argument".equals(param.getName())) {
+                } else if ("argument".equals(param.getName()) || "enumeration".equals(param.getName())) {
                     enumeration(facets, param);
                 } else if ("length".equals(param.getName())) {
                     facets.add(length(param));
+                } else if ("fractionDigits".equals(param.getName())) {
+                    facets.add(fractionDigits(param));
+                } else if ("totalDigits".equals(param.getName())) {
+                    facets.add(totalDigits(param));
                 } else {
                     System.out.println("Unknown reference type parameter: " + param.getName());
                 }
@@ -120,6 +124,18 @@ public class XsdFacetBuilder {
                 facets.add(facet);
             }
         }
+    }
+
+    public static XmlSchemaFractionDigitsFacet fractionDigits(final XDNamedValue param) {
+        XmlSchemaFractionDigitsFacet facet = new XmlSchemaFractionDigitsFacet();
+        facet.setValue(param.getValue().intValue());
+        return facet;
+    }
+
+    public static XmlSchemaTotalDigitsFacet totalDigits(final XDNamedValue param) {
+        XmlSchemaTotalDigitsFacet facet = new XmlSchemaTotalDigitsFacet();
+        facet.setValue(param.getValue().intValue());
+        return facet;
     }
 
     private static void setDecimalValue(final XmlSchemaFacet facet, boolean decimal, XDValue xdValue) {

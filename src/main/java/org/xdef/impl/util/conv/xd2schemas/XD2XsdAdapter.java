@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
+import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
@@ -143,7 +144,7 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
         initSchema(xmlSchemaCollection);
 
         // Extract all used references in x-definition
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, importSchemaLocations);
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(xsdBuilder, schema, importSchemaLocations);
         referenceAdapter.convertReferences(xDefinition);
 
         // Convert x-definition tree to XSD tree
@@ -254,11 +255,16 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                     // If element contains only data, we dont have to create complexType
                     if (attrs.length == 0 && defEl._childNodes.length == 1 && defEl._childNodes[0].getKind() == XNode.XMTEXT) {
                         XData xd = (XData)defEl._childNodes[0];
-                        final String parserName = xd.getParserName();
-                        XDValue parseMethod = xd.getParseMethod();
-                        // TODO: Has to be instance of XDParser?
-                        if (parseMethod instanceof XDParser) {
-                            xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
+                        // TODO: Should we lookup for simple type reference?
+                        XmlSchemaSimpleType simpleType = xsdBuilder.creatSimpleType(xd);
+                        if (simpleType != null) {
+                            xsdElem.setType(simpleType);
+                        } else {
+                            // TODO: Has to be instance of XDParser?
+                            if (xd.getParseMethod() instanceof XDParser) {
+                                final String parserName = xd.getParserName();
+                                xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
+                            }
                         }
                     } else {
                         // Convert all children nodes
@@ -290,15 +296,16 @@ public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
                                 }
                             }
                         }
-                    }
 
-                    if (hasSimpleContent == false) {
-                        for (int i = 0; i < attrs.length; i++) {
-                            complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[i], out, processed, null));
+                        if (hasSimpleContent == false) {
+                            for (int i = 0; i < attrs.length; i++) {
+                                complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTree(attrs[i], out, processed, null));
+                            }
                         }
+
+                        xsdElem.setType(complexType);
                     }
 
-                    xsdElem.setType(complexType);
                     xsdBuilder.resolveElementName(xsdElem);
                 }
 

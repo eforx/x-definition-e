@@ -89,8 +89,15 @@ public class TestXd2Xsd extends XDTester {
         return schemaCollection;
     }
 
-    private File getOutputSchemaFile(final String fileName) throws FileNotFoundException {
-        return getFile(_outputFilesRoot.getAbsolutePath(), fileName, ".xsd");
+    private File getOutputSchemaFile(final String fileName) {
+        File res = null;
+        try {
+            res = getFile(_outputFilesRoot.getAbsolutePath(), fileName, ".xsd");
+        } catch (FileNotFoundException ex) {
+            assertTrue(false, "Output XSD file is not generated, fileName: " + fileName);
+        }
+
+        return res;
     }
 
     private File getRefSchemaFile(final String fileName) throws FileNotFoundException {
@@ -263,7 +270,9 @@ public class TestXd2Xsd extends XDTester {
                 if (VALIDATE_XML_AGAINST_REF_XSD == true) {
                     validateXml(fileName, xmlDataFile, refXsdFile, true, "ref");
                 }
-                validateXml(fileName, xmlDataFile, outputXsdFile, true, "out");
+                if (outputXsdFile != null) {
+                    validateXml(fileName, xmlDataFile, outputXsdFile, true, "out");
+                }
             }
         }
 
@@ -274,7 +283,9 @@ public class TestXd2Xsd extends XDTester {
                 if (VALIDATE_XML_AGAINST_REF_XSD == true) {
                     validateXml(fileName, xmlDataFile, refXsdFile, false, "ref");
                 }
-                validateXml(fileName, xmlDataFile, outputXsdFile, false, "out");
+                if (outputXsdFile != null) {
+                    validateXml(fileName, xmlDataFile, outputXsdFile, false, "out");
+                }
             }
         }
     }
@@ -341,7 +352,7 @@ public class TestXd2Xsd extends XDTester {
         init();
 
 
-/*
+
         convertXd2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
         convertXd2Xsd("t001", Arrays.asList(new String[] {"t001"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
         convertXd2Xsd("t002", Arrays.asList(new String[] {"t002"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
@@ -351,9 +362,9 @@ public class TestXd2Xsd extends XDTester {
         convertXd2Xsd("t007", Arrays.asList(new String[] {"t007"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
         convertXd2Xsd("t009", Arrays.asList(new String[] {"t009"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
         convertXd2Xsd("t010", Arrays.asList(new String[] {"t010"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, "http://www.w3schools.com");
+        convertXd2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
 
-
-
+        // ============ References ============
 
         convertXd2Xsd_Multiple("t011", Arrays.asList(new String[] {"t011"}), null,
                 new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
@@ -362,7 +373,6 @@ public class TestXd2Xsd extends XDTester {
                         new XmlSchemaImportLocation("http://www.w3ctest.com")
                 },
                 2);
-
 
         convertXd2Xsd_Multiple("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null,
                 new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
@@ -389,7 +399,7 @@ public class TestXd2Xsd extends XDTester {
                         new XmlSchemaImportLocation("http://c"),
                         new XmlSchemaImportLocation("http://d")
                 },
-                4);*/
+                4);
 
         convertXd2Xsd_Multiple("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null,
                 new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED},

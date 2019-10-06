@@ -21,13 +21,15 @@ import java.util.Set;
 
 public class XD2XsdReferenceAdapter {
 
+    private final XsdBaseBuilder xsdBaseBuilder;
     private final XmlSchema schema;
     private final Map<String, XmlSchemaImportLocation> importSchemaLocations;
 
     private Set<String> simpleTypeReferences;
     private Set<String> namespaceImports;
 
-    public XD2XsdReferenceAdapter(final XmlSchema schema, final Map<String, XmlSchemaImportLocation> importSchemaLocations ) {
+    public XD2XsdReferenceAdapter(final XsdBaseBuilder xsdBaseBuilder, final XmlSchema schema, final Map<String, XmlSchemaImportLocation> importSchemaLocations ) {
+        this.xsdBaseBuilder = xsdBaseBuilder;
         this.schema = schema;
         this.importSchemaLocations = importSchemaLocations;
     }
@@ -75,28 +77,7 @@ public class XD2XsdReferenceAdapter {
 
         // Simple type node
         if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-            XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, true);
-            itemType.setName(xData.getRefTypeName());
-
-            XmlSchemaSimpleTypeRestriction restriction = null;
-            final String parserName = xData.getParserName();
-            XDValue parseMethod = xData.getParseMethod();
-            if (parseMethod instanceof XDParser) {
-                XDParser parser = ((XDParser)parseMethod);
-                XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-                QName qName = XD2XsdUtils.parserNameToQName(parserName);
-                if (qName != null) {
-                    restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
-                }
-            } else {
-                restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
-            }
-
-            if (restriction == null) {
-                throw new RuntimeException("Unknown reference type parser: " + parserName);
-            }
-
-            itemType.setContent(restriction);
+            xsdBaseBuilder.creatSimpleTypeRef(xData);
             return;
         }
 
