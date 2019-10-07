@@ -30,7 +30,7 @@ public class XD2XsdReferenceAdapter {
         this.importSchemaLocations = importSchemaLocations;
     }
 
-    public void convertReferences(XMNode xn) {
+    public void createRefsAndImports(XMNode xn) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
         extractRefsFromAttrs(xn);
@@ -44,7 +44,7 @@ public class XD2XsdReferenceAdapter {
                 XMNode[] attrs = defEl.getXDAttrs();
 
                 for (int i = 0; i < attrs.length; i++) {
-                    addAttrTypeReference((XData)attrs[i]);
+                    addSimpleTypeReference((XData)attrs[i]);
                 }
 
                 if (defEl.isReference() && XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
@@ -68,7 +68,7 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
-    private void addAttrTypeReference(final XData xData) {
+    private void addSimpleTypeReference(final XData xData) {
         final String refTypeName = xData.getRefTypeName();
 
         // Simple type node

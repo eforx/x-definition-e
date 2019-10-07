@@ -1,8 +1,6 @@
-package org.xdef.impl.util.conv.xsd.validation;
+package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
-import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
 import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
-import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;

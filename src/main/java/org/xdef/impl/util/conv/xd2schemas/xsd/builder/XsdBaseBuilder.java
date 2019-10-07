@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
@@ -10,6 +11,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMData;
+import org.xdef.model.XMNode;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -35,9 +37,8 @@ public class XsdBaseBuilder {
      * Create named xsd element
      * Example: <element name="elem_name">
      */
-    public XmlSchemaElement createElement(final String name, final XElement xElement) {
+    public XmlSchemaElement createEmptyElement(final String name, final XElement xElement) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
-        //elem.setName(name);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         return elem;

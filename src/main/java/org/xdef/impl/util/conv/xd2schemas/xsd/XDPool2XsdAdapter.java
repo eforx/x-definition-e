@@ -8,17 +8,21 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
-import org.xdef.impl.util.conv.xd2schemas.XD2MultipleSchemasAdapter;
+import org.xdef.impl.util.conv.xd2schemas.XDPool2SchemaAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMDefinition;
 
 import java.util.*;
 
-public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchemaCollection> {
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_DEFAULT_TARGET_NAMESPACE_PREFIX;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
+
+public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollection> {
 
     private boolean printXdTree = false;
     private Set<String> schemaNames = new HashSet<String>();
+    private XDPool xdPool = null;
 
     /**
      * ================ Input parameters ================
@@ -126,11 +130,12 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        this.xdPool = xdPool;
         schemaNames.clear();
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<String> xdefNamesFilterList = Arrays.asList(xdefNames);
-        XD2XsdAdapter adapter = createAdapter();
+        XDef2XsdAdapter adapter = createAdapter();
 
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
@@ -154,11 +159,12 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        this.xdPool = xdPool;
         schemaNames.clear();
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<Integer> xdefIndexesFilterList = Arrays.asList(xdefIndexes);
-        XD2XsdAdapter adapter = createAdapter();
+        XDef2XsdAdapter adapter = createAdapter();
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
@@ -181,10 +187,11 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
             throw new IllegalArgumentException("xdPool = null");
         }
 
+        this.xdPool = xdPool;
         schemaNames.clear();
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
-        XD2XsdAdapter adapter = createAdapter();
+        XDef2XsdAdapter adapter = createAdapter();
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
@@ -198,7 +205,7 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
         return xmlSchemaCollection;
     }
 
-    private Pair<String, XmlSchema> createSchema(final XmlSchemaCollection xmlSchemaCollection, final XD2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
+    private Pair<String, XmlSchema> createSchema(final XmlSchemaCollection xmlSchemaCollection, final XDef2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
         initAdapter(adapter, xmDefinition, index);
         return adapter.createSchema(xmDefinition, xmlSchemaCollection);
     }
@@ -206,9 +213,9 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
     private void initNamespaceContext(final XmlSchemaCollection xmlSchemaCollection, final XMDefinition xmDefinitions[]) {
         // Namespace initialization
         NamespaceMap namespaceMap = new NamespaceMap();
-        namespaceMap.add("xs", Constants.URI_2001_SCHEMA_XSD);
+        namespaceMap.add(XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX, Constants.URI_2001_SCHEMA_XSD);
 
-        Map<String, List<String>> xDeftargetNamespaces = new HashMap<String, List<String>>();
+        Map<String, List<String>> xDefTargetNamespaces = new HashMap<String, List<String>>();
 
         for (int i = 0; i < xmDefinitions.length; i++) {
             for (Map.Entry<String, String> entry : ((XDefinition) xmDefinitions[i])._namespaces.entrySet()) {
@@ -224,11 +231,11 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
                 }
 
                 // Save target namespaces
-                if ("tns".equals(entry.getKey())) {
+                if (XD_DEFAULT_TARGET_NAMESPACE_PREFIX.equals(entry.getKey())) {
                     final String xDefName = xmDefinitions[i].getName();
-                    List<String> xDefNames = xDeftargetNamespaces.get(entry.getValue());
+                    List<String> xDefNames = xDefTargetNamespaces.get(entry.getValue());
                     if (xDefNames == null) {
-                        xDeftargetNamespaces.put(entry.getValue(), Arrays.asList(xDefName));
+                        xDefTargetNamespaces.put(entry.getValue(), Arrays.asList(xDefName));
                     } else {
                         xDefNames.add(xDefName);
                     }
@@ -240,20 +247,20 @@ public class XD2MultipleXsdAdapter implements XD2MultipleSchemasAdapter<XmlSchem
 
         // Update schema locations based on target namespaces
         for (Map.Entry<String, XmlSchemaImportLocation> entry : importSchemaLocations.entrySet()) {
-            List<String> locationList = xDeftargetNamespaces.get(entry.getKey());
+            List<String> locationList = xDefTargetNamespaces.get(entry.getKey());
             if (locationList != null && locationList.size() == 1 && entry.getValue().getFileName() == null) {
                 entry.getValue().setFileName(locationList.get(0));
             }
         }
     }
 
-    private XD2XsdAdapter createAdapter() {
-        XD2XsdAdapter adapter = new XD2XsdAdapter();
+    private XDef2XsdAdapter createAdapter() {
+        XDef2XsdAdapter adapter = new XDef2XsdAdapter();
         adapter.setPrintXdTree(printXdTree);
         return adapter;
     }
 
-    private void initAdapter(final XD2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
+    private void initAdapter(final XDef2XsdAdapter adapter, final XMDefinition xmDefinition, Integer index) {
         adapter.setSchemaNamespaceLocations(importSchemaLocations);
 
         if (index != null && schemaNamespaces.containsKey(index)) {
