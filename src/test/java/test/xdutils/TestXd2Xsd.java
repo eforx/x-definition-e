@@ -337,6 +337,11 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private void convertXdDef2XsdNoRef(final String fileName,
+                                       List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED, null, false);
+    }
+
+    private void convertXdDef2XsdNoRef(final String fileName,
                                List<String> validTestingData, List<String> invalidTestingData,
                                XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm) {
         convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, null, false);
@@ -439,10 +444,15 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
         convertXdDef2XsdNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
 
-        convertXdDef2XsdNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2XsdNoRef ("ATTR_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_to_ATTR_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+
+        convertXdDef2XsdNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null);
+        convertXdDef2XsdNoRef ("ATTR_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_to_ATTR_CHLD_valid_1"}), null);
+        convertXdDef2XsdNoRef ("basicTest",
+                Arrays.asList(new String[] {"basicTest_valid_1", "basicTest_valid_2", "basicTest_valid_3"}),
+                Arrays.asList(new String[] {"basicTest_invalid_1", "basicTest_invalid_2", "basicTest_invalid_3", "basicTest_invalid_4"}));
 
         // ============ References ============
+
 
         convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null,
                 new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},

@@ -106,11 +106,17 @@ public class XsdBaseBuilder {
             attr.getRef().setTargetQName(new QName(importNamespace, nodeName));
         } else {
             attr.setName(name);
+
             // TODO: Handling of reference namespaces?
             if (xmData.getRefTypeName() != null) {
                 attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
             } else {
-                attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
+                XmlSchemaSimpleType simpleType = creatSimpleType((XData)xmData);
+                if (simpleType != null) {
+                    attr.setSchemaType(simpleType);
+                } else {
+                    attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
+                }
             }
 
             String newName = XD2XsdUtils.getResolvedName(schema, name);
