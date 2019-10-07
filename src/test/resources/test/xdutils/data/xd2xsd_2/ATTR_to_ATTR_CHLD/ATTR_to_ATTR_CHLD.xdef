@@ -1,0 +1,21 @@
+<xd:def xmlns:xd      =  "http://www.xdef.org/xdef/3.2"
+        xd:name      =  "ATTR_to_ATTR_CHLD"
+        xd:root      =  "Staff">
+
+    <Person sex="string">
+        <Name>string(1,30)</Name>
+        <Surname>string(1,50)</Surname>
+    </Person>
+
+    <Manager xd:script="ref Person"
+             department="string(1,30)" />
+
+    <Staff>
+        <xd:mixed>
+            <Manager xd:script="ref Manager; occurs *" />
+            <Worker    xd:script="ref Person; occurs *"
+                       workerId="int" />
+        </xd:mixed>
+    </Staff>
+
+</xd:def>

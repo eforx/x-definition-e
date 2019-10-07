@@ -439,8 +439,10 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
         convertXdDef2XsdNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
 
-        // ============ References ============
+        convertXdDef2XsdNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXdDef2XsdNoRef ("ATTR_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_to_ATTR_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
 
+        // ============ References ============
 
         convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null,
                 new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},

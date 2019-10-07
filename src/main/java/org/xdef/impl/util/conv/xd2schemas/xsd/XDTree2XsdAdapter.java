@@ -157,6 +157,7 @@ class XDTree2XsdAdapter {
                     // Particle nodes (sequence, choice, all)
                     if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
                         if (complexType.getParticle() != null) {
+                            // TODO: XD->XSD Solve
                             out.println("Multiple particle group inside element!");
                         }
                         group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, out, outputPrefix + "|   ");
@@ -237,7 +238,7 @@ class XDTree2XsdAdapter {
 
                     complexType.setParticle(group);
                 } else if (anyElementUnbounded) {
-                    // TODO: Solve it?
+                    // TODO: XD->XSD Solve
                     System.out.println("xs:all contains some element which has maxOccurs higher than 1");
                 }
             }
