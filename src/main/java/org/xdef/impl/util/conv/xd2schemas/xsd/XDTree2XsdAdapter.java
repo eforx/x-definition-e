@@ -147,16 +147,23 @@ class XDTree2XsdAdapter {
                     }
                 }
             } else {
+
+                boolean groupMixToChoise = false;
+
                 // Convert all children nodes
                 for (int i = 0; i < defEl._childNodes.length; i++) {
-                    short childrenKind = defEl._childNodes[i].getKind();
+                    XNode xnChild = defEl._childNodes[i];
+                    short childrenKind = xnChild.getKind();
                     // Particle nodes (sequence, choice, all)
                     if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                        group = (XmlSchemaGroupParticle) convertTreeInt(defEl._childNodes[i], out, outputPrefix + "|   ");
+                        if (complexType.getParticle() != null) {
+                            out.println("Multiple particle group inside element!");
+                        }
+                        group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, out, outputPrefix + "|   ");
                         complexType.setParticle(group);
                         outputPrefix += "|   ";
                     } else if (childrenKind == XNode.XMTEXT) { // Simple value node
-                        XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(defEl._childNodes[i], out, outputPrefix + "|   ");
+                        XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, out, outputPrefix + "|   ");
                         for (int j = 0; j < attrs.length; j++) {
                             ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], out, outputPrefix + "|   "));
                         }
@@ -164,7 +171,7 @@ class XDTree2XsdAdapter {
                         complexType.setContentModel(simpleContent);
                         hasSimpleContent = true;
                     } else {
-                        XmlSchemaObjectBase xsdChild = convertTreeInt(defEl._childNodes[i], out, outputPrefix + "|   ");
+                        XmlSchemaObjectBase xsdChild = convertTreeInt(xnChild, out, outputPrefix + "|   ");
                         if (xsdChild != null) {
                             // x-definition has no required group
                             if (group == null) {
@@ -177,18 +184,13 @@ class XDTree2XsdAdapter {
                             } else if (group instanceof XmlSchemaChoice) {
                                 ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
                             } else if (group instanceof XmlSchemaAll) {
-                                if (xsdChild instanceof XmlSchemaParticle) {
-                                    // TODO: XD->XSD invalid
-                                    if (((XmlSchemaParticle) xsdChild).getMaxOccurs() > 1) {
-                                        out.println("Element inside all model must has maxOccurs between 0 and 1. Current value: " + ((XmlSchemaParticle) xsdChild).getMaxOccurs());
-                                        ((XmlSchemaParticle) xsdChild).setMaxOccurs(1);
-                                    }
-                                }
                                 ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
                             }
                         }
                     }
                 }
+
+                updateParticleGroup(defEl, complexType);
 
                 if (hasSimpleContent == false) {
                     for (int i = 0; i < attrs.length; i++) {
@@ -203,6 +205,43 @@ class XDTree2XsdAdapter {
         }
 
         return xsdElem;
+    }
+
+    private void updateParticleGroup(final XElement defEl, final XmlSchemaComplexType complexType) {
+
+        // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
+        {
+            boolean allElementsUnbounded = true;
+            boolean anyElementUnbounded = false;
+
+            if (complexType.getParticle() instanceof XmlSchemaAll) {
+
+                for (XNode xNode : defEl._childNodes) {
+                    if (xNode.getKind() == XNode.XMELEMENT) {
+                        if (!xNode.isMaxUnlimited() && !xNode.isUnbounded()) {
+                            allElementsUnbounded = false;
+                        } else if (xNode.maxOccurs() > 1) {
+                            anyElementUnbounded = true;
+                        }
+                    }
+                }
+
+                if (allElementsUnbounded) {
+                    XmlSchemaChoice group = new XmlSchemaChoice();
+                    group.setMaxOccurs(Long.MAX_VALUE);
+
+                    // Copy elements
+                    for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
+                        group.getItems().add((XmlSchemaChoiceMember) member);
+                    }
+
+                    complexType.setParticle(group);
+                } else if (anyElementUnbounded) {
+                    // TODO: Solve it?
+                    System.out.println("xs:all contains some element which has maxOccurs higher than 1");
+                }
+            }
+        }
     }
 
     protected static void displaySelector(final XMNode xn, final PrintStream out, final String outputPrefix) {
