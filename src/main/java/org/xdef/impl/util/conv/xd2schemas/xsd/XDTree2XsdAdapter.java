@@ -166,11 +166,24 @@ class XDTree2XsdAdapter {
                     } else {
                         XmlSchemaObjectBase xsdChild = convertTreeInt(defEl._childNodes[i], out, outputPrefix + "|   ");
                         if (xsdChild != null) {
+                            // x-definition has no required group
+                            if (group == null) {
+                                group = new XmlSchemaSequence();
+                                complexType.setParticle(group);
+                            }
+
                             if (group instanceof XmlSchemaSequence) {
                                 ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
                             } else if (group instanceof XmlSchemaChoice) {
                                 ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
                             } else if (group instanceof XmlSchemaAll) {
+                                if (xsdChild instanceof XmlSchemaParticle) {
+                                    // TODO: XD->XSD invalid
+                                    if (((XmlSchemaParticle) xsdChild).getMaxOccurs() > 1) {
+                                        out.println("Element inside all model must has maxOccurs between 0 and 1. Current value: " + ((XmlSchemaParticle) xsdChild).getMaxOccurs());
+                                        ((XmlSchemaParticle) xsdChild).setMaxOccurs(1);
+                                    }
+                                }
                                 ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
                             }
                         }

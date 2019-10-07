@@ -23,6 +23,7 @@ public class TestXd2Xsd extends XDTester {
     static private boolean PRINT_SCHEMA_TO_OUTPUT = false;
     static private boolean WRITE_SCHEMAS_INTO_FILE = true;
     static private boolean VALIDATE_XML_AGAINST_REF_XSD = true;
+    static private boolean VALIDATE_XML_PRINT_ERRORS = true;
 
     private File _inputFilesRoot;
     private File _refFilesRoot;
@@ -325,7 +326,7 @@ public class TestXd2Xsd extends XDTester {
 
     private void validateXml(final String fileName, final File xmlFile, final File xsdSchemaFile, boolean expectedResult, String type) {
         XmlValidator validator = new XmlValidator(new StreamSource(xmlFile), new StreamSource(xsdSchemaFile));
-        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), false),
+        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), VALIDATE_XML_PRINT_ERRORS),
                 "Xml validation failed, testCase: " + fileName + ", type: " + type + ", fileName: " + xmlFile.getName());
     }
 
@@ -435,6 +436,7 @@ public class TestXd2Xsd extends XDTester {
 
 
         
+        convertXdDef2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
 
         // ============ References ============
 
