@@ -1,6 +1,9 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDConstants;
 
@@ -79,5 +82,38 @@ public class XD2XsdUtils {
         return Constants.XML_NS_PREFIX.equals(prefix)
                 || Constants.XMLNS_ATTRIBUTE.equals(prefix)
                 || XDConstants.XDEF_NS_PREFIX.equals(prefix);
+    }
+
+    public static void resolveElementName(final XmlSchema schema, final XmlSchemaElement elem) {
+        final String name = elem.getName();
+        final String newName = getResolvedName(schema, name);
+
+        if (!name.equals(newName)) {
+            elem.setName(newName);
+        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault()) && isUnqualifiedName(schema, name)) {
+            elem.setForm(XmlSchemaForm.UNQUALIFIED);
+        }
+    }
+
+    public static String getResolvedName(final XmlSchema schema, final String name) {
+        // Element's name contains target namespace prefix, we can remove this prefix
+        if (schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix()) && name.charAt(schema.getSchemaNamespacePrefix().length()) == ':') {
+            return name.substring(schema.getSchemaNamespacePrefix().length() + 1);
+        }
+
+        return name;
+    }
+
+    public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
+        // Element's name without namespace prefix, while xml is using target namespace
+        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null;
+    }
+
+    public static void addElement(final XmlSchema schema, final XmlSchemaElement element) {
+        schema.getItems().add(element);
+    }
+
+    public static void addComplexType(final XmlSchema schema, final XmlSchemaComplexType complexType) {
+        schema.getItems().add(complexType);
     }
 }

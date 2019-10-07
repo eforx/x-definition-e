@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class XD2XsdReferenceAdapter {
+class XD2XsdReferenceAdapter {
 
     private final XsdBaseBuilder xsdBaseBuilder;
     private final XDTree2XsdAdapter xdTree2XsdAdapter;
@@ -28,7 +28,7 @@ public class XD2XsdReferenceAdapter {
     private Set<String> simpleTypeReferences;
     private Set<String> namespaceImports;
 
-    public XD2XsdReferenceAdapter(XsdBaseBuilder xsdBaseBuilder, XDTree2XsdAdapter xdTree2XsdAdapter, XmlSchema schema, Map<String, XmlSchemaImportLocation> importSchemaLocations) {
+    protected XD2XsdReferenceAdapter(XsdBaseBuilder xsdBaseBuilder, XDTree2XsdAdapter xdTree2XsdAdapter, XmlSchema schema, Map<String, XmlSchemaImportLocation> importSchemaLocations) {
         this.xsdBaseBuilder = xsdBaseBuilder;
         this.xdTree2XsdAdapter = xdTree2XsdAdapter;
         this.schema = schema;
@@ -43,7 +43,7 @@ public class XD2XsdReferenceAdapter {
      * @param xDef
      * @param out
      */
-    public void createRefsAndImports(XDefinition xDef, final PrintStream out) {
+    protected void createRefsAndImports(XDefinition xDef, final PrintStream out) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
         extractRefsFromAttrs(xDef, out);
@@ -70,7 +70,7 @@ public class XD2XsdReferenceAdapter {
         XmlSchemaElement xsdElem = (XmlSchemaElement) xdTree2XsdAdapter.convertTree(xmNode, out, "|   ");
         XmlSchemaComplexType complexType = (XmlSchemaComplexType)xsdElem.getSchemaType();
         complexType.setName(xsdElem.getName());
-        xsdBaseBuilder.addComplexType(complexType);
+        XD2XsdUtils.addComplexType(schema, complexType);
     }
 
     private void extractRefsFromAttrs(XMNode xn, final Set<XMNode> processed) {

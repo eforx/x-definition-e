@@ -135,7 +135,6 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<String> xdefNamesFilterList = Arrays.asList(xdefNames);
-        XDef2XsdAdapter adapter = createAdapter();
 
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
@@ -143,7 +142,7 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
         int j = 0;
         for (int i = 0; i < xmDefinitions.length; i++) {
             if (xmDefinitions[i].getName().equals(xdefNamesFilterList.contains(i))) {
-                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, createAdapter(), xmDefinitions[i], j++);
                 if (!schemaNames.add(schemaPair.getKey())) {
                     throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
                 }
@@ -164,14 +163,13 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
         List<Integer> xdefIndexesFilterList = Arrays.asList(xdefIndexes);
-        XDef2XsdAdapter adapter = createAdapter();
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
         int j = 0;
         for (int i = 0; i < xmDefinitions.length; i++) {
             if (xdefIndexesFilterList.contains(i)) {
-                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], j++);
+                Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, createAdapter(), xmDefinitions[i], j++);
                 if (!schemaNames.add(schemaPair.getKey())) {
                     throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
                 }
@@ -191,12 +189,11 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
         schemaNames.clear();
 
         XMDefinition xmDefinitions[] = xdPool.getXMDefinitions();
-        XDef2XsdAdapter adapter = createAdapter();
         XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
         initNamespaceContext(xmlSchemaCollection, xmDefinitions);
 
         for (int i = 0; i < xmDefinitions.length; i++) {
-            Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, adapter, xmDefinitions[i], i);
+            Pair<String, XmlSchema> schemaPair = createSchema(xmlSchemaCollection, createAdapter(), xmDefinitions[i], i);
             if (!schemaNames.add(schemaPair.getKey())) {
                 throw new RuntimeException("XSD schema with name " + schemaPair.getKey() + " already exists!");
             }
@@ -219,15 +216,17 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
 
         for (int i = 0; i < xmDefinitions.length; i++) {
             for (Map.Entry<String, String> entry : ((XDefinition) xmDefinitions[i])._namespaces.entrySet()) {
-                if (XD2XsdUtils.isDefaultNamespacePrefix(entry.getKey())) {
+                if (XD2XsdUtils.isDefaultNamespacePrefix(entry.getKey())/* || XD_DEFAULT_TARGET_NAMESPACE_PREFIX.equals(entry.getKey())*/) {
                     continue;
                 }
 
                 // TODO: remap targetNamespace prefixes? create dictionary for mapping?
+                String namespaceUri = namespaceMap.getNamespaceURI(entry.getKey());
                 if (!namespaceMap.containsKey(entry.getKey())) {
                     namespaceMap.add(entry.getKey(), entry.getValue());
-                } else {
-                    System.out.println("XDPool - XSD schema collection already contains namespace: \"" + entry.getKey() + "\"");
+                } else if (!namespaceUri.equals(entry.getValue())) {
+                    System.out.println("XDPool - XSD schema collection already contains namespace prefix: \"" + entry.getKey() + "\"," +
+                            " previous: \"" + namespaceUri + "\", new: \"" + entry.getValue() + "\"");
                 }
 
                 // Save target namespaces

@@ -114,7 +114,7 @@ class XDTree2XsdAdapter {
         XElement defEl = (XElement)xn;
 
         XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(defEl.getName(), defEl);
-        XmlSchemaComplexType complexType = xsdBuilder.createComplexType();
+        XmlSchemaComplexType complexType = xsdBuilder.createEmptyComplexType();
         XmlSchemaGroupParticle group = null;
         boolean hasSimpleContent = false;
         boolean isReference = defEl.isReference();
@@ -126,7 +126,7 @@ class XDTree2XsdAdapter {
                 xsdElem.setName(defEl.getName());
                 // TODO: reference namespace?
                 xsdElem.setSchemaTypeName(new QName("", XD2XsdUtils.getReferenceName(defEl.getReferencePos())));
-                xsdBuilder.resolveElementName(xsdElem);
+                XD2XsdUtils.resolveElementName(schema, xsdElem);
             }
         } else {
             xsdElem.setName(defEl.getName());
@@ -186,7 +186,7 @@ class XDTree2XsdAdapter {
                 xsdElem.setType(complexType);
             }
 
-            xsdBuilder.resolveElementName(xsdElem);
+            XD2XsdUtils.resolveElementName(schema, xsdElem);
         }
 
         return xsdElem;

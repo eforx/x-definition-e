@@ -25,14 +25,6 @@ public class XsdBaseBuilder {
         this.schema = schema;
     }
 
-    public void addElement(final XmlSchemaElement element) {
-        schema.getItems().add(element);
-    }
-
-    public void addComplexType(final XmlSchemaComplexType complexType) {
-        schema.getItems().add(complexType);
-    }
-
     /**
      * Create named xsd element
      * Example: <element name="elem_name">
@@ -44,36 +36,11 @@ public class XsdBaseBuilder {
         return elem;
     }
 
-    public void resolveElementName(final XmlSchemaElement elem) {
-        final String name = elem.getName();
-        final String newName = getResolvedName(name);
-
-        if (!name.equals(newName)) {
-            elem.setName(newName);
-        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault()) && isUnqualifiedName(name)) {
-            elem.setForm(XmlSchemaForm.UNQUALIFIED);
-        }
-    }
-
-    private String getResolvedName(final String name) {
-        // Element's name contains target namespace prefix, we can remove this prefix
-        if (schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix()) && name.charAt(schema.getSchemaNamespacePrefix().length()) == ':') {
-            return name.substring(schema.getSchemaNamespacePrefix().length() + 1);
-        }
-
-        return name;
-    }
-
-    private boolean isUnqualifiedName(final String name) {
-        // Element's name without namespace prefix, while xml is using target namespace
-        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null;
-    }
-
     /**
      * Create complexType element
      * Output: <complexType>
      */
-    public XmlSchemaComplexType createComplexType() {
+    public XmlSchemaComplexType createEmptyComplexType() {
         return new XmlSchemaComplexType(schema, false);
     }
 
@@ -146,10 +113,10 @@ public class XsdBaseBuilder {
                 attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
             }
 
-            String newName = getResolvedName(name);
+            String newName = XD2XsdUtils.getResolvedName(schema, name);
             if (!name.equals(newName)) {
                 attr.setName(newName);
-            } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && isUnqualifiedName(name)) {
+            } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && XD2XsdUtils.isUnqualifiedName(schema, name)) {
                 attr.setForm(XmlSchemaForm.UNQUALIFIED);
             }
         }

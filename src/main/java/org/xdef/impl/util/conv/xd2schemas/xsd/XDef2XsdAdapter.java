@@ -183,7 +183,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         for (int i = 0; i < elems.length; i++){
             if (treeAdapter.getXdRootNames().contains(elems[i].getName())) {
                 XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(elems[i], out, "|   ");
-                xsdBuilder.addElement(xsdElem);
+                XD2XsdUtils.addElement(schema, xsdElem);
             }
         }
     }
