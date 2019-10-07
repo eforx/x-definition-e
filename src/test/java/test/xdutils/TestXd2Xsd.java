@@ -291,7 +291,7 @@ public class TestXd2Xsd extends XDTester {
 
     private void validateXml(final String fileName, final File xmlFile, final File xsdSchemaFile, boolean expectedResult, String type) {
         XmlValidator validator = new XmlValidator(new StreamSource(xmlFile), new StreamSource(xsdSchemaFile));
-        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath()),
+        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), false),
                 "Xml validation failed, testCase: " + fileName + ", type: " + type + ", fileName: " + xmlFile.getName());
     }
 

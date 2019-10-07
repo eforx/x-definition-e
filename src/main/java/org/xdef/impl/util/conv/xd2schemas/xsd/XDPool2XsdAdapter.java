@@ -227,7 +227,7 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
                 if (!namespaceMap.containsKey(entry.getKey())) {
                     namespaceMap.add(entry.getKey(), entry.getValue());
                 } else {
-                    System.out.println("XSD schema already contains namespace " + entry.getKey());
+                    System.out.println("XDPool - XSD schema collection already contains namespace: \"" + entry.getKey() + "\"");
                 }
 
                 // Save target namespaces

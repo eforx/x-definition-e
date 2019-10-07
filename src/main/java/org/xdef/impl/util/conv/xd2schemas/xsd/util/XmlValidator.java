@@ -36,7 +36,7 @@ public class XmlValidator {
         this.schemaSource = schemaSource;
     }
 
-    public boolean validate(final String baseUri) {
+    public boolean validate(final String baseUri, boolean printEx) {
         if (xmlSource == null || schemaSource == null) {
             throw new InternalException("xml == null || schema == null");
         }
@@ -50,9 +50,13 @@ public class XmlValidator {
             validator.validate(xmlSource);
             return true;
         } catch (SAXException e) {
-            e.printStackTrace();
+            if (printEx) {
+                e.printStackTrace();
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (printEx) {
+                e.printStackTrace();
+            }
         }
 
         return false;
