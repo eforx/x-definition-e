@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas;
+package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.constants.Constants;

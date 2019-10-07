@@ -1,15 +1,17 @@
-package org.xdef.impl.util.conv.xd2schemas;
+package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
-import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDPool;
-import org.xdef.XDValue;
 import org.xdef.impl.*;
+import org.xdef.impl.util.conv.xd2schemas.XD2SchemaAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdBaseBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMData;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMNode;
@@ -18,7 +20,7 @@ import javax.xml.namespace.QName;
 import java.io.PrintStream;
 import java.util.*;
 
-public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema>  {
+public class XD2XsdAdapter implements XD2SchemaAdapter<XmlSchema> {
 
     private boolean printXdTree = false;
     private XDefinition xDefinition = null;

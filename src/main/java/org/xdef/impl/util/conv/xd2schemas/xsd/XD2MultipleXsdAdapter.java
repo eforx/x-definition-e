@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas;
+package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -6,9 +6,11 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
-import org.xdef.XDConstants;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
+import org.xdef.impl.util.conv.xd2schemas.XD2MultipleSchemasAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMDefinition;
 
 import java.util.*;

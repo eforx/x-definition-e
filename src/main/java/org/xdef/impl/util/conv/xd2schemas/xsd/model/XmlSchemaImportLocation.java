@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas;
+package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
 import java.util.Arrays;
 

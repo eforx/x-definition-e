@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas;
+package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -8,6 +8,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMData;
 import org.xdef.model.XMOccurrence;
 

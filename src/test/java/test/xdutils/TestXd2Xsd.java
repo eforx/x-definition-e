@@ -1,15 +1,14 @@
 package test.xdutils;
 
-import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schemas.XD2MultipleXsdAdapter;
-import org.xdef.impl.util.conv.xd2schemas.XD2XsdAdapter;
-import org.xdef.impl.util.conv.xd2schemas.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.XD2MultipleXsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xsd.XmlValidator;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
