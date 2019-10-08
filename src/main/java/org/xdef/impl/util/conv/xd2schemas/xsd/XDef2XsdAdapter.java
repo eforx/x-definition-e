@@ -203,10 +203,10 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
 
         schema = new XmlSchema(targetNamespace, schemaName, xmlSchemaCollection);
 
-        if (elemSchemaForm != null) {
+        if (elemSchemaForm != null && !XmlSchemaForm.NONE.equals(elemSchemaForm)) {
             schema.setElementFormDefault(elemSchemaForm);
         }
-        if (attrSchemaForm != null) {
+        if (attrSchemaForm != null && !XmlSchemaForm.NONE.equals(attrSchemaForm)) {
             schema.setAttributeFormDefault(attrSchemaForm);
         }
 

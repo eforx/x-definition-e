@@ -6,11 +6,23 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDConstants;
+import org.xdef.XDNamedValue;
+import org.xdef.XDParser;
+import org.xdef.XDValue;
+import org.xdef.impl.XData;
 
 import javax.xml.namespace.QName;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_NUM;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+
 public class XD2XsdUtils {
 
+    /**
+     * Convert xd parser name to xsd QName
+     * @param parserName
+     * @return
+     */
     public static QName parserNameToQName(final String parserName) {
         if ("CDATA".equals(parserName)) {
             return Constants.XSD_STRING;
@@ -36,15 +48,27 @@ public class XD2XsdUtils {
             return Constants.XSD_DAY;
         } else if ("time".equals(parserName)) {
             return Constants.XSD_TIME;
-        } else if ("dateTime".equals(parserName) || "ISOdateTime".equals(parserName)) {
+        } else if ("dateTime".equals(parserName) || "ISOdateTime".equals(parserName) || "xdatetime".equals(parserName)) {
             return Constants.XSD_DATETIME;
         } else if ("ISOyearMonth".equals(parserName)) {
             return Constants.XSD_YEARMONTH;
-        } else if ("ISOdate".equals(parserName)) {
+        } else if ("ISOdate".equals(parserName) || "date".equals(parserName)) {
             return Constants.XSD_DATE;
         } else {
-
             System.out.println("Unknown reference type parser: "+ parserName);
+        }
+
+        return null;
+    }
+
+    /**
+     * Some xd types require specific way how to create simpleType and restrictions
+     * @param parserName
+     * @return
+     */
+    public static QName customParserNameToQName(final String parserName) {
+        if (XD_PARSER_NUM.equals(parserName)) {
+            return Constants.XSD_STRING;
         }
 
         return null;
@@ -106,7 +130,7 @@ public class XD2XsdUtils {
 
     public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
         // Element's name without namespace prefix, while xml is using target namespace
-        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null;
+        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
     }
 
     public static void addElement(final XmlSchema schema, final XmlSchemaElement element) {
@@ -115,5 +139,20 @@ public class XD2XsdUtils {
 
     public static void addComplexType(final XmlSchema schema, final XmlSchemaComplexType complexType) {
         schema.getItems().add(complexType);
+    }
+
+    public static boolean hasSimpleParser(final XData xData) {
+        XDValue parseMethod = xData.getParseMethod();
+        final String parserName = xData.getParserName();
+
+        if (XD2XsdUtils.customParserNameToQName(parserName) == null && parseMethod instanceof XDParser) {
+            XDParser parser = ((XDParser) parseMethod);
+            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
+            if (parameters.length == 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

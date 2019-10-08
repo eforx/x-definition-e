@@ -13,16 +13,6 @@ import java.util.List;
  */
 public class XsdFacetBuilder {
 
-    private final XDNamedValue params[];
-
-    public XsdFacetBuilder(final XDNamedValue[] params) {
-        this.params = params;
-    }
-
-    public static List<XmlSchemaFacet> build(final XDNamedValue[] params) {
-        return build(params, false);
-    }
-
     public static List<XmlSchemaFacet> build(final XDNamedValue[] params, boolean decimal) {
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
         if (params != null) {
@@ -33,7 +23,7 @@ public class XsdFacetBuilder {
                     facets.add(minLength(param));
                 } else if ("whiteSpace".equals(param.getName())) {
                     facets.add(whitespace(param));
-                } else if ("pattern".equals(param.getName())) {
+                } else if ("pattern".equals(param.getName()) || "format".equals(param.getName())) {
                     facets.add(pattern(param));
                 } else if ("minInclusive".equals(param.getName())) {
                     facets.add(minInclusive(param, decimal));
@@ -109,8 +99,12 @@ public class XsdFacetBuilder {
     }
 
     public static XmlSchemaPatternFacet pattern(final XDNamedValue param) {
+        return pattern(param.getValue().stringValue());
+    }
+
+    public static XmlSchemaPatternFacet pattern(final String patterValue) {
         XmlSchemaPatternFacet facet = new XmlSchemaPatternFacet();
-        facet.setValue(param.getValue().stringValue());
+        facet.setValue(patterValue);
         return facet;
     }
 

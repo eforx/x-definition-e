@@ -17,6 +17,8 @@ import org.xdef.model.XMOccurrence;
 import javax.xml.namespace.QName;
 import java.security.InvalidParameterException;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+
 public class XsdBaseBuilder {
 
     private final XmlSchema schema;
@@ -44,55 +46,21 @@ public class XsdBaseBuilder {
         return new XmlSchemaComplexType(schema, false);
     }
 
-    public XmlSchemaSimpleType creatSimpleTypeRef(final XData xData) {
-        XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, true);
-        itemType.setName(xData.getRefTypeName());
+    public XmlSchemaSimpleType creatSimpleType(final XData xData, boolean topLevel) {
 
-        XmlSchemaSimpleTypeRestriction restriction = null;
-        final String parserName = xData.getParserName();
         XDValue parseMethod = xData.getParseMethod();
+        XmlSchemaSimpleTypeRestriction restriction;
+        XsdRestrictionBuilder restrictionBuilder = new XsdRestrictionBuilder(xData);
+
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
-            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            QName qName = XD2XsdUtils.parserNameToQName(parserName);
-            if (qName != null) {
-                restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
-            }
+            restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
+            restriction = restrictionBuilder.buildRestriction();
         } else {
-            restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
+            restriction = restrictionBuilder.buildRestriction(Constants.XSD_STRING);
         }
 
-        if (restriction == null) {
-            throw new RuntimeException("Unknown reference type parser: " + parserName);
-        }
-
-        itemType.setContent(restriction);
-        return itemType;
-    }
-
-    public XmlSchemaSimpleType creatSimpleType(final XData xData) {
-        XmlSchemaSimpleTypeRestriction restriction = null;
-        final String parserName = xData.getParserName();
-        XDValue parseMethod = xData.getParseMethod();
-        if (parseMethod instanceof XDParser) {
-            XDParser parser = ((XDParser)parseMethod);
-            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            if (parameters.length == 0) {
-                return null;
-            }
-            QName qName = XD2XsdUtils.parserNameToQName(parserName);
-            if (qName != null) {
-                restriction = XsdRestrictionBuilder.buildRestriction(qName, xData, parameters);
-            }
-        } else {
-            restriction = XsdRestrictionBuilder.buildRestriction(Constants.XSD_STRING, xData, null);
-        }
-
-        if (restriction == null) {
-            throw new RuntimeException("Unknown reference type parser: " + parserName);
-        }
-
-        XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, false);
+        XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, topLevel);
         itemType.setName(xData.getRefTypeName());
         itemType.setContent(restriction);
         return itemType;
@@ -109,14 +77,11 @@ public class XsdBaseBuilder {
 
             // TODO: Handling of reference namespaces?
             if (xmData.getRefTypeName() != null) {
-                attr.setSchemaTypeName(new QName("", xmData.getRefTypeName()));
+                attr.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, xmData.getRefTypeName()));
+            } else if (XD2XsdUtils.hasSimpleParser((XData)xmData)) {
+                attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
             } else {
-                XmlSchemaSimpleType simpleType = creatSimpleType((XData)xmData);
-                if (simpleType != null) {
-                    attr.setSchemaType(simpleType);
-                } else {
-                    attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
-                }
+                attr.setSchemaType(creatSimpleType((XData)xmData, false));
             }
 
             String newName = XD2XsdUtils.getResolvedName(schema, name);
@@ -142,6 +107,11 @@ public class XsdBaseBuilder {
 
         final String parserName = xmData.getParserName();
         XDValue parseMethod = xmData.getParseMethod();
+
+        if (!XD2XsdUtils.hasSimpleParser((XData)xmData)) {
+            System.out.println("Element requires advanced parser");
+        }
+
         // TODO: Has to be instance of XDParser?
         if (parseMethod instanceof XDParser) {
             contentExtension.setBaseTypeName(XD2XsdUtils.parserNameToQName(parserName));

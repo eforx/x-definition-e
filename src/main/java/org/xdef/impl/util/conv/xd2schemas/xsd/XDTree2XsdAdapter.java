@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import java.io.PrintStream;
 import java.util.*;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+
 class XDTree2XsdAdapter {
 
     final private boolean printXdTree;
@@ -112,100 +114,102 @@ class XDTree2XsdAdapter {
                                           final PrintStream out,
                                           String outputPrefix) {
         XElement defEl = (XElement)xn;
-
         XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(defEl.getName(), defEl);
-        XmlSchemaComplexType complexType = xsdBuilder.createEmptyComplexType();
-        XmlSchemaGroupParticle group = null;
-        boolean hasSimpleContent = false;
-        boolean isReference = defEl.isReference();
 
-        if (isReference) {
+        if (defEl.isReference()) {
             if (XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
                 xsdElem.getRef().setTargetQName(new QName(defEl.getNSUri(), defEl.getName()));
             } else {
                 xsdElem.setName(defEl.getName());
                 // TODO: reference namespace?
-                xsdElem.setSchemaTypeName(new QName("", XD2XsdUtils.getReferenceName(defEl.getReferencePos())));
+                xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, XD2XsdUtils.getReferenceName(defEl.getReferencePos())));
                 XD2XsdUtils.resolveElementName(schema, xsdElem);
             }
         } else {
             xsdElem.setName(defEl.getName());
-            XMNode[] attrs = defEl.getXDAttrs();
 
             // If element contains only data, we dont have to create complexType
-            if (attrs.length == 0 && defEl._childNodes.length == 1 && defEl._childNodes[0].getKind() == XNode.XMTEXT) {
-                XData xd = (XData)defEl._childNodes[0];
-                // TODO: Should we lookup for simple type reference?
-                XmlSchemaSimpleType simpleType = xsdBuilder.creatSimpleType(xd);
-                if (simpleType != null) {
-                    xsdElem.setType(simpleType);
-                } else {
-                    // TODO: Has to be instance of XDParser?
-                    if (xd.getParseMethod() instanceof XDParser) {
-                        final String parserName = xd.getParserName();
-                        xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
-                    }
-                }
+            if (defEl.getXDAttrs().length == 0 && defEl._childNodes.length == 1 && defEl._childNodes[0].getKind() == XNode.XMTEXT) {
+                addSimpleContentToElem(xsdElem, (XData)defEl._childNodes[0]);
             } else {
-
-                boolean groupMixToChoise = false;
-
-                // Convert all children nodes
-                for (int i = 0; i < defEl._childNodes.length; i++) {
-                    XNode xnChild = defEl._childNodes[i];
-                    short childrenKind = xnChild.getKind();
-                    // Particle nodes (sequence, choice, all)
-                    if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                        if (complexType.getParticle() != null) {
-                            // TODO: XD->XSD Solve
-                            out.println("Multiple particle group inside element!");
-                        }
-                        group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, out, outputPrefix + "|   ");
-                        complexType.setParticle(group);
-                        outputPrefix += "|   ";
-                    } else if (childrenKind == XNode.XMTEXT) { // Simple value node
-                        XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, out, outputPrefix + "|   ");
-                        for (int j = 0; j < attrs.length; j++) {
-                            ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], out, outputPrefix + "|   "));
-                        }
-
-                        complexType.setContentModel(simpleContent);
-                        hasSimpleContent = true;
-                    } else {
-                        XmlSchemaObjectBase xsdChild = convertTreeInt(xnChild, out, outputPrefix + "|   ");
-                        if (xsdChild != null) {
-                            // x-definition has no required group
-                            if (group == null) {
-                                group = new XmlSchemaSequence();
-                                complexType.setParticle(group);
-                            }
-
-                            if (group instanceof XmlSchemaSequence) {
-                                ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
-                            } else if (group instanceof XmlSchemaChoice) {
-                                ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
-                            } else if (group instanceof XmlSchemaAll) {
-                                ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
-                            }
-                        }
-                    }
-                }
-
-                updateParticleGroup(defEl, complexType);
-
-                if (hasSimpleContent == false) {
-                    for (int i = 0; i < attrs.length; i++) {
-                        complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i], out, outputPrefix + "|   "));
-                    }
-                }
-
-                xsdElem.setType(complexType);
+                addComplexContentToElem(xsdElem, defEl, out, outputPrefix);
             }
 
             XD2XsdUtils.resolveElementName(schema, xsdElem);
         }
 
         return xsdElem;
+    }
+
+    private void addSimpleContentToElem(final XmlSchemaElement xsdElem, final XData xd) {
+        // TODO: Should we lookup for simple type reference, which is equal to current simple type?
+        if (XD2XsdUtils.hasSimpleParser(xd)) {
+            // TODO: Has to be instance of XDParser?
+            if (xd.getParseMethod() instanceof XDParser) {
+                final String parserName = xd.getParserName();
+                xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
+            }
+        } else {
+            xsdElem.setType(xsdBuilder.creatSimpleType(xd, false));
+        }
+    }
+
+    private void addComplexContentToElem(final XmlSchemaElement xsdElem, final XElement defEl, final PrintStream out, String outputPrefix) {
+        XmlSchemaComplexType complexType = xsdBuilder.createEmptyComplexType();
+        XmlSchemaGroupParticle group = null;
+        boolean hasSimpleContent = false;
+        XMNode[] attrs = defEl.getXDAttrs();
+
+        // Convert all children nodes
+        for (int i = 0; i < defEl._childNodes.length; i++) {
+            XNode xnChild = defEl._childNodes[i];
+            short childrenKind = xnChild.getKind();
+            // Particle nodes (sequence, choice, all)
+            if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
+                if (complexType.getParticle() != null) {
+                    // TODO: XD->XSD Solve
+                    out.println("Multiple particle group inside element!");
+                }
+                group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, out, outputPrefix + "|   ");
+                complexType.setParticle(group);
+                outputPrefix += "|   ";
+            } else if (childrenKind == XNode.XMTEXT) { // Simple value node
+                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, out, outputPrefix + "|   ");
+                for (int j = 0; j < attrs.length; j++) {
+                    ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], out, outputPrefix + "|   "));
+                }
+
+                complexType.setContentModel(simpleContent);
+                hasSimpleContent = true;
+            } else {
+                XmlSchemaObjectBase xsdChild = convertTreeInt(xnChild, out, outputPrefix + "|   ");
+                if (xsdChild != null) {
+                    // x-definition has no required group
+                    if (group == null) {
+                        group = new XmlSchemaSequence();
+                        complexType.setParticle(group);
+                    }
+
+                    if (group instanceof XmlSchemaSequence) {
+                        ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
+                    } else if (group instanceof XmlSchemaChoice) {
+                        ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
+                    } else if (group instanceof XmlSchemaAll) {
+                        ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
+                    }
+                }
+            }
+        }
+
+        updateParticleGroup(defEl, complexType);
+
+        if (hasSimpleContent == false) {
+            for (int i = 0; i < attrs.length; i++) {
+                complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i], out, outputPrefix + "|   "));
+            }
+        }
+
+        xsdElem.setType(complexType);
     }
 
     private void updateParticleGroup(final XElement defEl, final XmlSchemaComplexType complexType) {
