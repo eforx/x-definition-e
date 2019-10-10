@@ -1,23 +1,22 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
-import org.apache.ws.commons.schema.XmlSchemaFacet;
-import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
+import javafx.util.Pair;
+import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.IXsdFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.DefaultFacetBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 
 import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_NUM;
 
 public class XsdRestrictionBuilder {
 
-    final XData xData;
-    final String parserName;
-    XDNamedValue parameters[] = null;
+    private final XData xData;
+    private final String parserName;
+    private XDNamedValue parameters[] = null;
 
     public XsdRestrictionBuilder(XData xData) {
         this.xData = xData;
@@ -31,51 +30,47 @@ public class XsdRestrictionBuilder {
     public XmlSchemaSimpleTypeRestriction buildRestriction() {
         XmlSchemaSimpleTypeRestriction restriction = null;
 
-        QName qName = XD2XsdUtils.customParserNameToQName(parserName);
-        if (qName != null) {
-            restriction = buildRestriction(qName);
-            buildCustomRestriction(restriction, qName);
-        } else {
-            qName = XD2XsdUtils.parserNameToQName(parserName);
-            if (qName != null) {
-                restriction = buildRestriction(qName);
-            }
+        boolean customParser = true;
+        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName);
+        if (parserInfo == null) {
+            parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
+            customParser = false;
+        }
+
+        if (parserInfo != null) {
+            restriction = buildRestriction(parserInfo.getKey(), parserInfo.getValue());
         }
 
         if (restriction == null) {
             throw new RuntimeException("Unknown reference type parser: " + parserName);
         }
 
+        if (customParser) {
+            restriction.setAnnotation(XsdElementBuilder.createAnnotation("Original x-definition parser: " + parserName));
+        }
+
         return restriction;
     }
 
-    public XmlSchemaSimpleTypeRestriction buildRestriction(final QName qName) {
+    public XmlSchemaSimpleTypeRestriction buildDefaultRestriction(final QName qName) {
+        return buildRestriction(qName, new DefaultFacetBuilder());
+    }
+
+    private XmlSchemaSimpleTypeRestriction buildRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
         if ("double".equals(qName.getLocalPart()) || "float".equals(qName.getLocalPart())) {
-            return decimalRestriction(qName);
+            facetBuilder.setUseDecimalValue(true);
+        } else {
+            facetBuilder.setUseDecimalValue(false);
         }
 
-        return nonDecimalRestriction(qName);
+        return simpleRestriction(qName, facetBuilder);
     }
 
-    private XmlSchemaSimpleTypeRestriction nonDecimalRestriction(final QName qName) {
-        return simpleRestriction(qName, false);
-    }
-
-    private XmlSchemaSimpleTypeRestriction decimalRestriction(final QName qName) {
-        return simpleRestriction(qName, true);
-    }
-
-    private XmlSchemaSimpleTypeRestriction simpleRestriction(final QName qName, boolean decimal) {
+    private XmlSchemaSimpleTypeRestriction simpleRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
         XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();
         restriction.setBaseTypeName(qName);
-        restriction.getFacets().addAll(XsdFacetBuilder.build(parameters, decimal));
+        restriction.getFacets().addAll(facetBuilder.build(parameters));
         return restriction;
     }
 
-    public void buildCustomRestriction(final XmlSchemaSimpleTypeRestriction restriction, final QName qName) {
-        final List<XmlSchemaFacet> extraFacets = restriction.getFacets();
-        if (XD_PARSER_NUM.equals(parserName)) {
-            extraFacets.add(XsdFacetBuilder.pattern("([0-9])*"));
-        }
-    }
 }

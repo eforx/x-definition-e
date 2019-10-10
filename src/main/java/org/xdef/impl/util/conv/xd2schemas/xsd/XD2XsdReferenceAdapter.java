@@ -5,7 +5,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdBaseBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMNode;
@@ -17,7 +17,7 @@ import java.util.Set;
 
 class XD2XsdReferenceAdapter {
 
-    private final XsdBaseBuilder xsdBaseBuilder;
+    private final XsdElementBuilder xsdBaseBuilder;
     private final XDTree2XsdAdapter xdTree2XsdAdapter;
     private final XmlSchema schema;
     private final Map<String, XmlSchemaImportLocation> importSchemaLocations;
@@ -25,7 +25,7 @@ class XD2XsdReferenceAdapter {
     private Set<String> simpleTypeReferences;
     private Set<String> namespaceImports;
 
-    protected XD2XsdReferenceAdapter(XsdBaseBuilder xsdBaseBuilder, XDTree2XsdAdapter xdTree2XsdAdapter, XmlSchema schema, Map<String, XmlSchemaImportLocation> importSchemaLocations) {
+    protected XD2XsdReferenceAdapter(XsdElementBuilder xsdBaseBuilder, XDTree2XsdAdapter xdTree2XsdAdapter, XmlSchema schema, Map<String, XmlSchemaImportLocation> importSchemaLocations) {
         this.xsdBaseBuilder = xsdBaseBuilder;
         this.xdTree2XsdAdapter = xdTree2XsdAdapter;
         this.schema = schema;

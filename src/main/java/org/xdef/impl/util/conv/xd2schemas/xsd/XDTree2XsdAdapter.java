@@ -4,7 +4,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.XDParser;
 import org.xdef.impl.*;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdBaseBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMData;
 import org.xdef.model.XMNode;
@@ -19,12 +19,12 @@ class XDTree2XsdAdapter {
 
     final private boolean printXdTree;
     final private XmlSchema schema;
-    final private XsdBaseBuilder xsdBuilder;
+    final private XsdElementBuilder xsdBuilder;
 
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
-    protected XDTree2XsdAdapter(boolean printXdTree, XmlSchema schema, XsdBaseBuilder xsdBuilder) {
+    protected XDTree2XsdAdapter(boolean printXdTree, XmlSchema schema, XsdElementBuilder xsdBuilder) {
         this.printXdTree = printXdTree;
         this.schema = schema;
         this.xsdBuilder = xsdBuilder;
@@ -97,7 +97,7 @@ class XDTree2XsdAdapter {
                 if (printXdTree) {
                     displaySelector(xn, out, outputPrefix);
                 }
-                return xsdBuilder.createGroup(xdElemKind, xn.getOccurence());
+                return xsdBuilder.createGroupParticle(xdElemKind, xn.getOccurence());
             case XNode.XMDEFINITION: {
                 out.println(outputPrefix + "XDefinition node should not be converted: " + xn.getName());
                 return null;
@@ -114,7 +114,7 @@ class XDTree2XsdAdapter {
                                           final PrintStream out,
                                           String outputPrefix) {
         XElement defEl = (XElement)xn;
-        XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(defEl.getName(), defEl);
+        XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(defEl);
 
         if (defEl.isReference()) {
             if (XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
@@ -143,12 +143,8 @@ class XDTree2XsdAdapter {
 
     private void addSimpleContentToElem(final XmlSchemaElement xsdElem, final XData xd) {
         // TODO: Should we lookup for simple type reference, which is equal to current simple type?
-        if (XD2XsdUtils.hasSimpleParser(xd)) {
-            // TODO: Has to be instance of XDParser?
-            if (xd.getParseMethod() instanceof XDParser) {
-                final String parserName = xd.getParserName();
-                xsdElem.setSchemaTypeName(XD2XsdUtils.parserNameToQName(parserName));
-            }
+        if (XD2XsdUtils.hasDefaultSimpleParser(xd)) {
+            xsdElem.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xd.getParserName()));
         } else {
             xsdElem.setType(xsdBuilder.creatSimpleType(xd, false));
         }

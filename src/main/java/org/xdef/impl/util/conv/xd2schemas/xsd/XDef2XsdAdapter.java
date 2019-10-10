@@ -7,7 +7,7 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.*;
 import org.xdef.impl.util.conv.xd2schemas.XDef2SchemaAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdBaseBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMDefinition;
@@ -24,7 +24,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
     private XDefinition xDefinition = null;
     private String schemaName = null;
     private XmlSchema schema = null;
-    private XsdBaseBuilder xsdBuilder = null;
+    private XsdElementBuilder xsdBuilder = null;
 
     /**
      * ================ Input parameters ================
@@ -210,7 +210,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
             schema.setAttributeFormDefault(attrSchemaForm);
         }
 
-        xsdBuilder = new XsdBaseBuilder(schema);
+        xsdBuilder = new XsdElementBuilder(schema);
 
         // Namespace initialization
         NamespaceMap namespaceMap = new NamespaceMap();

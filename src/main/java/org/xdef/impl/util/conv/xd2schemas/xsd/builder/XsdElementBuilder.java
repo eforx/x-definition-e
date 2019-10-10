@@ -2,8 +2,6 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
-import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
@@ -11,19 +9,19 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMData;
-import org.xdef.model.XMNode;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
 import java.security.InvalidParameterException;
+import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 
-public class XsdBaseBuilder {
+public class XsdElementBuilder {
 
     private final XmlSchema schema;
 
-    public XsdBaseBuilder(XmlSchema schema) {
+    public XsdElementBuilder(XmlSchema schema) {
         this.schema = schema;
     }
 
@@ -31,7 +29,7 @@ public class XsdBaseBuilder {
      * Create named xsd element
      * Example: <element name="elem_name">
      */
-    public XmlSchemaElement createEmptyElement(final String name, final XElement xElement) {
+    public XmlSchemaElement createEmptyElement(final XElement xElement) {
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
@@ -57,7 +55,7 @@ public class XsdBaseBuilder {
             restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
             restriction = restrictionBuilder.buildRestriction();
         } else {
-            restriction = restrictionBuilder.buildRestriction(Constants.XSD_STRING);
+            restriction = restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
         }
 
         XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, topLevel);
@@ -78,8 +76,8 @@ public class XsdBaseBuilder {
             // TODO: Handling of reference namespaces?
             if (xmData.getRefTypeName() != null) {
                 attr.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, xmData.getRefTypeName()));
-            } else if (XD2XsdUtils.hasSimpleParser((XData)xmData)) {
-                attr.setSchemaTypeName(XD2XsdUtils.parserNameToQName(xmData.getValueTypeName()));
+            } else if (XD2XsdUtils.hasDefaultSimpleParser((XData)xmData)) {
+                attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
             } else {
                 attr.setSchemaType(creatSimpleType((XData)xmData, false));
             }
@@ -101,20 +99,20 @@ public class XsdBaseBuilder {
         return attr;
     }
 
-    public XmlSchemaSimpleContent createSimpleContent(final XMData xmData) {
+    public static XmlSchemaSimpleContent createSimpleContent(final XMData xmData) {
         XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
         XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
 
         final String parserName = xmData.getParserName();
         XDValue parseMethod = xmData.getParseMethod();
 
-        if (!XD2XsdUtils.hasSimpleParser((XData)xmData)) {
+        if (!XD2XsdUtils.hasDefaultSimpleParser((XData)xmData)) {
             System.out.println("Element requires advanced parser");
         }
 
         // TODO: Has to be instance of XDParser?
         if (parseMethod instanceof XDParser) {
-            contentExtension.setBaseTypeName(XD2XsdUtils.parserNameToQName(parserName));
+            contentExtension.setBaseTypeName(XD2XsdUtils.getDefaultQName(parserName));
         }
 
         content.setContent(contentExtension);
@@ -122,11 +120,12 @@ public class XsdBaseBuilder {
     }
 
     /**
-     *
+     * Creates element based on groupType
+     * Possible outputs: xs:sequence, xs:choice, xs:all
      * @param groupType
      * @return
      */
-    public XmlSchemaGroupParticle createGroup(short groupType, final XMOccurrence occurrence) {
+    public static XmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
         XmlSchemaGroupParticle particle = null;
         switch (groupType) {
             case XNode.XMSEQUENCE: {
@@ -150,5 +149,25 @@ public class XsdBaseBuilder {
         particle.setMaxOccurs((occurrence.isUnbounded() || occurrence.isMaxUnlimited()) ? Long.MAX_VALUE : occurrence.maxOccurs());
 
         return particle;
+    }
+
+    public static XmlSchemaAnnotation createAnnotation(final String annotationValue) {
+        XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+        annotation.getItems().add(createAnnotationItem(annotationValue));
+        return annotation;
+    }
+
+    public static XmlSchemaAnnotation createAnnotation(final List<String> annotationValues) {
+        XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+        for (String value : annotationValues) {
+            annotation.getItems().add(createAnnotationItem(value));
+        }
+        return annotation;
+    }
+
+    private static XmlSchemaDocumentation createAnnotationItem(final String annotationValue) {
+        XmlSchemaDocumentation annotationItem = new XmlSchemaDocumentation();
+        annotationItem.setSource(annotationValue);
+        return annotationItem;
     }
 }

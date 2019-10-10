@@ -10,4 +10,5 @@ public interface XD2XsdDefinitions {
      * Parser
      */
     String XD_PARSER_NUM = "num";
+    String XD_PARSER_XDATETIME = "xdatetime";
 }

@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -10,11 +11,11 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.*;
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_NUM;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.*;
 
 public class XD2XsdUtils {
 
@@ -23,7 +24,7 @@ public class XD2XsdUtils {
      * @param parserName
      * @return
      */
-    public static QName parserNameToQName(final String parserName) {
+    public static QName getDefaultQName(final String parserName) {
         if ("CDATA".equals(parserName)) {
             return Constants.XSD_STRING;
         } else if ("string".equals(parserName)) {
@@ -48,7 +49,7 @@ public class XD2XsdUtils {
             return Constants.XSD_DAY;
         } else if ("time".equals(parserName)) {
             return Constants.XSD_TIME;
-        } else if ("dateTime".equals(parserName) || "ISOdateTime".equals(parserName) || "xdatetime".equals(parserName)) {
+        } else if ("dateTime".equals(parserName) || "ISOdateTime".equals(parserName)) {
             return Constants.XSD_DATETIME;
         } else if ("ISOyearMonth".equals(parserName)) {
             return Constants.XSD_YEARMONTH;
@@ -61,14 +62,26 @@ public class XD2XsdUtils {
         return null;
     }
 
+    public static Pair<QName, IXsdFacetBuilder> getDefaultFacetBuilder(final String parserName) {
+        QName qName = getDefaultQName(parserName);
+        if (qName != null) {
+            return new Pair(qName, new DefaultFacetBuilder());
+        }
+
+        return null;
+    }
+
     /**
-     * Some xd types require specific way how to create simpleType and restrictions
-     * @param parserName
-     * @return
+     * Some xd types requires specific way how to create simpleType and restrictions
+     * @param parserName x-definition parser name
+     * @return  QName - qualified XML name
+     *          Boolean - use also default facet facets builder
      */
-    public static QName customParserNameToQName(final String parserName) {
+    public static Pair<QName, IXsdFacetBuilder> getCustomFacetBuilder(final String parserName) {
         if (XD_PARSER_NUM.equals(parserName)) {
-            return Constants.XSD_STRING;
+            return new Pair(Constants.XSD_STRING, new NumFacetBuilder());
+        } else if (XD_PARSER_XDATETIME.equals(parserName)) {
+            return new Pair(Constants.XSD_STRING, new DateTimeFacetBuilder());
         }
 
         return null;
@@ -141,11 +154,12 @@ public class XD2XsdUtils {
         schema.getItems().add(complexType);
     }
 
-    public static boolean hasSimpleParser(final XData xData) {
-        XDValue parseMethod = xData.getParseMethod();
+    public static boolean hasDefaultSimpleParser(final XData xData) {
+        final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
 
-        if (XD2XsdUtils.customParserNameToQName(parserName) == null && parseMethod instanceof XDParser) {
+        // TODO: Has to be instance of XDParser?
+        if (XD2XsdUtils.getCustomFacetBuilder(parserName) == null && parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser) parseMethod);
             XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
             if (parameters.length == 0) {
