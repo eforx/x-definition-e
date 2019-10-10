@@ -1,7 +1,11 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
+import com.sun.org.apache.xerces.internal.dom.TextImpl;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
@@ -12,6 +16,9 @@ import org.xdef.model.XMData;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
@@ -165,9 +172,25 @@ public class XsdElementBuilder {
         return annotation;
     }
 
-    private static XmlSchemaDocumentation createAnnotationItem(final String annotationValue) {
+    private static XmlSchemaDocumentation createAnnotationItem(final String annotation) {
+        if (annotation == null || annotation.isEmpty()) {
+            return null;
+        }
+
         XmlSchemaDocumentation annotationItem = new XmlSchemaDocumentation();
-        annotationItem.setSource(annotationValue);
+
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("documentation");
+            doc.appendChild(rootElement);
+            rootElement.appendChild(doc.createTextNode(annotation));
+            annotationItem.setMarkup(rootElement.getChildNodes());
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+
         return annotationItem;
     }
 }

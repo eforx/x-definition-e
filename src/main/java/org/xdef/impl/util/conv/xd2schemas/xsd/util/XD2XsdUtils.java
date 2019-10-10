@@ -1,10 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaComplexType;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDConstants;
 import org.xdef.XDNamedValue;
@@ -150,8 +147,8 @@ public class XD2XsdUtils {
         schema.getItems().add(element);
     }
 
-    public static void addComplexType(final XmlSchema schema, final XmlSchemaComplexType complexType) {
-        schema.getItems().add(complexType);
+    public static void addRefType(final XmlSchema schema, final XmlSchemaType schemaType) {
+        schema.getItems().add(schemaType);
     }
 
     public static boolean hasDefaultSimpleParser(final XData xData) {
