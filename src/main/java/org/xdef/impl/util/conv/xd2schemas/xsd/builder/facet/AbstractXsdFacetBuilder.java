@@ -15,37 +15,11 @@ public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
         if (params != null) {
             for (XDNamedValue param : params) {
-                if ("maxLength".equals(param.getName())) {
-                    facets.add(maxLength(param));
-                } else if ("minLength".equals(param.getName())) {
-                    facets.add(minLength(param));
-                } else if ("whiteSpace".equals(param.getName())) {
-                    facets.add(whitespace(param));
-                } else if ("pattern".equals(param.getName()) || "format".equals(param.getName())) {
-                    facets.add(pattern(param));
-                } else if ("minInclusive".equals(param.getName())) {
-                    facets.add(minInclusive(param));
-                } else if ("minExclusive".equals(param.getName())) {
-                    facets.add(minExclusive(param));
-                } else if ("maxInclusive".equals(param.getName())) {
-                    facets.add(maxInclusive(param));
-                } else if ("maxExclusive".equals(param.getName())) {
-                    facets.add(maxExclusive(param));
-                } else if ("argument".equals(param.getName()) || "enumeration".equals(param.getName())) {
-                    facets.addAll(enumeration(param));
-                } else if ("length".equals(param.getName())) {
-                    facets.add(length(param));
-                } else if ("fractionDigits".equals(param.getName())) {
-                    facets.add(fractionDigits(param));
-                } else if ("totalDigits".equals(param.getName())) {
-                    facets.add(totalDigits(param));
-                } else {
-                    System.out.println("Unknown reference type parameter: " + param.getName());
-                }
+                build(facets, param);
             }
         }
 
-        customFacets(facets, params);
+        extraFacets(facets, params);
 
         return facets;
     }
@@ -86,7 +60,7 @@ public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
     }
 
     @Override
-    public XmlSchemaPatternFacet pattern(XDNamedValue param) {
+    public List<XmlSchemaPatternFacet> pattern(XDNamedValue param) {
         throw new UnsupportedOperationException("pattern");
     }
 
@@ -118,11 +92,46 @@ public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
     }
 
     @Override
-    public void customFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public boolean customFacet(List<XmlSchemaFacet> facets, XDNamedValue param) {
+        return false;
+    }
+
+    @Override
+    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
     }
 
     @Override
     public void setValueType(final ValueType valueType) {
         this.valueType = valueType;
+    }
+
+    protected void build(final List<XmlSchemaFacet> facets, final XDNamedValue param) {
+        if ("maxLength".equals(param.getName())) {
+            facets.add(maxLength(param));
+        } else if ("minLength".equals(param.getName())) {
+            facets.add(minLength(param));
+        } else if ("whiteSpace".equals(param.getName())) {
+            facets.add(whitespace(param));
+        } else if ("pattern".equals(param.getName()) || "format".equals(param.getName())) {
+            facets.addAll(pattern(param));
+        } else if ("minInclusive".equals(param.getName())) {
+            facets.add(minInclusive(param));
+        } else if ("minExclusive".equals(param.getName())) {
+            facets.add(minExclusive(param));
+        } else if ("maxInclusive".equals(param.getName())) {
+            facets.add(maxInclusive(param));
+        } else if ("maxExclusive".equals(param.getName())) {
+            facets.add(maxExclusive(param));
+        } else if ("argument".equals(param.getName()) || "enumeration".equals(param.getName())) {
+            facets.addAll(enumeration(param));
+        } else if ("length".equals(param.getName())) {
+            facets.add(length(param));
+        } else if ("fractionDigits".equals(param.getName())) {
+            facets.add(fractionDigits(param));
+        } else if ("totalDigits".equals(param.getName())) {
+            facets.add(totalDigits(param));
+        } else if (!customFacet(facets, param)) {
+            System.out.println("Unknown reference type parameter: " + param.getName());
+        }
     }
 }

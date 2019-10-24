@@ -431,6 +431,7 @@ public class TestXd2Xsd extends XDTester {
         // TODO: namespace inside namespace
         //convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
 
+        convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), null);
 
         // ============ XDPool ============
 

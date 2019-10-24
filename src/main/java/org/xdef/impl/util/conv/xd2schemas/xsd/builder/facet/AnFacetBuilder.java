@@ -8,7 +8,7 @@ import java.util.List;
 public class AnFacetBuilder extends DefaultFacetBuilder {
 
     @Override
-    public void customFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
         facets.add(pattern("[a-zA-Z0-9]*"));
     }
 

@@ -10,13 +10,16 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 
 import javax.xml.namespace.QName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_NUM;
 
 public class XsdRestrictionBuilder {
 
     private final XData xData;
     private final String parserName;
-    private XDNamedValue parameters[] = null;
+    private XDNamedValue[] parameters = null;
 
     public XsdRestrictionBuilder(XData xData) {
         this.xData = xData;
@@ -38,7 +41,7 @@ public class XsdRestrictionBuilder {
         }
 
         if (parserInfo != null) {
-            restriction = buildRestriction(parserInfo.getKey(), parserInfo.getValue());
+            restriction = simpleRestriction(parserInfo.getKey(), parserInfo.getValue());
         }
 
         if (restriction == null) {
@@ -53,10 +56,17 @@ public class XsdRestrictionBuilder {
     }
 
     public XmlSchemaSimpleTypeRestriction buildDefaultRestriction(final QName qName) {
-        return buildRestriction(qName, new DefaultFacetBuilder());
+        return simpleRestriction(qName, new DefaultFacetBuilder());
     }
 
-    private XmlSchemaSimpleTypeRestriction buildRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
+    private XmlSchemaSimpleTypeRestriction simpleRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
+        XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();
+        restriction.setBaseTypeName(qName);
+        restriction.getFacets().addAll(buildFacets(qName, facetBuilder, parameters));
+        return restriction;
+    }
+
+    private static List<XmlSchemaFacet> buildFacets(final QName qName, final IXsdFacetBuilder facetBuilder, final XDNamedValue[] parameters) {
         if ("double".equals(qName.getLocalPart()) || "float".equals(qName.getLocalPart())) {
             facetBuilder.setValueType(IXsdFacetBuilder.ValueType.DECIMAL_FLOATING);
         } else if ("int".equals(qName.getLocalPart()) || "long".equals(qName.getLocalPart())) {
@@ -65,14 +75,26 @@ public class XsdRestrictionBuilder {
             facetBuilder.setValueType(IXsdFacetBuilder.ValueType.STRING);
         }
 
-        return simpleRestriction(qName, facetBuilder);
+        return facetBuilder.build(parameters);
     }
 
-    private XmlSchemaSimpleTypeRestriction simpleRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
-        XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();
-        restriction.setBaseTypeName(qName);
-        restriction.getFacets().addAll(facetBuilder.build(parameters));
-        return restriction;
+    public static List<XmlSchemaFacet> buildFacets(final String parserName, final XDNamedValue[] parameters) {
+        List<XmlSchemaFacet> facets = null;
+
+        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
+        if (parserInfo == null) {
+            parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
+        }
+
+        if (parserInfo != null) {
+            facets = buildFacets(parserInfo.getKey(), parserInfo.getValue(), parameters);
+        }
+
+        if (facets == null) {
+            throw new RuntimeException("Unknown reference type parser: " + parserName);
+        }
+
+        return facets;
     }
 
 }

@@ -78,7 +78,7 @@ public interface IXsdFacetBuilder {
      * @param param
      * @return
      */
-    XmlSchemaPatternFacet pattern(final XDNamedValue param);
+    List<XmlSchemaPatternFacet> pattern(final XDNamedValue param);
 
     /**
      * Creates xs:pattern facet
@@ -115,11 +115,18 @@ public interface IXsdFacetBuilder {
     XmlSchemaWhiteSpaceFacet whitespace(final XDNamedValue param);
 
     /**
-     * Creates custom facets
+     * Handling of custom facet
+     * @param param
+     * @return
+     */
+    boolean customFacet(final List<XmlSchemaFacet> facets, final XDNamedValue param);
+
+    /**
+     * Creates extra facets
      * @param params
      * @return
      */
-    void customFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params);
+    void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params);
 
     void setValueType(final ValueType valueType);
 }

@@ -73,8 +73,14 @@ public class DefaultFacetBuilder extends AbstractXsdFacetBuilder {
     }
 
     @Override
-    public XmlSchemaPatternFacet pattern(final XDNamedValue param) {
-        return super.pattern(param.getValue().stringValue());
+    public List<XmlSchemaPatternFacet> pattern(final XDNamedValue param) {
+        List<XmlSchemaPatternFacet> facets = new ArrayList<XmlSchemaPatternFacet>();
+        String[] patterns = param.getValue().stringValue().split("\n");
+        for (String p : patterns) {
+            facets.add(super.pattern(p));
+        }
+
+        return facets;
     }
 
     @Override

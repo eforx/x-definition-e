@@ -13,5 +13,7 @@ public interface XD2XsdDefinitions {
     String XD_PARSER_DEC = "dec";
     String XD_PARSER_EQ = "eq";
     String XD_PARSER_NUM = "num";
+    String XD_PARSER_LIST = "list";
+    String XD_PARSER_UNION = "union";
     String XD_PARSER_XDATETIME = "xdatetime";
 }

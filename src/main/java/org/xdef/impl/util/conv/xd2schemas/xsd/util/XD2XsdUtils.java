@@ -10,6 +10,8 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.*;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.ListFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.UnionFacetBuilder;
 
 import javax.xml.namespace.QName;
 
@@ -78,13 +80,19 @@ public class XD2XsdUtils {
      * @return  QName - qualified XML name
      *          Boolean - use also default facet facets builder
      */
-    public static Pair<QName, IXsdFacetBuilder> getCustomFacetBuilder(final String parserName, final XDNamedValue parameters[]) {
+    public static Pair<QName, IXsdFacetBuilder> getCustomFacetBuilder(final String parserName, final XDNamedValue[] parameters) {
         if (XD_PARSER_AN.equals(parserName)) {
             return new Pair(Constants.XSD_STRING, new AnFacetBuilder());
         } else if (XD_PARSER_NUM.equals(parserName)) {
             return new Pair(Constants.XSD_STRING, new NumFacetBuilder());
         } else if (XD_PARSER_XDATETIME.equals(parserName)) {
             return new Pair(Constants.XSD_STRING, new DateTimeFacetBuilder());
+        } else if (XD_PARSER_LIST.equals(parserName)) {
+            ListFacetBuilder facetBuilder = new ListFacetBuilder();
+            return new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
+        } else if (XD_PARSER_UNION.equals(parserName)) {
+            UnionFacetBuilder facetBuilder = new UnionFacetBuilder();
+            return new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
         }
 
         return null;
@@ -271,7 +279,7 @@ public class XD2XsdUtils {
         // TODO: Has to be instance of XDParser?
         if (defaultQName != null && parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
-            XDNamedValue parameters[] = ((XDParser) parseMethod).getNamedParams().getXDNamedItems();
+            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
             if (parameters.length == 0 && XD2XsdUtils.getCustomFacetBuilder(parserName, parameters) == null) {
                 return defaultQName;
             }
