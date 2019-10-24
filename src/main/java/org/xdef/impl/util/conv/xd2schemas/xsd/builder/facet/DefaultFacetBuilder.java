@@ -8,6 +8,9 @@ import org.xdef.XDValue;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.IXsdFacetBuilder.ValueType.DECIMAL_FLOATING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.IXsdFacetBuilder.ValueType.DECIMAL_INTEGER;
+
 /**
  * Used for creation of restrictions
  */
@@ -16,28 +19,28 @@ public class DefaultFacetBuilder extends AbstractXsdFacetBuilder {
     @Override
     public XmlSchemaMinInclusiveFacet minInclusive(final XDNamedValue param) {
         XmlSchemaMinInclusiveFacet facet = new XmlSchemaMinInclusiveFacet();
-        setDecimalValue(facet, param.getValue());
+        setValue(facet, param.getValue());
         return facet;
     }
 
     @Override
     public XmlSchemaMaxInclusiveFacet maxInclusive(final XDNamedValue param) {
         XmlSchemaMaxInclusiveFacet facet = new XmlSchemaMaxInclusiveFacet();
-        setDecimalValue(facet, param.getValue());
+        setValue(facet, param.getValue());
         return facet;
     }
 
     @Override
     public XmlSchemaMinExclusiveFacet minExclusive(final XDNamedValue param) {
         XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet();
-        setDecimalValue(facet, param.getValue());
+        setValue(facet, param.getValue());
         return facet;
     }
 
     @Override
     public XmlSchemaMaxExclusiveFacet maxExclusive(final XDNamedValue param) {
         XmlSchemaMaxExclusiveFacet facet = new XmlSchemaMaxExclusiveFacet();
-        setDecimalValue(facet, param.getValue());
+        setValue(facet, param.getValue());
         return facet;
     }
 
@@ -103,11 +106,13 @@ public class DefaultFacetBuilder extends AbstractXsdFacetBuilder {
         return facet;
     }
 
-    private void setDecimalValue(final XmlSchemaFacet facet, XDValue xdValue) {
-        if (useDecimalValue == false) {
+    protected void setValue(final XmlSchemaFacet facet, XDValue xdValue) {
+        if (DECIMAL_INTEGER.equals(valueType)) {
             facet.setValue(xdValue.intValue());
-        } else {
+        } else if (DECIMAL_FLOATING.equals(valueType)) {
             facet.setValue(xdValue.doubleValue());
+        } else {
+            facet.setValue(xdValue.stringValue());
         }
     }
 

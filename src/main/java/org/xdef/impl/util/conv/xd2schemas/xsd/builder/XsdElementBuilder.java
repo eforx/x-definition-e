@@ -1,11 +1,9 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
 
-import com.sun.org.apache.xerces.internal.dom.TextImpl;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
@@ -22,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 
 public class XsdElementBuilder {
@@ -52,7 +51,6 @@ public class XsdElementBuilder {
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData, boolean topLevel) {
-
         XDValue parseMethod = xData.getParseMethod();
         XmlSchemaSimpleTypeRestriction restriction;
         XsdRestrictionBuilder restrictionBuilder = new XsdRestrictionBuilder(xData);
@@ -75,7 +73,7 @@ public class XsdElementBuilder {
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
         final String importNamespace = xmData.getNSUri();
         final String nodeName = xmData.getName();
-        if (importNamespace != null && XD2XsdUtils.isExternalRef(nodeName, importNamespace, schema)) {
+        if (importNamespace != null && XD2XsdUtils.isRefInDifferentNamespace(nodeName, importNamespace, schema)) {
             attr.getRef().setTargetQName(new QName(importNamespace, nodeName));
         } else {
             attr.setName(name);
@@ -83,13 +81,18 @@ public class XsdElementBuilder {
             // TODO: Handling of reference namespaces?
             if (xmData.getRefTypeName() != null) {
                 attr.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, xmData.getRefTypeName()));
-            } else if (XD2XsdUtils.hasDefaultSimpleParser((XData)xmData)) {
+            } else if (XD2XsdUtils.getDefaultSimpleParserQName((XData)xmData) != null) {
+                attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
+            } else if (XD_PARSER_EQ.equals(xmData.getParserName())) {
+                // TODO: Where to get fixed value
+                //attr.setFixedValue("1.0");
+                // TODO: Possible to use non-default xsd types?
                 attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
             } else {
                 attr.setSchemaType(creatSimpleType((XData)xmData, false));
             }
 
-            String newName = XD2XsdUtils.getResolvedName(schema, name);
+            String newName = XD2XsdUtils.resolveName(schema, name);
             if (!name.equals(newName)) {
                 attr.setName(newName);
             } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && XD2XsdUtils.isUnqualifiedName(schema, name)) {
@@ -106,22 +109,22 @@ public class XsdElementBuilder {
         return attr;
     }
 
-    public static XmlSchemaSimpleContent createSimpleContent(final XMData xmData) {
+    public static XmlSchemaSimpleContent createSimpleContent(final XData xd) {
         XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
         XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
-
-        final String parserName = xmData.getParserName();
-        XDValue parseMethod = xmData.getParseMethod();
-
-        if (!XD2XsdUtils.hasDefaultSimpleParser((XData)xmData)) {
-            System.out.println("Element requires advanced parser");
+        QName qName;
+        // TODO: Handling of reference namespaces?
+        if (xd.getRefTypeName() != null) {
+            qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, xd.getRefTypeName());
+        } else {
+            qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
         }
 
-        // TODO: Has to be instance of XDParser?
-        if (parseMethod instanceof XDParser) {
-            contentExtension.setBaseTypeName(XD2XsdUtils.getDefaultQName(parserName));
+        if (qName == null) {
+            throw new RuntimeException("Unknown type! element: " + xd.getName());
         }
 
+        contentExtension.setBaseTypeName(qName);
         content.setContent(contentExtension);
         return content;
     }

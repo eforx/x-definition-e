@@ -2,7 +2,6 @@ package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
-import org.xdef.XDParser;
 import org.xdef.impl.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
@@ -75,6 +74,7 @@ class XDTree2XsdAdapter {
                     out.print(outputPrefix + "|-- XMText: ");
                     displayDesriptor(xd, out);
                 }
+
                 return xsdBuilder.createSimpleContent(xd);
             }
             case XNode.XMELEMENT: {
@@ -117,8 +117,12 @@ class XDTree2XsdAdapter {
         XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(defEl);
 
         if (defEl.isReference()) {
-            if (XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
+            if (XD2XsdUtils.isRefInDifferentNamespace(defEl.getName(), defEl.getNSUri(), schema)) {
                 xsdElem.getRef().setTargetQName(new QName(defEl.getNSUri(), defEl.getName()));
+            } else if (XD2XsdUtils.isRefInDifferentSystem(defEl.getReferencePos(), defEl.getXDPosition())) {
+                String x = XD2XsdUtils.getReferenceSystemId(defEl.getReferencePos());
+                // TODO: Search for target namespace?
+                xsdElem.getRef().setTargetQName(new QName(x, defEl.getName()));
             } else {
                 xsdElem.setName(defEl.getName());
                 // TODO: reference namespace?
@@ -143,8 +147,9 @@ class XDTree2XsdAdapter {
 
     private void addSimpleContentToElem(final XmlSchemaElement xsdElem, final XData xd) {
         // TODO: Should we lookup for simple type reference, which is equal to current simple type?
-        if (XD2XsdUtils.hasDefaultSimpleParser(xd)) {
-            xsdElem.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xd.getParserName()));
+        final QName qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
+        if (qName != null) {
+            xsdElem.setSchemaTypeName(qName);
         } else {
             xsdElem.setType(xsdBuilder.creatSimpleType(xd, false));
         }
@@ -203,7 +208,10 @@ class XDTree2XsdAdapter {
             for (int i = 0; i < attrs.length; i++) {
                 complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i], out, outputPrefix + "|   "));
             }
-        }
+        }/* else if (defEl._childNodes.length > 1) {
+            // TODO: move somewhere simple content?
+            complexType.setMixed(true);
+        }*/
 
         xsdElem.setType(complexType);
     }

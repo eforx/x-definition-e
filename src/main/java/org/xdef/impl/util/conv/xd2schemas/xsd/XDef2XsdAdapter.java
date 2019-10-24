@@ -5,22 +5,27 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
-import org.xdef.impl.*;
+import org.xdef.impl.XDefinition;
+import org.xdef.impl.XElement;
+import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.XDef2SchemaAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.model.XMDefinition;
+import org.xdef.model.XMNode;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_DEFAULT_TARGET_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 
 public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
 
-    private boolean printXdTree = false;
+    private boolean verbose = false;
     private XDefinition xDefinition = null;
     private String schemaName = null;
     private XmlSchema schema = null;
@@ -31,21 +36,13 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
      */
 
     /**
-     * Key:     namespace prefix
-     * Value:   namespace URI
-     */
-    private Map<String, String> schemaNamespaces = new HashMap<String, String>();
-    /**
-     * Key:     schema namespace
+     * Key:     schema namespace URI
      * Value:   schema location
      */
     private Map<String, XmlSchemaImportLocation> importSchemaLocations = new HashMap<String, XmlSchemaImportLocation>();
-    private XmlSchemaForm elemSchemaForm = null;
-    private XmlSchemaForm attrSchemaForm = null;
-    private String targetNamespace = null;
 
-    public void setPrintXdTree(boolean printXdTree) {
-        this.printXdTree = printXdTree;
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     public final XDefinition getXDefinition() {
@@ -56,13 +53,6 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         return schemaName;
     }
 
-    public void setSchemaNamespaces(Map<String, String> schemaNamespaces) {
-        this.schemaNamespaces = schemaNamespaces;
-    }
-
-    public void addSchemaNamespace(String prefix, String namespaceUri) {
-        schemaNamespaces.put(prefix, namespaceUri);
-    }
 
     public void setSchemaNamespaceLocations(Map<String, XmlSchemaImportLocation> schemaNamespaceLocations) {
         this.importSchemaLocations = schemaNamespaceLocations;
@@ -70,18 +60,6 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
 
     public void addSchemaNamespaceLocation(String namespaceUri, XmlSchemaImportLocation location) {
         importSchemaLocations.put(namespaceUri, location);
-    }
-
-    public void setElemSchemaForm(XmlSchemaForm elemSchemaForm) {
-        this.elemSchemaForm = elemSchemaForm;
-    }
-
-    public void setAttrSchemaForm(XmlSchemaForm attrSchemaForm) {
-        this.attrSchemaForm = attrSchemaForm;
-    }
-
-    public void setTargetNamespace(String targetNamespace) {
-        this.targetNamespace = targetNamespace;
     }
 
     @Override
@@ -132,24 +110,26 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         return createSchema(xdef, new XmlSchemaCollection()).getValue();
     }
 
-    protected Pair<String, XmlSchema> createSchema(final XMDefinition xdef, final XmlSchemaCollection xmlSchemaCollection) {
+    protected Pair<String, XmlSchema> createSchema(final XMDefinition xDef, final XmlSchemaCollection xmlSchemaCollection) {
 
-        if (xdef == null) {
+        if (xDef == null) {
             throw new IllegalArgumentException("xdef = null");
         }
 
-        this.xDefinition = (XDefinition)xdef;
+        this.xDefinition = (XDefinition)xDef;
 
         // Initialize XSD schema
         initSchema(xmlSchemaCollection);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(printXdTree, schema, xsdBuilder);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(verbose, schema, xsdBuilder);
 
         treeAdapter.loadXdefRootNames(xDefinition);
 
         // Extract all used references in x-definition
         XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(xsdBuilder, treeAdapter, schema, importSchemaLocations);
         referenceAdapter.createRefsAndImports(xDefinition, System.out);
+
+        addXdefNamespaces(referenceAdapter.getSystemIdImports());
 
         // Convert x-definition tree to XSD tree
         convertXdef(xDefinition, System.out, treeAdapter);
@@ -162,7 +142,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
             final PrintStream out,
             final XDTree2XsdAdapter treeAdapter) {
 
-        if (printXdTree) {
+        if (verbose) {
             out.print("XMDefinition: ");
             XDTree2XsdAdapter.displayDesriptor(xDef, out);
 
@@ -191,24 +171,11 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
     private void initSchema(final XmlSchemaCollection xmlSchemaCollection) {
         schemaName = xDefinition.getName();
 
-        // Try to select target namespace from x-definition
-        if (targetNamespace == null) {
-            for (Map.Entry<String, String> entry : xDefinition._namespaces.entrySet()) {
-                if (XD_DEFAULT_TARGET_NAMESPACE_PREFIX.equals(entry.getKey())) {
-                    targetNamespace = entry.getValue();
-                    break;
-                }
-            }
-        }
+        Boolean targetNamespaceError = false;
 
-        schema = new XmlSchema(targetNamespace, schemaName, xmlSchemaCollection);
+        Pair<String, String> targetNamespace = XD2XsdUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);
 
-        if (elemSchemaForm != null && !XmlSchemaForm.NONE.equals(elemSchemaForm)) {
-            schema.setElementFormDefault(elemSchemaForm);
-        }
-        if (attrSchemaForm != null && !XmlSchemaForm.NONE.equals(attrSchemaForm)) {
-            schema.setAttributeFormDefault(attrSchemaForm);
-        }
+        schema = new XmlSchema(targetNamespace.getValue(), schemaName, xmlSchemaCollection);
 
         xsdBuilder = new XsdElementBuilder(schema);
 
@@ -216,26 +183,85 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         NamespaceMap namespaceMap = new NamespaceMap();
         namespaceMap.add(XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX, Constants.URI_2001_SCHEMA_XSD);
 
-        for (Map.Entry<String, String> entry : schemaNamespaces.entrySet()) {
-            namespaceMap.add(entry.getKey(), entry.getValue());
-        }
-
         for (Map.Entry<String, String> entry : xDefinition._namespaces.entrySet()) {
-            if (XD2XsdUtils.isDefaultNamespacePrefix(entry.getKey())) {
+            final String nsPrefix = entry.getKey();
+            final String nsUri = entry.getValue();
+
+            if (XD2XsdUtils.isDefaultNamespacePrefix(nsPrefix) || (targetNamespace.getKey() != null && nsPrefix.equals(targetNamespace.getKey()))) {
                 continue;
             }
 
-            if (!namespaceMap.containsKey(entry.getKey())) {
-                namespaceMap.add(entry.getKey(), entry.getValue());
+            if (!namespaceMap.containsKey(nsPrefix)) {
+                namespaceMap.add(nsPrefix, nsUri);
             } else {
-                System.out.println("XDef - XSD schema already contains namespace " + entry.getKey());
+                System.out.println("[" + xDefinition.getName() + "] XSD schema already has defined namespace prefix " + nsPrefix);
             }
         }
 
-        schema.setNamespaceContext(namespaceMap);
-        if (targetNamespace != null) {
-            schema.setSchemaNamespacePrefix(namespaceMap.getPrefix(targetNamespace));
+        // Set attributeFormDefault and elementFormDefault
+        {
+            XmlSchemaForm elemSchemaForm = getElemDefaultForm(targetNamespace.getKey());
+            schema.setElementFormDefault(elemSchemaForm);
+
+            XmlSchemaForm attrQualified = getAttrDefaultForm(targetNamespace.getKey());
+            schema.setAttributeFormDefault(attrQualified);
         }
+
+        // Set target namespace
+        if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
+            namespaceMap.add(targetNamespace.getKey(), targetNamespace.getValue());
+            schema.setSchemaNamespacePrefix(targetNamespace.getKey());
+        }
+
+        schema.setNamespaceContext(namespaceMap);
+    }
+
+    private void addXdefNamespaces(final Set<String> xDefs) {
+        NamespaceMap namespaceMap = (NamespaceMap)schema.getNamespaceContext();
+        for (String xDefName : xDefs) {
+            namespaceMap.add(XD2XsdUtils.createNsPrefixFromXDefName(xDefName), XD2XsdUtils.createNsUriFromXDefName(xDefName));
+        }
+    }
+
+    private XmlSchemaForm getElemDefaultForm(final String targetNsPrefix) {
+        if (targetNsPrefix != null && targetNsPrefix.trim().isEmpty()) {
+            return XmlSchemaForm.QUALIFIED;
+        }
+
+        if (xDefinition._rootSelection != null && xDefinition._rootSelection.size() > 0) {
+            for (XNode xn : xDefinition._rootSelection.values()) {
+                if (xn.getKind() == XNode.XMELEMENT) {
+                    XElement defEl = (XElement)xn;
+                    String tmpNs = XD2XsdUtils.getNamespacePrefix(defEl.getName());
+                    if (tmpNs == null && defEl.getReferencePos() != null) {
+                        tmpNs = XD2XsdUtils.getReferenceSystemId(defEl.getReferencePos());
+                    }
+                    if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
+                        return XmlSchemaForm.QUALIFIED;
+                    }
+                }
+            }
+        }
+
+        return XmlSchemaForm.UNQUALIFIED;
+    }
+
+    private XmlSchemaForm getAttrDefaultForm(final String targetNsPrefix) {
+        if (xDefinition._rootSelection != null && xDefinition._rootSelection.size() > 0) {
+            for (XNode xn : xDefinition._rootSelection.values()) {
+                if (xn.getKind() == XNode.XMELEMENT) {
+                    XElement defEl = (XElement)xn;
+                    for (XMNode attr : defEl.getXDAttrs()) {
+                        String tmpNs = XD2XsdUtils.getNamespacePrefix(attr.getName());
+                        if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
+                            return XmlSchemaForm.QUALIFIED;
+                        }
+                    }
+                }
+            }
+        }
+
+        return XmlSchemaForm.UNQUALIFIED;
     }
 
 }

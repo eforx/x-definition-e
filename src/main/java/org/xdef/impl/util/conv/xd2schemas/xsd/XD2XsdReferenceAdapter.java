@@ -1,6 +1,9 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd;
 
-import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -24,12 +27,20 @@ class XD2XsdReferenceAdapter {
 
     private Set<String> simpleTypeReferences;
     private Set<String> namespaceImports;
+    private Set<String> systemIdImports;
 
-    protected XD2XsdReferenceAdapter(XsdElementBuilder xsdBaseBuilder, XDTree2XsdAdapter xdTree2XsdAdapter, XmlSchema schema, Map<String, XmlSchemaImportLocation> importSchemaLocations) {
+    protected XD2XsdReferenceAdapter(XsdElementBuilder xsdBaseBuilder,
+                                     XDTree2XsdAdapter xdTree2XsdAdapter,
+                                     XmlSchema schema,
+                                     Map<String, XmlSchemaImportLocation> importSchemaLocations) {
         this.xsdBaseBuilder = xsdBaseBuilder;
         this.xdTree2XsdAdapter = xdTree2XsdAdapter;
         this.schema = schema;
         this.importSchemaLocations = importSchemaLocations;
+    }
+
+    public final Set<String> getSystemIdImports() {
+        return systemIdImports;
     }
 
     /**
@@ -43,6 +54,7 @@ class XD2XsdReferenceAdapter {
     protected void createRefsAndImports(XDefinition xDef, final PrintStream out) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
+        systemIdImports = new HashSet<String>();
         extractRefsAndImports(xDef, out);
     }
 
@@ -52,7 +64,7 @@ class XD2XsdReferenceAdapter {
 
         // Extract all simple types and imports
         for (int i = 0; i < elems.length; i++) {
-            extractAttrRefsAndImports(elems[i], processed);
+            extractSimpleRefsAndImports(elems[i], processed);
         }
 
         // Extract all complex types
@@ -74,7 +86,7 @@ class XD2XsdReferenceAdapter {
         }
     }
 
-    private void extractAttrRefsAndImports(XMNode xn, final Set<XMNode> processed) {
+    private void extractSimpleRefsAndImports(XMNode xn, final Set<XMNode> processed) {
 
         if (!processed.add(xn)) {
             //System.out.println("Already processed node (reference): " + xn.getName() + " (" + xn.getXDPosition() + ")");
@@ -83,6 +95,10 @@ class XD2XsdReferenceAdapter {
 
         short xdElemKind = xn.getKind();
         switch (xdElemKind) {
+            case XNode.XMTEXT: {
+                addSimpleTypeReference((XData) xn);
+                return;
+            }
             case XNode.XMELEMENT: {
                 XElement defEl = (XElement)xn;
                 XMNode[] attrs = defEl.getXDAttrs();
@@ -91,12 +107,16 @@ class XD2XsdReferenceAdapter {
                     addSimpleTypeReference((XData)attrs[i]);
                 }
 
-                if (defEl.isReference() && XD2XsdUtils.isExternalRef(defEl.getName(), defEl.getNSUri(), schema)) {
-                    addSchemaImportFromElem(defEl.getNSUri(), defEl.getReferencePos());
+                if (defEl.isReference()) {
+                    if (XD2XsdUtils.isRefInDifferentNamespace(defEl.getName(), defEl.getNSUri(), schema)) {
+                        addSchemaImportFromElem(defEl.getNSUri(), defEl.getReferencePos());
+                    } else if (XD2XsdUtils.isRefInDifferentSystem(defEl.getReferencePos(), defEl.getXDPosition())) {
+                        addSchemaImport(defEl.getReferencePos());
+                    }
                 }
 
                 for (int i = 0; i < defEl._childNodes.length; i++) {
-                    extractAttrRefsAndImports(defEl._childNodes[i], processed);
+                    extractSimpleRefsAndImports(defEl._childNodes[i], processed);
                 }
 
                 return;
@@ -105,7 +125,7 @@ class XD2XsdReferenceAdapter {
                 XDefinition def = (XDefinition)xn;
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
-                    extractAttrRefsAndImports(elems[i], processed);
+                    extractSimpleRefsAndImports(elems[i], processed);
                 }
                 return;
             }
@@ -122,8 +142,23 @@ class XD2XsdReferenceAdapter {
         }
 
         final String importNamespace = xData.getNSUri();
-        if (importNamespace != null && XD2XsdUtils.isExternalRef(xData.getName(), importNamespace, schema)) {
+        if (importNamespace != null && XD2XsdUtils.isRefInDifferentNamespace(xData.getName(), importNamespace, schema)) {
             addSchemaImportFromAttr(importNamespace);
+        }
+    }
+
+    private void addSchemaImport(final String referencePos) {
+        final String refSystemId = XD2XsdUtils.getReferenceSystemId(referencePos);
+
+        if (refSystemId == null || !systemIdImports.add(refSystemId)) {
+            return;
+        }
+
+        XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
+        // TODO: Search for target namespace?
+        schemaImport.setNamespace(refSystemId);
+        if (importSchemaLocations != null && importSchemaLocations.containsKey(refSystemId)) {
+            schemaImport.setSchemaLocation(importSchemaLocations.get(refSystemId).buildLocalition(refSystemId));
         }
     }
 

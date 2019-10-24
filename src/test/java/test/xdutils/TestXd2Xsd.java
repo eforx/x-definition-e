@@ -2,13 +2,11 @@ package test.xdutils;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
@@ -16,7 +14,10 @@ import test.utils.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -104,41 +105,15 @@ public class TestXd2Xsd extends XDTester {
         return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xsd");
     }
 
-    private XDef2XsdAdapter createXdDefAdapter(XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm, String targetNamespace) {
+    private XDef2XsdAdapter createXdDefAdapter() {
         XDef2XsdAdapter adapter = new XDef2XsdAdapter();
-        //adapter.setPrintXdTree(true);
-        adapter.setElemSchemaForm(elemSchemaForm);
-        adapter.setAttrSchemaForm(attrSchemaForm);
-        adapter.setTargetNamespace(targetNamespace);
-
+        //adapter.setVerbose(true);
         return adapter;
     }
 
-    private XDPool2XsdAdapter createXdPoolAdapter(XmlSchemaForm[] elemSchemaForms,
-                                                  XmlSchemaForm[] attrSchemaForms,
-                                                  String[] targetNamespaces,
-                                                  XmlSchemaImportLocation[] schemaImportLocations) {
+    private XDPool2XsdAdapter createXdPoolAdapter() {
         XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
-        //adapter.setPrintXdTree(true);
-
-        Map<String, XmlSchemaImportLocation> schemaNamespaceLocations = new HashMap<String, XmlSchemaImportLocation>();
-        for (int i = 0; i < schemaImportLocations.length; i++) {
-            schemaNamespaceLocations.put(schemaImportLocations[i].getNamespaceUri(), schemaImportLocations[i]);
-        }
-        adapter.setSchemaNamespaceLocations(schemaNamespaceLocations);
-
-        for (int i = 0; i < elemSchemaForms.length; i++) {
-            adapter.setElemSchemaForm(i, elemSchemaForms[i]);
-        }
-
-        for (int i = 0; i < attrSchemaForms.length; i++) {
-            adapter.setAttrSchemaForm(i, attrSchemaForms[i]);
-        }
-
-        for (int i = 0; i < targetNamespaces.length; i++) {
-            adapter.setTargetNamespace(i, targetNamespaces[i]);
-        }
-
+        //adapter.setVerbose(true);
         return adapter;
     }
 
@@ -330,45 +305,21 @@ public class TestXd2Xsd extends XDTester {
                 "Xml validation failed, testCase: " + fileName + ", type: " + type + ", fileName: " + xmlFile.getName());
     }
 
-    private void convertXdDef2Xsd(final String fileName,
-                                  List<String> validTestingData, List<String> invalidTestingData,
-                                  XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, null, true);
+    private void convertXdDef2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, true);
     }
 
-    private void convertXdDef2XsdNoRef(final String fileName,
-                                       List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED, null, false);
-    }
-
-    private void convertXdDef2XsdNoRef(final String fileName,
-                               List<String> validTestingData, List<String> invalidTestingData,
-                               XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, null, false);
-    }
-
-    private void convertXdDef2XsdNoRef(final String fileName,
-                                       List<String> validTestingData, List<String> invalidTestingData,
-                                       XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm,
-                                       String targetNamespace) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, targetNamespace, false);
+    private void convertXdDef2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false);
     }
 
     private void convertXdDef2Xsd(final String fileName,
                                   List<String> validTestingData, List<String> invalidTestingData,
-                                  XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm,
-                                  String targetNamespace) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForm, attrSchemaForm, targetNamespace, true);
-    }
-
-    private void convertXdDef2Xsd(final String fileName,
-                                  List<String> validTestingData, List<String> invalidTestingData,
-                                  XmlSchemaForm elemSchemaForm, XmlSchemaForm attrSchemaForm,
-                                  String targetNamespace, boolean validateAgainstRefXsd) {
+                                  boolean validateAgainstRefXsd) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDef2XsdAdapter adapter = createXdDefAdapter(elemSchemaForm, attrSchemaForm, targetNamespace);
+            XDef2XsdAdapter adapter = createXdDefAdapter();
 
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
@@ -388,36 +339,36 @@ public class TestXd2Xsd extends XDTester {
         } catch (Exception ex) {fail(ex);}
     }
 
-    private void convertXdPool2XsdNoRef(final String fileName,
-                                   List<String> validTestingData, List<String> invalidTestingData,
-                                   XmlSchemaForm[] elemSchemaForms, XmlSchemaForm[] attrSchemaForms, String[] targetNamespaces,
-                                   XmlSchemaImportLocation[] schemaImportLocations, int schemaCount) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForms, attrSchemaForms, targetNamespaces, schemaImportLocations, schemaCount, false);
+    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, false);
     }
 
-    private void convertXdPool2Xsd(final String fileName,
-                                   List<String> validTestingData, List<String> invalidTestingData,
-                                   XmlSchemaForm[] elemSchemaForms, XmlSchemaForm[] attrSchemaForms, String[] targetNamespaces,
-                                   XmlSchemaImportLocation[] schemaImportLocations, int schemaCount) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, elemSchemaForms, attrSchemaForms, targetNamespaces, schemaImportLocations, schemaCount, true);
+    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData, int schemaCount) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, schemaCount, false);
     }
 
-    private void convertXdPool2Xsd(final String fileName,
-                                   List<String> validTestingData, List<String> invalidTestingData,
-                                   XmlSchemaForm[] elemSchemaForms, XmlSchemaForm[] attrSchemaForms, String[] targetNamespaces,
-                                   XmlSchemaImportLocation[] schemaImportLocations, int schemaCount, boolean validateAgainstRefXsd) {
+    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, true);
+    }
+
+    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, int schemaCount) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, schemaCount, true);
+    }
+
+    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Integer schemaCount, boolean validateAgainstRefXsd) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDPool2XsdAdapter adapter = createXdPoolAdapter(elemSchemaForms, attrSchemaForms, targetNamespaces, schemaImportLocations);
+            XDPool2XsdAdapter adapter = createXdPoolAdapter();
 
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
             XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
+            int expectedShemaCount = schemaCount == null ? inputXD.getXMDefinitions().length : schemaCount;
 
             // Compare output XSD schemas to XSD references
             if (validateAgainstRefXsd) {
-                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), schemaCount);
+                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
             } else {
                 writeOutputSchemas(fileName, outputXmlSchemaCollection, adapter.getSchemaNames());
             }
@@ -432,23 +383,26 @@ public class TestXd2Xsd extends XDTester {
     @Override
     public void test() {
         init();
+        
+        // ============ XDef ============
 
-        convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t002", Arrays.asList(new String[] {"t002"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t003", Arrays.asList(new String[] {"t003"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t004", Arrays.asList(new String[] {"t004"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t005", Arrays.asList(new String[] {"t005"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2Xsd("t007", Arrays.asList(new String[] {"t007"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, null);
-        convertXdDef2Xsd("t009", Arrays.asList(new String[] {"t009"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://www.w3schools.com");
-        convertXdDef2Xsd("t010", Arrays.asList(new String[] {"t010"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, "http://www.w3schools.com");
-        convertXdDef2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
+        convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
+        convertXdDef2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
+        convertXdDef2Xsd("t003", Arrays.asList(new String[] {"t003"}), null);
+        convertXdDef2Xsd("t004", Arrays.asList(new String[] {"t004"}), null);
+        convertXdDef2Xsd("t005", Arrays.asList(new String[] {"t005"}), null);
+        convertXdDef2Xsd("t007", Arrays.asList(new String[] {"t007"}), null);
+        convertXdDef2Xsd("t009", Arrays.asList(new String[] {"t009"}), null);
+        convertXdDef2Xsd("t010", Arrays.asList(new String[] {"t010"}), null);
 
+        // TODO: References
+        //convertXdDef2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}));
 
-        convertXdDef2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
-        convertXdDef2XsdNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}), XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED);
+        convertXdDef2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null);
+        convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
+        convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);
+        convertXdDef2XsdNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}));
 
 
         convertXdDef2XsdNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null);
@@ -456,10 +410,14 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("basicTest",
                 Arrays.asList(new String[] {"basicTest_valid_1", "basicTest_valid_2", "basicTest_valid_3"}),
                 Arrays.asList(new String[] {"basicTest_invalid_1", "basicTest_invalid_2", "basicTest_invalid_3", "basicTest_invalid_4"}));
-        convertXdDef2XsdNoRef ("B1_common", Arrays.asList(new String[] {"B1_Common_valid_1", "B1_Common_valid_2"}), null, XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED, "http://ws.ckp.cz/pis/B1/2016/09");
+
+        convertXdDef2XsdNoRef ("B1_common", Arrays.asList(new String[] {"B1_Common_valid_1", "B1_Common_valid_2"}), null);
+
         convertXdDef2XsdNoRef ("CHLD_to_ATTR", Arrays.asList(new String[] {"CHLD_to_ATTR_valid_1"}), null);
         convertXdDef2XsdNoRef ("CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"CHLD_to_ATTR_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("CHLD_to_CHLD", Arrays.asList(new String[] {"CHLD_to_CHLD_valid_1"}), null);
+
+
         // TODO: xdatetime with pattern
         //convertXdDef2XsdNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
         // TODO: xdatetime with pattern
@@ -467,54 +425,37 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
                 Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));*/
 
-        // ============ References ============
+        // TODO: fixed value
+        //convertXdDef2XsdNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
 
-        convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null,
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
-                new String[] {"http://www.w3ctest.com", "http://www.w3schools.com"},
-                new XmlSchemaImportLocation[] {
-                        new XmlSchemaImportLocation("http://www.w3ctest.com")
-                },
-                2);
+        // TODO: namespace inside namespace
+        //convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
 
-        convertXdPool2Xsd("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null,
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.UNQUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
-                new String[] {"http://a", null},
-                new XmlSchemaImportLocation[] {
-                        new XmlSchemaImportLocation("http://a")
-                },
-                2);
 
-        convertXdPool2Xsd("t013", Arrays.asList(new String[] {"t013"}), null,
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED}, new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
-                new String[] {"http://b", "http://a"},
-                new XmlSchemaImportLocation[] {
-                        new XmlSchemaImportLocation("http://a")
-                },
-                2);
+        // ============ XDPool ============
 
-        convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null,
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED},
-                new XmlSchemaForm[] {XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED, XmlSchemaForm.UNQUALIFIED},
-                new String[] {"http://d", "http://c", "http://b", "http://a"},
-                new XmlSchemaImportLocation[] {
-                        new XmlSchemaImportLocation("http://a"),
-                        new XmlSchemaImportLocation("http://c"),
-                        new XmlSchemaImportLocation("http://d")
-                },
-                4);
 
-        convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null,
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED},
-                new XmlSchemaForm[] {XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED, XmlSchemaForm.QUALIFIED},
-                new String[] {"http://a", "http://d", "http://b", "http://c"},
-                new XmlSchemaImportLocation[] {
-                        new XmlSchemaImportLocation("http://a"),
-                        new XmlSchemaImportLocation("http://b"),
-                        new XmlSchemaImportLocation("http://c"),
-                        new XmlSchemaImportLocation("http://d")
-                },
-                4);
+        convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null);
+
+        convertXdPool2Xsd("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null);
+
+
+        convertXdPool2Xsd("t013", Arrays.asList(new String[] {"t013"}), null);
+
+        convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null);
+
+        // TODO: unknown attr2
+//        convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
+
+        // TODO: Local and global references without namespace
+        //      Top level reference
+//        convertXdPool2XsdNoRef ("globalAndLocalTest",
+//                Arrays.asList(new String[] {"globalAndLocalTest_X", "globalAndLocalTest_Y", "globalAndLocalTest_Z"}),
+//                Arrays.asList(new String[] {"globalAndLocalTest_X_invalid", "globalAndLocalTest_Y_invalid", "globalAndLocalTest_Z_invalid"})
+//        );
+
+        // TODO: Inherited reference
+//        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
 
     }
 

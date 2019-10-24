@@ -15,14 +15,8 @@ public class XmlSchemaImportLocation {
         this.namespaceUri = namespaceUri;
     }
 
-    public XmlSchemaImportLocation(String namespaceUri, String path) {
+    public XmlSchemaImportLocation(String namespaceUri, String fileName) {
         this.namespaceUri = namespaceUri;
-        this.path = path;
-    }
-
-    public XmlSchemaImportLocation(String namespaceUri, String path, String fileName) {
-        this.namespaceUri = namespaceUri;
-        this.path = path;
         this.fileName = fileName;
     }
 

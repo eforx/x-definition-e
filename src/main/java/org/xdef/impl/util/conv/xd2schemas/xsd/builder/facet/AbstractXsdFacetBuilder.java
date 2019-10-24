@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
 
-    protected boolean useDecimalValue;
+    protected ValueType valueType;
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
@@ -122,7 +122,7 @@ public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
     }
 
     @Override
-    public void setUseDecimalValue(boolean useDecimalValue) {
-        this.useDecimalValue = useDecimalValue;
+    public void setValueType(final ValueType valueType) {
+        this.valueType = valueType;
     }
 }

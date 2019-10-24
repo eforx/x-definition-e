@@ -10,6 +10,13 @@ import java.util.List;
  */
 public interface IXsdFacetBuilder {
 
+    enum ValueType {
+        DECIMAL_INTEGER,
+        DECIMAL_FLOATING,
+        STRING
+    }
+
+
     /**
      * Creates facets from parameters
      * @param params
@@ -114,5 +121,5 @@ public interface IXsdFacetBuilder {
      */
     void customFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params);
 
-    void setUseDecimalValue(boolean useDecimalValue);
+    void setValueType(final ValueType valueType);
 }

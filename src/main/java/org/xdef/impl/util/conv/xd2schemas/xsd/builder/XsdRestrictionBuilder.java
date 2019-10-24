@@ -31,7 +31,7 @@ public class XsdRestrictionBuilder {
         XmlSchemaSimpleTypeRestriction restriction = null;
 
         boolean customParser = true;
-        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName);
+        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
         if (parserInfo == null) {
             parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
             customParser = false;
@@ -58,9 +58,11 @@ public class XsdRestrictionBuilder {
 
     private XmlSchemaSimpleTypeRestriction buildRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
         if ("double".equals(qName.getLocalPart()) || "float".equals(qName.getLocalPart())) {
-            facetBuilder.setUseDecimalValue(true);
+            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.DECIMAL_FLOATING);
+        } else if ("int".equals(qName.getLocalPart()) || "long".equals(qName.getLocalPart())) {
+            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.DECIMAL_INTEGER);
         } else {
-            facetBuilder.setUseDecimalValue(false);
+            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.STRING);
         }
 
         return simpleRestriction(qName, facetBuilder);
