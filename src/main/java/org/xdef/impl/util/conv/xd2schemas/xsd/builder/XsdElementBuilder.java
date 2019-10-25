@@ -50,22 +50,38 @@ public class XsdElementBuilder {
         return new XmlSchemaComplexType(schema, false);
     }
 
-    public XmlSchemaSimpleType creatSimpleType(final XData xData, boolean topLevel) {
+    /**
+     * Create simpleType element
+     * Output: <simpleType>
+     */
+    public XmlSchemaSimpleType createEmptySimpleType(boolean topLevel) {
+        return new XmlSchemaSimpleType(schema, topLevel);
+    }
+
+    private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {
         XDValue parseMethod = xData.getParseMethod();
-        XmlSchemaSimpleTypeRestriction restriction;
         XsdRestrictionBuilder restrictionBuilder = new XsdRestrictionBuilder(xData);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
-            restriction = restrictionBuilder.buildRestriction();
-        } else {
-            restriction = restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
+            return restrictionBuilder.buildRestriction();
         }
 
-        XmlSchemaSimpleType itemType = new XmlSchemaSimpleType(schema, topLevel);
+        return restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
+    }
+
+    public XmlSchemaSimpleType creatSimpleTypeTop(final XData xData, final String name) {
+        XmlSchemaSimpleType itemType = createEmptySimpleType(true);
+        itemType.setName(name);
+        itemType.setContent(createSimpleTypeRestriction(xData));
+        return itemType;
+    }
+
+    public XmlSchemaSimpleType creatSimpleType(final XData xData) {
+        XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(xData.getRefTypeName());
-        itemType.setContent(restriction);
+        itemType.setContent(createSimpleTypeRestriction(xData));
         return itemType;
     }
 
@@ -89,7 +105,7 @@ public class XsdElementBuilder {
                 // TODO: Possible to use non-default xsd types?
                 attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
             } else {
-                attr.setSchemaType(creatSimpleType((XData)xmData, false));
+                attr.setSchemaType(creatSimpleType((XData)xmData));
             }
 
             String newName = XD2XsdUtils.resolveName(schema, name);
@@ -109,9 +125,9 @@ public class XsdElementBuilder {
         return attr;
     }
 
-    public static XmlSchemaSimpleContent createSimpleContent(final XData xd) {
+    public XmlSchemaSimpleContent createSimpleContent(final XData xd) {
         XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
-        XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
+
         QName qName;
         // TODO: Handling of reference namespaces?
         if (xd.getRefTypeName() != null) {
@@ -121,12 +137,20 @@ public class XsdElementBuilder {
         }
 
         if (qName == null) {
-            throw new RuntimeException("Unknown type! element: " + xd.getName());
+            final String refParserName = XD2XsdUtils.createNameFromParser(xd);
+            if (refParserName != null) {
+                qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
+            }
         }
 
-        contentExtension.setBaseTypeName(qName);
-        content.setContent(contentExtension);
-        return content;
+        if (qName != null) {
+            XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
+            contentExtension.setBaseTypeName(qName);
+            content.setContent(contentExtension);
+            return content;
+        }
+
+        return null;
     }
 
     /**

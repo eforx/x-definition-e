@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.model.XMData;
 import org.xdef.model.XMNode;
 
@@ -151,12 +152,13 @@ class XDTree2XsdAdapter {
         if (qName != null) {
             xsdElem.setSchemaTypeName(qName);
         } else {
-            xsdElem.setType(xsdBuilder.creatSimpleType(xd, false));
+            xsdElem.setType(xsdBuilder.creatSimpleType(xd));
         }
     }
 
     private void addComplexContentToElem(final XmlSchemaElement xsdElem, final XElement defEl, final PrintStream out, String outputPrefix) {
         XmlSchemaComplexType complexType = xsdBuilder.createEmptyComplexType();
+
         XmlSchemaGroupParticle group = null;
         boolean hasSimpleContent = false;
         XMNode[] attrs = defEl.getXDAttrs();
@@ -172,23 +174,27 @@ class XDTree2XsdAdapter {
                     out.println("Multiple particle group inside element!");
                 }
                 group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, out, outputPrefix + "|   ");
-                complexType.setParticle(group);
                 outputPrefix += "|   ";
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, out, outputPrefix + "|   ");
-                for (int j = 0; j < attrs.length; j++) {
-                    ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], out, outputPrefix + "|   "));
-                }
+                if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
+                    complexType.setContentModel(simpleContent);
 
-                complexType.setContentModel(simpleContent);
-                hasSimpleContent = true;
+                    for (int j = 0; j < attrs.length; j++) {
+                        if (simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension)
+                            ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], out, outputPrefix + "|   "));
+                    }
+
+                    hasSimpleContent = true;
+                } else {
+                    System.out.println("Content is not simple: " + xnChild.getName());
+                }
             } else {
                 XmlSchemaObjectBase xsdChild = convertTreeInt(xnChild, out, outputPrefix + "|   ");
                 if (xsdChild != null) {
                     // x-definition has no required group
                     if (group == null) {
                         group = new XmlSchemaSequence();
-                        complexType.setParticle(group);
                     }
 
                     if (group instanceof XmlSchemaSequence) {
@@ -202,16 +208,23 @@ class XDTree2XsdAdapter {
             }
         }
 
+        if (group != null) {
+            complexType.setParticle(group);
+        }
+
         updateParticleGroup(defEl, complexType);
 
         if (hasSimpleContent == false) {
             for (int i = 0; i < attrs.length; i++) {
                 complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i], out, outputPrefix + "|   "));
             }
-        }/* else if (defEl._childNodes.length > 1) {
-            // TODO: move somewhere simple content?
+        }
+
+        /*
+        if (complexType.getParticle() != null && complexType.getContentModel() != null) {
             complexType.setMixed(true);
-        }*/
+        }
+         */
 
         xsdElem.setType(complexType);
     }
@@ -249,6 +262,17 @@ class XDTree2XsdAdapter {
                     // TODO: XD->XSD Solve
                     System.out.println("xs:all contains some element which has maxOccurs higher than 1");
                 }
+            }
+        }
+
+        // element contains simple content and particle -> XSD does not support restrictions for text if element contains elements
+        // We have to use mixed attribute for root element and remove simple content
+        {
+            if (complexType.getParticle() != null && complexType.getContentModel() != null && complexType.getContentModel() instanceof XmlSchemaSimpleContent) {
+                XsdLogger.print(defEl, "Post-processing: Remove simple content from element due to existence of complex content. Use mixed attr for element " + defEl.getName());
+
+                complexType.setContentModel(null);
+                complexType.setMixed(true);
             }
         }
     }

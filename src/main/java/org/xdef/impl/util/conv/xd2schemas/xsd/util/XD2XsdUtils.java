@@ -9,6 +9,7 @@ import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
+import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.ListFacetBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.UnionFacetBuilder;
@@ -288,6 +289,58 @@ public class XD2XsdUtils {
         return null;
     }
 
+    public static String createNameFromParser(final XData xData) {
+        final XDValue parseMethod = xData.getParseMethod();
+        final String parserName = xData.getParserName();
+
+        String name;
+        QName defaultQName = XD2XsdUtils.getDefaultQName(parserName);
+        if (defaultQName != null) {
+            name = defaultQName.getLocalPart();
+        } else {
+            name = parserName;
+        }
+
+        if (!"string".equals(name) && !"CDATA".equals(name) && !"int".equals(name) && !"long".equals(name)) {
+            // TODO: Add to debug print
+            XsdLogger.print(xData, "Unsupported parser type for creating of reference name. ParserName=" + parserName);
+            return null;
+        }
+
+        if (parseMethod instanceof XDParser) {
+            XDParser parser = ((XDParser)parseMethod);
+            for (XDNamedValue p : parser.getNamedParams().getXDNamedItems()) {
+                if ("maxLength".equals(p.getName())) {
+                    name += "_maxl" + p.getValue().intValue();
+                } else if ("minLength".equals(p.getName())) {
+                    name += "_minl" + p.getValue().intValue();
+                } else if ("whiteSpace".equals(p.getName())) {
+                    name += "_w";
+                } else if ("pattern".equals(p.getName()) || "format".equals(p.getName())) {
+                    name += "_p";
+                } else if ("minInclusive".equals(p.getName())) {
+                    name += "_minI" + p.getValue().intValue();
+                } else if ("minExclusive".equals(p.getName())) {
+                    name += "_minE" + p.getValue().intValue();
+                } else if ("maxInclusive".equals(p.getName())) {
+                    name += "_maxI" + p.getValue().intValue();
+                } else if ("maxExclusive".equals(p.getName())) {
+                    name += "_maxE" + p.getValue().intValue();
+                } else if ("argument".equals(p.getName()) || "enumeration".equals(p.getName())) {
+                    name += "_e";
+                } else if ("length".equals(p.getName())) {
+                    name += "_l" + p.getValue().intValue();
+                } else if ("fractionDigits".equals(p.getName())) {
+                    name += "_fd";
+                } else if ("totalDigits".equals(p.getName())) {
+                    name += "_td";
+                }
+            }
+        }
+
+        return name;
+    }
+
     public static String createNsPrefixFromXDefName(final String name) {
         return "ns_xDef_" + name;
     }
@@ -295,4 +348,6 @@ public class XD2XsdUtils {
     public static String createNsUriFromXDefName(final String name) {
         return name;
     }
+
+
 }

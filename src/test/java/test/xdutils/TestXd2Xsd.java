@@ -383,8 +383,10 @@ public class TestXd2Xsd extends XDTester {
     @Override
     public void test() {
         init();
-        
+
+
         // ============ XDef ============
+
 
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
         convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
@@ -421,9 +423,9 @@ public class TestXd2Xsd extends XDTester {
         // TODO: xdatetime with pattern
         //convertXdDef2XsdNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
         // TODO: xdatetime with pattern
-        /*convertXdDef2XsdNoRef ("declarationTest",
-                Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
-                Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));*/
+//        convertXdDef2XsdNoRef ("declarationTest",
+//                Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
+//                Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
 
         // TODO: fixed value
         //convertXdDef2XsdNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
@@ -432,6 +434,8 @@ public class TestXd2Xsd extends XDTester {
         //convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
 
         convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), null);
+        convertXdDef2XsdNoRef ("simpleModelTest",
+                Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", "simpleModelTest_valid_3", "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 
         // ============ XDPool ============
 
@@ -457,6 +461,7 @@ public class TestXd2Xsd extends XDTester {
 
         // TODO: Inherited reference
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
+
 
     }
 

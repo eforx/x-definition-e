@@ -1,7 +1,10 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
@@ -17,7 +20,6 @@ import org.xdef.model.XMNode;
 
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
