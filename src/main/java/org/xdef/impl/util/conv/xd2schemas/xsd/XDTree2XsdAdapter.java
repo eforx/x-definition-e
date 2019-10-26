@@ -439,6 +439,15 @@ class XDTree2XsdAdapter {
                     XsdLogger.printP(WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
                 }
 
+                // Copy attributes from simple content
+                XmlSchemaContent content = complexType.getContentModel().getContent();
+                if (content instanceof XmlSchemaSimpleContentExtension) {
+                    List attrs = ((XmlSchemaSimpleContentExtension) content).getAttributes();
+                    if (attrs != null && !attrs.isEmpty()) {
+                        complexType.getAttributes().addAll(attrs);
+                    }
+                }
+
                 complexType.setContentModel(null);
                 complexType.setMixed(true);
                 complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));

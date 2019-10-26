@@ -418,7 +418,6 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"CHLD_to_ATTR_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("CHLD_to_CHLD", Arrays.asList(new String[] {"CHLD_to_CHLD_valid_1"}), null);
 
-
         // TODO: xdatetime with pattern
         //convertXdDef2XsdNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
         // TODO: xdatetime with pattern
@@ -439,14 +438,9 @@ public class TestXd2Xsd extends XDTester {
 
         // ============ XDPool ============
 
-
         convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null);
-
         convertXdPool2Xsd("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null);
-
-
         convertXdPool2Xsd("t013", Arrays.asList(new String[] {"t013"}), null);
-
         convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null);
 
         // TODO: unknown attr2
@@ -459,9 +453,10 @@ public class TestXd2Xsd extends XDTester {
 //                Arrays.asList(new String[] {"globalAndLocalTest_X_invalid", "globalAndLocalTest_Y_invalid", "globalAndLocalTest_Z_invalid"})
 //        );
 
-        // TODO: Inherited reference
+        // TODO: Invalid usage of namespace?
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
-
+        
+        convertXdPool2XsdNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 
     }
 
