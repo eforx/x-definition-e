@@ -84,7 +84,7 @@ class XD2XsdReferenceAdapter {
         }
 
         for (int i = 0; i < elems.length; i++) {
-            extractSimpleRefsAndImports(elems[i], processed);
+            extractSimpleRefsAndImports(elems[i], processed, false);
         }
 
         // Extract all complex types
@@ -112,7 +112,7 @@ class XD2XsdReferenceAdapter {
                 XsdLogger.printP(INFO, POSTPROCESSING, n, "Extracting simple references and imports ...");
             }
 
-            extractSimpleRefsAndImports(n, processed);
+            extractSimpleRefsAndImports(n, processed, false);
 
             // Extract all complex types
             if (XsdLogger.isInfo(logLevel)) {
@@ -147,7 +147,7 @@ class XD2XsdReferenceAdapter {
         }
     }
 
-    private void extractSimpleRefsAndImports(XNode xn, final Set<XMNode> processed) {
+    private void extractSimpleRefsAndImports(XNode xn, final Set<XMNode> processed, boolean parentRef) {
 
         if (!processed.add(xn)) {
             if (XsdLogger.isDebug(logLevel)) {
@@ -180,10 +180,14 @@ class XD2XsdReferenceAdapter {
                     if (XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema) && postProcessing == false) {
                         final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                         final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-                        if (nsUri == null) {
-                            if (XsdLogger.isError(logLevel)) {
+                        if (nsUri == null || nsUri.isEmpty()) {
+                            if (parentRef == false && XsdLogger.isError(logLevel)) {
                                 XsdLogger.printP(ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
-                                        "NamespacePrefix=" + nsPrefix);
+                                        " NamespacePrefix=" + nsPrefix);
+                            }
+
+                            if (parentRef == true) {
+                                return;
                             }
                         } else {
                             addExternalSchemaImportFromElem(nsPrefix, nsUri);
@@ -196,7 +200,7 @@ class XD2XsdReferenceAdapter {
                     if (xDefEl._childNodes[i].getKind() == XNode.XMTEXT && childrenCount > 1) {
                         addSimpleTypeReference((XData) xDefEl._childNodes[i], false);
                     } else {
-                        extractSimpleRefsAndImports(xDefEl._childNodes[i], processed);
+                        extractSimpleRefsAndImports(xDefEl._childNodes[i], processed, xDefEl.isReference() || XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema));
                     }
                 }
 
@@ -210,7 +214,7 @@ class XD2XsdReferenceAdapter {
                 XDefinition def = (XDefinition)xn;
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
-                    extractSimpleRefsAndImports(elems[i], processed);
+                    extractSimpleRefsAndImports(elems[i], processed, false);
                 }
                 return;
             }
@@ -290,8 +294,12 @@ class XD2XsdReferenceAdapter {
             return;
         }
 
-        if (extraSchemaLocations != null && !extraSchemaLocations.containsKey(nsUri)) {
-            addExtraSchemaImport(nsPrefix, nsUri);
+        if (extraSchemaLocations != null) {
+            if (!extraSchemaLocations.containsKey(nsUri)) {
+                addExtraSchemaImport(nsPrefix, nsUri);
+            } else {
+                xsdFactory.createSchemaImport(schema, nsUri, extraSchemaLocations.get(nsUri).buildLocalition(null));
+            }
         }
     }
 

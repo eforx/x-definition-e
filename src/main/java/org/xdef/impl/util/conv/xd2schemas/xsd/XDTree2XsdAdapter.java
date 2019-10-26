@@ -137,6 +137,7 @@ class XDTree2XsdAdapter {
         final String refNsUri = xData.getNSUri();
         final String nodeName = xData.getName();
         if (refNsUri != null && XsdNamespaceUtils.isRefInDifferentNamespace(nodeName, refNsUri, schema)) {
+            final String localName = XsdNameUtils.getReferenceName(nodeName);
             final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
@@ -151,7 +152,7 @@ class XDTree2XsdAdapter {
                 }
             }
 
-            attr.getRef().setTargetQName(new QName(refNsUri, nodeName));
+            attr.getRef().setTargetQName(new QName(refNsUri, localName));
             if (XsdLogger.isInfo(logLevel)) {
                 XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating attribute reference from different namespace." +
                         "Name=" + xData.getName() + ", Namespace=" + xData.getNSUri());
@@ -239,10 +240,10 @@ class XDTree2XsdAdapter {
                 final String localName = XsdNameUtils.getReferenceName(xDefEl.getName());
                 final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-                if (nsUri == null) {
+                if (nsUri == null || nsUri.isEmpty()) {
                     if (XsdLogger.isError(logLevel)) {
                         XsdLogger.printP(ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
-                                "NamespacePrefix=" + nsPrefix);
+                                " NamespacePrefix=" + nsPrefix);
                     }
                 } else {
                     xsdElem.getRef().setTargetQName(new QName(nsUri, localName));

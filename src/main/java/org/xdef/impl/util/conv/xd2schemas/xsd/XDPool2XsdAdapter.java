@@ -98,9 +98,7 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
             XDef2XsdAdapter adapter = createAdapter();
             adapter.createSchema(xmDefinitions[i], xmlSchemaCollection);
             for (String schemaName : adapter.getSchemaNames()) {
-                if (!schemaNames.add(schemaName)) {
-                    throw new RuntimeException("XSD schema with name " + schemaName + " already exists!");
-                }
+                schemaNames.add(schemaName);
             }
         }
 

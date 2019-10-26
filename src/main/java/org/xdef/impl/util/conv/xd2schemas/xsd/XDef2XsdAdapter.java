@@ -100,10 +100,10 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> 
         // Convert x-definition tree to XSD tree
         convertXdef(treeAdapter);
 
-        // TODO: Merge extra nodes for multiple x-definitions
         if (!treeAdapter.getExtraNodes().isEmpty() && !extraSchemaLocations.isEmpty()) {
-            XD2XsdExtraSchemaAdapter.createExtraSchemas(xDef, schema.getSchemaNamespacePrefix(), namespaceCtx,
-                    treeAdapter.getExtraNodes(), schemaLocations, extraSchemaLocations, xmlSchemaCollection, schemaNames, logLevel);
+            XD2XsdExtraSchemaAdapter extraSchemaAdapter = new XD2XsdExtraSchemaAdapter(logLevel, schemaNames, xDefinition, schemaLocations, xmlSchemaCollection);
+            extraSchemaAdapter.setNamespaceCtx(namespaceCtx, schema.getSchemaNamespacePrefix());
+            extraSchemaAdapter.createExtraSchemas(treeAdapter.getExtraNodes(), extraSchemaLocations);
         }
     }
 
