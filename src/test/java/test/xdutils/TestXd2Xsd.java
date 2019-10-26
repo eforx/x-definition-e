@@ -325,13 +325,13 @@ public class TestXd2Xsd extends XDTester {
 
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
-            XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchema(inputXD).getParent();
+            XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchema(inputXD);
 
             // Compare output XSD schemas to XSD references
             if (validateAgainstRefXsd) {
-                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, new HashSet<String>(Arrays.asList(adapter.getSchemaName())), 1);
+                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), 1);
             } else {
-                writeOutputSchemas(fileName, outputXmlSchemaCollection, new HashSet<String>(Arrays.asList(adapter.getSchemaName())));
+                writeOutputSchemas(fileName, outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
             // Validate XML files against output XSD schemas and reference XSD schemas
@@ -431,8 +431,7 @@ public class TestXd2Xsd extends XDTester {
         // TODO: fixed value
         //convertXdDef2XsdNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
 
-        // TODO: namespace inside namespace
-        //convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
+        convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
 
         convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), null);
         convertXdDef2XsdNoRef ("simpleModelTest",
@@ -462,6 +461,7 @@ public class TestXd2Xsd extends XDTester {
 
         // TODO: Inherited reference
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
+
 
     }
 

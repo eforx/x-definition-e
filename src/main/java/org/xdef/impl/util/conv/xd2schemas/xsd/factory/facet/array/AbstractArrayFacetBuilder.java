@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array;
+package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array;
 
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -6,9 +6,9 @@ import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.DefaultFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param.EnumerationRegexBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param.IntegerRegexBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.param.EnumerationRegexBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.param.IntegerRegexBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 

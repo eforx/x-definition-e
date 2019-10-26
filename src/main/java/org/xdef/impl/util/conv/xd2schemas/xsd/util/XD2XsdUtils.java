@@ -9,12 +9,12 @@ import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.*;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.ListFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.UnionFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.AnFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.DateTimeFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.NumFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.*;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.ListFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.UnionFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.AnFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.DateTimeFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.NumFacetBuilder;
 
 import javax.xml.namespace.QName;
 
@@ -82,7 +82,7 @@ public class XD2XsdUtils {
      * Some xd types requires specific way how to create simpleType and restrictions
      * @param parserName x-definition parser name
      * @return  QName - qualified XML name
-     *          Boolean - use also default facet facets builder
+     *          Boolean - use also default facet facets factory
      */
     public static Pair<QName, IXsdFacetBuilder> getCustomFacetBuilder(final String parserName, final XDNamedValue[] parameters) {
         if (XD_PARSER_AN.equals(parserName)) {
@@ -125,6 +125,17 @@ public class XD2XsdUtils {
         }
 
         return reference;
+    }
+
+    /**
+     * Check if element name is in different namespace compare to schema target namespace
+     * @param nodeName
+     * @param schema
+     * @return
+     */
+    public static boolean isInDifferentNamespace(final String nodeName, final XmlSchema schema) {
+        String nodeNsPrefix = getNamespacePrefix(nodeName);
+        return nodeNsPrefix != null && !nodeNsPrefix.equals(schema.getSchemaNamespacePrefix());
     }
 
     private static boolean hasNamespace(final String name) {
@@ -282,6 +293,10 @@ public class XD2XsdUtils {
         schema.getItems().add(element);
     }
 
+    public static void addAttr(final XmlSchema schema, final XmlSchemaAttribute attr) {
+        schema.getItems().add(attr);
+    }
+
     public static void addRefType(final XmlSchema schema, final XmlSchemaType schemaType) {
         schema.getItems().add(schemaType);
     }
@@ -360,6 +375,19 @@ public class XD2XsdUtils {
 
     public static String createNsUriFromXDefName(final String name) {
         return name;
+    }
+
+    public static String createExternalSchemaNameFromNsPrefix(final String nsPrefix) {
+        return "external_" + nsPrefix;
+    }
+
+    public static String getNsPrefixFromExternalSchemaName(final String nsPrefix) {
+        int pos = nsPrefix.lastIndexOf('_');
+        if (pos != -1) {
+            return nsPrefix.substring(pos + 1);
+        }
+
+        return nsPrefix;
     }
 
     public static String particleXKindToString(short kind) {

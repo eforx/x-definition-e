@@ -1,12 +1,12 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.builder;
+package org.xdef.impl.util.conv.xd2schemas.xsd.factory;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.XData;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.AbstractXsdFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.IXsdFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.DefaultFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.AbstractXsdFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
@@ -16,14 +16,14 @@ import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
-public class XsdRestrictionBuilder {
+public class XsdRestrictionFactory {
 
     private final int logLevel;
     private final XData xData;
     private final String parserName;
     private XDNamedValue[] parameters = null;
 
-    public XsdRestrictionBuilder(XData xData, int logLevel) {
+    public XsdRestrictionFactory(XData xData, int logLevel) {
         this.xData = xData;
         this.logLevel = logLevel;
         this.parserName = xData.getParserName();
@@ -33,7 +33,7 @@ public class XsdRestrictionBuilder {
         this.parameters = parameters;
     }
 
-    public XmlSchemaSimpleTypeRestriction buildRestriction() {
+    public XmlSchemaSimpleTypeRestriction createRestriction() {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating restrictions of simple content ...");
         }
@@ -47,12 +47,12 @@ public class XsdRestrictionBuilder {
             if (parserInfo != null) {
                 customParser = false;
                 if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, TRANSFORMATION, xData, "Default facet builder will be used");
+                    XsdLogger.printP(DEBUG, TRANSFORMATION, xData, "Default facet factory will be used");
                 }
             }
         } else {
             if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, TRANSFORMATION, xData, "Custom facet builder will be used");
+                XsdLogger.printP(DEBUG, TRANSFORMATION, xData, "Custom facet factory will be used");
             }
         }
 
@@ -65,7 +65,7 @@ public class XsdRestrictionBuilder {
         }
 
         if (customParser) {
-            restriction.setAnnotation(XsdElementBuilder.createAnnotation("Original x-definition parser: " + parserName));
+            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + parserName));
         }
 
         return restriction;
@@ -73,7 +73,7 @@ public class XsdRestrictionBuilder {
 
     public XmlSchemaSimpleTypeRestriction buildDefaultRestriction(final QName qName) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating restrictions of simple content (default facet builder will be used) ...");
+            XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating restrictions of simple content (default facet factory will be used) ...");
         }
 
         return simpleTypeRestriction(qName, new DefaultFacetBuilder());

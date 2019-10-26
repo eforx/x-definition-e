@@ -5,98 +5,94 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaForm;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.XDef2SchemaAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.builder.XsdElementBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMNode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
-public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
+public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> {
 
     private int logLevel = LOG_LEVEL_NONE;
 
     private XDefinition xDefinition = null;
-    private String schemaName = null;
+    private XsdElementFactory xsdBuilder = null;
+    private Set<String> schemaNames = null;
     private XmlSchema schema = null;
-    private XsdElementBuilder xsdBuilder = null;
-
-    /**
-     * Initialized by {@link XDPool2XsdAdapter}
-     * Key:     schema namespace URI
-     * Value:   schema location
-     */
-    private Map<String, XmlSchemaImportLocation> importSchemaLocations = new HashMap<String, XmlSchemaImportLocation>();
+    private XDPool2XsdAdapter poolAdapter = null;
 
     public void setLogLevel(int logLevel) {
         this.logLevel = logLevel;
     }
 
-    public final XDefinition getXDefinition() {
-        return xDefinition;
+    /**
+     * Get names of all created schemas
+     * @return
+     */
+    public final Set<String> getSchemaNames() {
+        return schemaNames;
     }
 
-    public final String getSchemaName() {
-        return schemaName;
-    }
-
-
-    public void setSchemaNamespaceLocations(Map<String, XmlSchemaImportLocation> schemaNamespaceLocations) {
-        this.importSchemaLocations = schemaNamespaceLocations;
+    public void setPoolAdapter(XDPool2XsdAdapter poolAdapter) {
+        this.poolAdapter = poolAdapter;
     }
 
     @Override
-    public XmlSchema createSchema(final XDPool xdPool) {
-
+    public XmlSchemaCollection createSchema(final XDPool xdPool) {
         if (xdPool == null) {
             throw new IllegalArgumentException("xdPool = null");
         }
-
         return createSchema(xdPool.getXMDefinition());
     }
 
     @Override
-    public XmlSchema createSchema(final XMDefinition xdef) {
-        return createSchema(xdef, new XmlSchemaCollection()).getValue();
+    public XmlSchemaCollection createSchema(final XMDefinition xdef) {
+        XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
+        createSchema(xdef, xmlSchemaCollection);
+        return xmlSchemaCollection;
     }
 
-    protected Pair<String, XmlSchema> createSchema(final XMDefinition xDef, final XmlSchemaCollection xmlSchemaCollection) {
-
+    protected void createSchema(final XMDefinition xDef, final XmlSchemaCollection xmlSchemaCollection) {
         if (xDef == null) {
             throw new IllegalArgumentException("xdef = null");
         }
 
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, CAT_XD_DEF, "====================");
-            XsdLogger.printC(INFO, CAT_XD_DEF, "Transforming x-definition. Name=" + xDef.getName());
-            XsdLogger.printC(INFO, CAT_XD_DEF, "====================");
+            XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "====================");
+            XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "Transforming x-definition. Name=" + xDef.getName());
+            XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "====================");
         }
 
+        schemaNames = new HashSet<String>();
         this.xDefinition = (XDefinition)xDef;
 
+        Map<String, XmlSchemaImportLocation> schemaLocations = poolAdapter != null ? poolAdapter.getSchemaLocations() : new HashMap<String, XmlSchemaImportLocation>();
+        Map<String, XmlSchemaImportLocation> extraSchemaLocations = poolAdapter != null ? poolAdapter.getExtraSchemaLocations() : new HashMap<String, XmlSchemaImportLocation>();
+        NamespaceMap namespaceCtx = poolAdapter != null ? poolAdapter.getNamespaceCtx().get(xDef.getName()) : XsdNamespaceUtils.createCtx();
+
         // Initialize XSD schema
-        initSchema(xmlSchemaCollection);
+        initSchema(xmlSchemaCollection, namespaceCtx);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(logLevel, schema, xsdBuilder);
-
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(logLevel, schema, xsdBuilder, null, extraSchemaLocations);
         treeAdapter.loadXdefRootNames(xDefinition);
 
         // Extract all used references in x-definition
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, xsdBuilder, treeAdapter, schema, importSchemaLocations);
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, xsdBuilder, treeAdapter, schema, schemaLocations, extraSchemaLocations, false);
         referenceAdapter.createRefsAndImports(xDefinition);
 
         addXdefNamespaces(referenceAdapter.getSystemIdImports());
@@ -104,12 +100,16 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         // Convert x-definition tree to XSD tree
         convertXdef(treeAdapter);
 
-        return new Pair<String, XmlSchema>(schemaName, schema);
+        // TODO: Merge extra nodes for multiple x-definitions
+        if (!treeAdapter.getExtraNodes().isEmpty() && !extraSchemaLocations.isEmpty()) {
+            XD2XsdExtraSchemaAdapter.createExtraSchemas(xDef, schema.getSchemaNamespacePrefix(), namespaceCtx,
+                    treeAdapter.getExtraNodes(), schemaLocations, extraSchemaLocations, xmlSchemaCollection, schemaNames, logLevel);
+        }
     }
 
     private void convertXdef(final XDTree2XsdAdapter treeAdapter) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, CAT_XSD_BUILDER, "Transform x-definition tree ...");
+            XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "Transform x-definition tree ...");
         }
 
         for (XElement elem : xDefinition.getXElements()) {
@@ -123,56 +123,53 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
         }
     }
 
-    private void initSchema(final XmlSchemaCollection xmlSchemaCollection) {
+    private void initSchema(final XmlSchemaCollection xmlSchemaCollection, NamespaceMap namespaceCtx) {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, INITIALIZATION, xDefinition, "Initialize XSD schema");
         }
 
-        schemaName = xDefinition.getName();
+        if (!schemaNames.add(xDefinition.getName())) {
+            if (XsdLogger.isError(logLevel)) {
+                XsdLogger.printP(ERROR, INITIALIZATION, xDefinition, "X-definition with this name has been already processed! Name=" + xDefinition.getName());
+            }
 
+            throw new IllegalArgumentException("X-definition name duplication");
+        }
+
+        // Target namespace
         Boolean targetNamespaceError = false;
-
         Pair<String, String> targetNamespace = XD2XsdUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);
 
         if (XsdLogger.isDebug(logLevel)) {
             XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Getting basic information." +
-                    "systemName=" + schemaName + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri" + targetNamespace.getValue());
+                    "systemName=" + schemaNames + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri" + targetNamespace.getValue());
         }
 
-        schema = new XmlSchema(targetNamespace.getValue(), schemaName, xmlSchemaCollection);
+        schema = new XmlSchema(targetNamespace.getValue(), xDefinition.getName(), xmlSchemaCollection);
 
-        xsdBuilder = new XsdElementBuilder(logLevel, schema);
+        if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
+            schema.setSchemaNamespacePrefix(targetNamespace.getKey());
+        }
+
+        xsdBuilder = new XsdElementFactory(logLevel, schema);
 
         if (XsdLogger.isDebug(logLevel)) {
             XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Initializing namespace context ...");
         }
 
-        // Namespace initialization
-        NamespaceMap namespaceMap = new NamespaceMap();
-        addNamespaceToCtx(namespaceMap, XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX, Constants.URI_2001_SCHEMA_XSD);
-
-        // Set target namespace
-        if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
-            addNamespaceToCtx(namespaceMap, targetNamespace.getKey(), targetNamespace.getValue());
-            schema.setSchemaNamespacePrefix(targetNamespace.getKey());
-        }
-
-        for (Map.Entry<String, String> entry : xDefinition._namespaces.entrySet()) {
-            final String nsPrefix = entry.getKey();
-            final String nsUri = entry.getValue();
-
-            if (XD2XsdUtils.isDefaultNamespacePrefix(nsPrefix) || (targetNamespace.getKey() != null && nsPrefix.equals(targetNamespace.getKey()))) {
-                continue;
+        // Namespace context
+        if (namespaceCtx == null) {
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.printP(WARN, INITIALIZATION, xDefinition, "Namespace context should be already initializated!");
             }
 
-            if (!namespaceMap.containsKey(nsPrefix)) {
-                addNamespaceToCtx(namespaceMap, nsPrefix, nsUri);
-            } else {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.printP(WARN, INITIALIZATION, xDefinition, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
-                }
-            }
+            namespaceCtx = XsdNamespaceUtils.createCtx();
         }
+
+        if (namespaceCtx.getDeclaredPrefixes().length == 1) {
+            XsdNamespaceUtils.initCtx(namespaceCtx, xDefinition, targetNamespace.getKey(), targetNamespace.getValue(), INITIALIZATION, logLevel);
+        }
+        schema.setNamespaceContext(namespaceCtx);
 
         // Set attributeFormDefault and elementFormDefault
         {
@@ -187,10 +184,12 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
                 XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Setting attribute default schema form. Form=" + attrSchemaForm);
             }
         }
-
-        schema.setNamespaceContext(namespaceMap);
     }
 
+    /**
+     * Add x-definition names as namespace to namespace context
+     * @param xDefs
+     */
     private void addXdefNamespaces(final Set<String> xDefs) {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, PREPROCESSING, xDefinition, "Updating namespace context - add namespaces of other x-definitions");
@@ -198,14 +197,9 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchema> {
 
         NamespaceMap namespaceMap = (NamespaceMap)schema.getNamespaceContext();
         for (String xDefName : xDefs) {
-            addNamespaceToCtx(namespaceMap, XD2XsdUtils.createNsPrefixFromXDefName(xDefName), XD2XsdUtils.createNsUriFromXDefName(xDefName));
-        }
-    }
-
-    private void addNamespaceToCtx(final NamespaceMap namespaceMap, final String nsPrefix, final String nsUri) {
-        namespaceMap.add(nsPrefix, nsUri);
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Add namespace. Prefix=" + nsPrefix + ", Uri=" + nsUri);
+            XsdNamespaceUtils.addNamespaceToCtx(namespaceMap, xDefinition.getName(),
+                    XD2XsdUtils.createNsPrefixFromXDefName(xDefName), XD2XsdUtils.createNsUriFromXDefName(xDefName),
+                    PREPROCESSING, logLevel);
         }
     }
 

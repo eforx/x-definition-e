@@ -36,9 +36,8 @@ public interface XsdLoggerDefs {
     String DEBUG = "DEBUG";
     String TRACE = "TRACE";
 
-    String CAT_XSD_BUILDER = "XsdBuilder";
-    String CAT_XSD_ELEM_BUILDER = "XsdElementBuilder";
-    String CAT_XSD_REF_BUILDER = "XsdReferenceBuilder";
-    String CAT_XD_POOL = "XdPoolAdapter";
-    String CAT_XD_DEF = "XdDefAdapter";
+    String XSD_XDEF_ADAPTER = "XsdXDefinitionAdapter";
+    String XSD_XDEF_EXTRA_ADAPTER = "XsdXDefinitionExtraAdapter";
+    String XSD_ELEM_FACTORY = "XsdElementFactory";
+    String XSD_DPOOL_ADAPTER = "XsdXPoolAdapter";
 }

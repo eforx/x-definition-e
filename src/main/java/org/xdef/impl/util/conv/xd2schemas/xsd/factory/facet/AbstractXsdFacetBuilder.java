@@ -1,8 +1,7 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet;
+package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
-import org.xdef.impl.XData;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
