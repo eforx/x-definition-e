@@ -398,9 +398,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2Xsd("t007", Arrays.asList(new String[] {"t007"}), null);
         convertXdDef2Xsd("t009", Arrays.asList(new String[] {"t009"}), null);
         convertXdDef2Xsd("t010", Arrays.asList(new String[] {"t010"}), null);
-
-        // TODO: References
-        //convertXdDef2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}));
+        convertXdDef2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}));
 
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);

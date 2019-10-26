@@ -87,36 +87,72 @@
   <xs:element name="root">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="date1"
-          maxOccurs="unbounded"
-          type="date1_XdDatetime_Type"/>
-        <xs:element name="date2"
-          maxOccurs="unbounded"
-          type="date2_XdDatetime_Type"/>
-        <xs:element name="date3"
-          maxOccurs="unbounded"
-          type="date3_XdDatetime_Type"/>
+        <xs:element maxOccurs="unbounded" name="date1">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}(0[1-9]|1[0-2])([0-2][0-9]|3[01])|([0-2][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)[0-9]{2}"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date2">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}(0[1-9]|1[0-2])([0-2][0-9]|3[01])([01][0-9]|2[0-3])[0-5][0-9]|([0-2][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)[0-9]{2}\s([01][0-9]|2[0-3]):[0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date3">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="([0-2][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)[0-9]{2}\s([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element name="date4"
           maxOccurs="unbounded"
           type="xs:gYear"/>
-        <xs:element name="date5"
-          maxOccurs="unbounded"
-          type="date5_XdDatetime_Type"/>
-        <xs:element name="date6"
-          maxOccurs="unbounded"
-          type="date6_XdDatetime_Type"/>
-        <xs:element name="date7"
-          maxOccurs="unbounded"
-          type="date7_XdDatetime_Type"/>
-        <xs:element name="date8"
-          maxOccurs="unbounded"
-          type="date8_XdDatetime_Type"/>
-        <xs:element name="date9"
-          maxOccurs="unbounded"
-          type="date9_XdDatetime_Type"/>
-        <xs:element name="date10"
-          maxOccurs="unbounded"
-          type="date10_XdDatetime_Type"/>
+        <xs:element maxOccurs="unbounded" name="date5">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}(0[1-9]|1[0-2])([0-2][0-9]|3[01])"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date6">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}(0[1-9]|1[0-2])([0-2][0-9]|3[01])([01][0-9]|2[0-3])[0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date7">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}(0[1-9]|1[0-2])([0-2][0-9]|3[01])([01][0-9]|2[0-3])[0-5][0-9][0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date8">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}\.(0[1-9]|1[0-2])\.([0-2][0-9]|3[01])"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date9">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}\.(0[1-9]|1[0-2])\.([0-2][0-9]|3[01])\s([01][0-9]|2[0-3]):[0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="date10">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(19|20)[0-9]{2}\.(0[1-9]|1[0-2])\.([0-2][0-9]|3[01])\s([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element name="date"
           maxOccurs="unbounded"
           type="xs:date"/>
@@ -144,27 +180,55 @@
         <xs:element name="duration"
           maxOccurs="unbounded"
           type="xs:string"/>
-        <xs:element name="byte"
-          maxOccurs="unbounded"
-          type="byte_Type"/>
-        <xs:element name="short"
-          maxOccurs="unbounded"
-          type="short_Type"/>
-        <xs:element name="integer"
-          maxOccurs="unbounded"
-          type="integer_Type"/>
-        <xs:element name="integer1"
-          maxOccurs="unbounded"
-          type="integer1_Type"/>
-        <xs:element name="long"
-          maxOccurs="unbounded"
-          type="xs:long"/>
-        <xs:element name="list"
-          maxOccurs="unbounded"
-          type="list_Type"/>
-        <xs:element name="tokens"
-          maxOccurs="unbounded"
-          type="tokens_Type"/>
+        <xs:element maxOccurs="unbounded" name="byte">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="-128"/>
+              <xs:maxInclusive value="127"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="short">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="-32768"/>
+              <xs:maxInclusive value="32767"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="integer">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="-2147483648"/>
+              <xs:maxInclusive value="2147483647"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="integer1">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="-134217728"/>
+              <xs:maxInclusive value="134217727"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="long" type="xs:int"/>
+        <xs:element maxOccurs="unbounded" name="list">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="cd"/>
+              <xs:enumeration value="ab"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="tokens">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="cd"/>
+              <xs:enumeration value="ab"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="date1"
         type="date1_XdDatetime_Type"
