@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Converts x-defnition XDNamedValue parameters into XSD facet facets
  */
-public interface IXsdFacetBuilder {
+public interface IXsdFacetFactory {
 
     enum ValueType {
         DECIMAL_INTEGER,

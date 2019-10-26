@@ -9,15 +9,15 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetBuilder.ValueType.DECIMAL_FLOATING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetBuilder.ValueType.DECIMAL_INTEGER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory.ValueType.DECIMAL_FLOATING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory.ValueType.DECIMAL_INTEGER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
 /**
  * Used for creation of restrictions
  */
-public class DefaultFacetBuilder extends AbstractXsdFacetBuilder {
+public class DefaultFacetFactory extends AbstractXsdFacetFactory {
 
     @Override
     public XmlSchemaMinInclusiveFacet minInclusive(final XDNamedValue param) {

@@ -11,6 +11,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 
 import java.util.HashSet;
@@ -169,15 +170,15 @@ class XD2XsdReferenceAdapter {
                 }
 
                 if (xDefEl.isReference()) {
-                    if (XD2XsdUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
+                    if (XsdNamespaceUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
                         addSchemaImportFromElem(xDefEl.getNSUri(), xDefEl.getReferencePos());
-                    } else if (XD2XsdUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
+                    } else if (XsdNamespaceUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
                         addSchemaImport(xDefEl.getReferencePos());
                     }
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-                    if (XD2XsdUtils.isInDifferentNamespace(xDefEl.getName(), schema) && postProcessing == false) {
-                        final String nsPrefix = XD2XsdUtils.getNamespacePrefix(xDefEl.getName());
+                    if (XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema) && postProcessing == false) {
+                        final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                         final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                         if (nsUri == null) {
                             if (XsdLogger.isError(logLevel)) {
@@ -240,13 +241,13 @@ class XD2XsdReferenceAdapter {
         }
 
         final String importNamespace = xData.getNSUri();
-        if (importNamespace != null && XD2XsdUtils.isRefInDifferentNamespace(xData.getName(), importNamespace, schema)) {
-            addSchemaImportFromSimpleType(XD2XsdUtils.getNamespacePrefix(xData.getName()), importNamespace);
+        if (importNamespace != null && XsdNamespaceUtils.isRefInDifferentNamespace(xData.getName(), importNamespace, schema)) {
+            addSchemaImportFromSimpleType(XsdNamespaceUtils.getNamespacePrefix(xData.getName()), importNamespace);
         }
     }
 
     private void addSchemaImport(final String refName) {
-        final String refSystemId = XD2XsdUtils.getReferenceSystemId(refName);
+        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refName);
 
         if (refSystemId == null || !systemIdImports.add(refSystemId)) {
             return;
@@ -276,7 +277,7 @@ class XD2XsdReferenceAdapter {
                 XsdLogger.printP(INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
             }
 
-            xsdFactory.createSchemaImport(schema, nsUri, schemaLocations.get(nsUri).buildLocalition(XD2XsdUtils.getReferenceSystemId(refName)));
+            xsdFactory.createSchemaImport(schema, nsUri, schemaLocations.get(nsUri).buildLocalition(XsdNamespaceUtils.getReferenceSystemId(refName)));
         } else {
             if (XsdLogger.isWarn(logLevel)) {
                 XsdLogger.printP(WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);

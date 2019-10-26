@@ -6,9 +6,9 @@ import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.param.EnumerationRegexBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.param.IntegerRegexBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.EnumerationRegexFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.IntegerRegexFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
@@ -21,7 +21,7 @@ import java.util.Set;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
-public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
+public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
 
     protected Set<Integer> ignoredParams = new HashSet<Integer>();
 
@@ -110,9 +110,9 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
         String regex = null;
 
         if (Constants.XSD_INT.equals(parserQName)) {
-            regex = new IntegerRegexBuilder(logLevel).regex(params);
+            regex = new IntegerRegexFactory(logLevel).regex(params);
         } else if (Constants.XSD_STRING.equals(parserQName)) {
-            regex = new EnumerationRegexBuilder(logLevel).regex(params);
+            regex = new EnumerationRegexFactory(logLevel).regex(params);
         } else {
             if (XsdLogger.isWarn(logLevel)) {
                 XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Parser params to regex - Unsupported list parser! Parser=" + parserName);

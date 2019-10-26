@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
-public class ListFacetBuilder extends AbstractArrayFacetBuilder {
+public class ListFacetFactory extends AbstractArrayFacetFactory {
 
     private Integer minItems = null;
     private Integer maxItems = null;

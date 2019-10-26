@@ -142,7 +142,7 @@ public class XDPool2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollecti
             final String xDefName = xDef.getName();
             Boolean targetNamespaceError = false;
 
-            Pair<String, String> targetNamespace = XD2XsdUtils.getSchemaTargetNamespace(xDef, targetNamespaceError);
+            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDef, targetNamespaceError);
             if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
                 if (xDefTargetNs.containsKey(xDefName)) {
                     if (XsdLogger.isWarn(logLevel)) {

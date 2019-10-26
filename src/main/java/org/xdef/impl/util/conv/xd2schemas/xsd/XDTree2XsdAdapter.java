@@ -9,6 +9,8 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 
 import javax.xml.namespace.QName;
@@ -134,8 +136,8 @@ class XDTree2XsdAdapter {
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
         final String refNsUri = xData.getNSUri();
         final String nodeName = xData.getName();
-        if (refNsUri != null && XD2XsdUtils.isRefInDifferentNamespace(nodeName, refNsUri, schema)) {
-            final String nsPrefix = XD2XsdUtils.getNamespacePrefix(xData.getName());
+        if (refNsUri != null && XsdNamespaceUtils.isRefInDifferentNamespace(nodeName, refNsUri, schema)) {
+            final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
             // Attribute is referencing to new namespace, which will be created in post-processing
@@ -185,7 +187,7 @@ class XDTree2XsdAdapter {
                 attr.setSchemaType(xsdBuilder.creatSimpleType(xData));
             }
 
-            XD2XsdUtils.resolveAttributeQName(schema, attr, xData.getName());
+            XsdNameUtils.resolveAttributeQName(schema, attr, xData.getName());
         }
 
         if (xData.isOptional() || xData.getOccurence().isOptional()) {
@@ -206,14 +208,14 @@ class XDTree2XsdAdapter {
         XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(xDefEl);
 
         if (xDefEl.isReference()) {
-            if (XD2XsdUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
+            if (XsdNamespaceUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
                 xsdElem.getRef().setTargetQName(new QName(xDefEl.getNSUri(), xDefEl.getName()));
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element reference from different namespace." +
                             "Name=" + xDefEl.getName() + ", Namespace=" + xDefEl.getNSUri());
                 }
-            } else if (XD2XsdUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
-                final String refXDefinitionName = XD2XsdUtils.getReferenceSystemId(xDefEl.getReferencePos());
+            } else if (XsdNamespaceUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
+                final String refXDefinitionName = XsdNamespaceUtils.getReferenceSystemId(xDefEl.getReferencePos());
                 // TODO: Validate target namespace?
                 xsdElem.getRef().setTargetQName(new QName(refXDefinitionName, xDefEl.getName()));
                 if (XsdLogger.isInfo(logLevel)) {
@@ -223,9 +225,9 @@ class XDTree2XsdAdapter {
             } else {
                 xsdElem.setName(xDefEl.getName());
                 // TODO: reference namespace?
-                final String localName = XD2XsdUtils.getReferenceName(xDefEl.getReferencePos());
+                final String localName = XsdNameUtils.getReferenceName(xDefEl.getReferencePos());
                 xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, localName));
-                XD2XsdUtils.resolveElementQName(schema, xsdElem);
+                XsdNameUtils.resolveElementQName(schema, xsdElem);
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element schema type name in same namespace/x-definition" +
                             "Name=" + localName);
@@ -233,9 +235,9 @@ class XDTree2XsdAdapter {
             }
         } else {
             // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
-            if (XD2XsdUtils.isInDifferentNamespace(xDefEl.getName(), schema)) {
-                final String localName = XD2XsdUtils.getReferenceName(xDefEl.getName());
-                final String nsPrefix = XD2XsdUtils.getNamespacePrefix(xDefEl.getName());
+            if (XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema)) {
+                final String localName = XsdNameUtils.getReferenceName(xDefEl.getName());
+                final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                 if (nsUri == null) {
                     if (XsdLogger.isError(logLevel)) {
@@ -262,7 +264,7 @@ class XDTree2XsdAdapter {
                     addComplexContentToElem(xsdElem, xDefEl);
                 }
 
-                XD2XsdUtils.resolveElementQName(schema, xsdElem);
+                XsdNameUtils.resolveElementQName(schema, xsdElem);
             }
         }
 

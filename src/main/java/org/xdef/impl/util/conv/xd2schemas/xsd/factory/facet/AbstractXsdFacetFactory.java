@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
-public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
+public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
     protected int logLevel;
     protected ValueType valueType;

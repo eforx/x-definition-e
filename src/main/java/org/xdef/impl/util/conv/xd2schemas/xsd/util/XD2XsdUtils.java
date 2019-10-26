@@ -1,25 +1,24 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.xdef.XDConstants;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
-import org.xdef.impl.XDefinition;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.*;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.ListFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.UnionFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.AnFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.DateTimeFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.NumFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.ListFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.UnionFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.AnFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.DateTimeFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.NumFacetFactory;
 
 import javax.xml.namespace.QName;
-
-import java.util.Iterator;
-import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.*;
 import static org.xdef.model.XMNode.*;
@@ -69,10 +68,10 @@ public class XD2XsdUtils {
         return null;
     }
 
-    public static Pair<QName, IXsdFacetBuilder> getDefaultFacetBuilder(final String parserName) {
+    public static Pair<QName, IXsdFacetFactory> getDefaultFacetBuilder(final String parserName) {
         QName qName = getDefaultQName(parserName);
         if (qName != null) {
-            return new Pair(qName, new DefaultFacetBuilder());
+            return new Pair(qName, new DefaultFacetFactory());
         }
 
         return null;
@@ -84,209 +83,22 @@ public class XD2XsdUtils {
      * @return  QName - qualified XML name
      *          Boolean - use also default facet facets factory
      */
-    public static Pair<QName, IXsdFacetBuilder> getCustomFacetBuilder(final String parserName, final XDNamedValue[] parameters) {
+    public static Pair<QName, IXsdFacetFactory> getCustomFacetBuilder(final String parserName, final XDNamedValue[] parameters) {
         if (XD_PARSER_AN.equals(parserName)) {
-            return new Pair(Constants.XSD_STRING, new AnFacetBuilder());
+            return new Pair(Constants.XSD_STRING, new AnFacetFactory());
         } else if (XD_PARSER_NUM.equals(parserName)) {
-            return new Pair(Constants.XSD_STRING, new NumFacetBuilder());
+            return new Pair(Constants.XSD_STRING, new NumFacetFactory());
         } else if (XD_PARSER_XDATETIME.equals(parserName)) {
-            return new Pair(Constants.XSD_STRING, new DateTimeFacetBuilder());
+            return new Pair(Constants.XSD_STRING, new DateTimeFacetFactory());
         } else if (XD_PARSER_LIST.equals(parserName)) {
-            ListFacetBuilder facetBuilder = new ListFacetBuilder();
+            ListFacetFactory facetBuilder = new ListFacetFactory();
             return new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
         } else if (XD_PARSER_UNION.equals(parserName)) {
-            UnionFacetBuilder facetBuilder = new UnionFacetBuilder();
+            UnionFacetFactory facetBuilder = new UnionFacetFactory();
             return new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
         }
 
         return null;
-    }
-
-    // If name contains ":" or reference has different namespace, then element contains external reference
-    public static boolean isRefInDifferentNamespace(final String nodeName, final String namespaceUri, final XmlSchema schema) {
-        return hasNamespace(nodeName) && (namespaceUri != null && !namespaceUri.equals(schema.getTargetNamespace()));
-    }
-
-    public static boolean isRefInDifferentSystem(final String nodeRefName, final String xdPos) {
-        final String nodeSystemId = getReferenceSystemId(xdPos);
-        final String refSystemId = getReferenceSystemId(nodeRefName);
-        return !hasNamespace(xdPos) && !hasNamespace(refSystemId) && !nodeSystemId.equals(refSystemId);
-    }
-
-    public static String getReferenceName(final String reference) {
-        int xdefNamespaceSeparatorPos = reference.indexOf(':');
-        if (xdefNamespaceSeparatorPos != -1) {
-            return reference.substring(xdefNamespaceSeparatorPos + 1);
-        }
-
-        int xdefSystemSeparatorPos = reference.indexOf('#');
-        if (xdefSystemSeparatorPos != -1) {
-            return reference.substring(xdefSystemSeparatorPos + 1);
-        }
-
-        return reference;
-    }
-
-    /**
-     * Check if element name is in different namespace compare to schema target namespace
-     * @param nodeName
-     * @param schema
-     * @return
-     */
-    public static boolean isInDifferentNamespace(final String nodeName, final XmlSchema schema) {
-        String nodeNsPrefix = getNamespacePrefix(nodeName);
-        return nodeNsPrefix != null && !nodeNsPrefix.equals(schema.getSchemaNamespacePrefix());
-    }
-
-    private static boolean hasNamespace(final String name) {
-        return name.indexOf(':') != -1;
-    }
-
-    public static String getReferenceSystemId(final String reference) {
-        int xdefSystemSeparatorPos = reference.indexOf('#');
-        if (xdefSystemSeparatorPos != -1) {
-            return reference.substring(0, xdefSystemSeparatorPos);
-        }
-
-        return null;
-    }
-
-    public static String getNamespacePrefix(final String name) {
-        int nsPos = name.indexOf(':');
-        if (nsPos != -1) {
-            return name.substring(0, nsPos);
-        }
-
-        return null;
-    }
-
-    public static String getNamespaceOrRefPrefix(final String name) {
-        String res = getReferenceSystemId(name);
-        if (res == null) {
-            res = getNamespacePrefix(name);
-        }
-
-        return res;
-    }
-
-    public static boolean isDefaultNamespacePrefix(final String prefix) {
-        return Constants.XML_NS_PREFIX.equals(prefix)
-                || Constants.XMLNS_ATTRIBUTE.equals(prefix)
-                || XDConstants.XDEF_NS_PREFIX.equals(prefix);
-    }
-
-
-
-    public static void resolveAttributeQName(final XmlSchema schema, final XmlSchemaAttribute attr, final String xName) {
-        String newName = XD2XsdUtils.resolveName(schema, xName);
-        if (!xName.equals(newName)) {
-            attr.setName(newName);
-        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && XD2XsdUtils.isUnqualifiedName(schema, xName)) {
-            attr.setForm(XmlSchemaForm.UNQUALIFIED);
-        }
-    }
-
-
-    public static void resolveElementQName(final XmlSchema schema, final XmlSchemaElement elem) {
-        final String name = elem.getName();
-        final String newName = resolveName(schema, name);
-
-        if (!name.equals(newName)) {
-            elem.setName(newName);
-        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault()) && isUnqualifiedName(schema, name)) {
-            elem.setForm(XmlSchemaForm.UNQUALIFIED);
-        }
-    }
-
-    /**
-     * Returns true if name is using schema target namespace
-     * @param schema
-     * @param name
-     * @return
-     */
-    public static boolean usingTargetNamespace(final XmlSchema schema, final String name) {
-        return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
-    }
-
-    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError) {
-        String targetNamespacePrefix = null;
-        String targetNamespaceUri = null;
-
-        // Get target namespace prefix based on root elements
-        if (xDef._rootSelection != null && xDef._rootSelection.size() > 0) {
-            Iterator<String> e = xDef._rootSelection.keySet().iterator();
-            while (e.hasNext()) {
-                String tmpNs = XD2XsdUtils.getNamespacePrefix(e.next());
-                if (targetNamespacePrefix == null) {
-                    targetNamespacePrefix = tmpNs;
-                } else if (tmpNs != null && !targetNamespacePrefix.equals(tmpNs)) {
-                    System.out.println("[" + xDef.getName() + "] Expected namespace: " + targetNamespacePrefix + ", given: " + tmpNs);
-                    targetNamespaceError = true;
-                }
-            }
-        }
-
-        if (targetNamespaceError == true) {
-            return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
-        }
-
-        // Find target namespace URI based on x-definition namespaces
-        if (targetNamespacePrefix != null) {
-            for (Map.Entry<String, String> entry : xDef._namespaces.entrySet()) {
-                if (targetNamespacePrefix.equals(entry.getKey())) {
-                    targetNamespaceUri = entry.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (targetNamespacePrefix != null && targetNamespaceUri == null) {
-            System.out.println("[" + xDef.getName() + "] Target namespace URI has been not found for prefix: " + targetNamespacePrefix);
-            targetNamespaceError = true;
-        }
-
-        if (targetNamespaceError == true) {
-            return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
-        }
-
-        // Try to find default namespace
-        if (targetNamespacePrefix == null && targetNamespaceUri == null) {
-            for (Map.Entry<String, String> entry : xDef._namespaces.entrySet()) {
-                if ("".equals(entry.getKey())) {
-                    targetNamespacePrefix = entry.getKey();
-                    targetNamespaceUri = entry.getValue();
-                    break;
-                }
-            }
-        }
-
-        // Create namespace from x-definition name
-        /*if (targetNamespacePrefix == null && targetNamespaceUri == null) {
-            targetNamespacePrefix = XD2XsdUtils.createNsPrefixFromXDefName(xDef.getName());
-            targetNamespaceUri = XD2XsdUtils.createNsUriFromXDefName(xDef.getName());
-        }*/
-
-        return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
-    }
-
-    /**
-     * Returns name without target namespace
-     * @param schema
-     * @param name
-     * @return
-     */
-    public static String resolveName(final XmlSchema schema, final String name) {
-        // Element's name contains target namespace prefix, we can remove this prefix
-        if (usingTargetNamespace(schema, name)) {
-            return name.substring(schema.getSchemaNamespacePrefix().length() + 1);
-        }
-
-        return name;
-    }
-
-    public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
-        // Element's name without namespace prefix, while xml is using target namespace
-        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
     }
 
     public static void addElement(final XmlSchema schema, final XmlSchemaElement element) {

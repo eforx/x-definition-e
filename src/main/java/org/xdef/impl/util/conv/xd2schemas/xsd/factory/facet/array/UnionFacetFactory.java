@@ -13,7 +13,7 @@ import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
-public class UnionFacetBuilder extends AbstractArrayFacetBuilder {
+public class UnionFacetFactory extends AbstractArrayFacetFactory {
 
     private List<String> facetPatterns = new ArrayList<String>();
 

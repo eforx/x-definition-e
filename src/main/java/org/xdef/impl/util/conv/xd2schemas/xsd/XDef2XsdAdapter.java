@@ -138,7 +138,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> 
 
         // Target namespace
         Boolean targetNamespaceError = false;
-        Pair<String, String> targetNamespace = XD2XsdUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);
+        Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);
 
         if (XsdLogger.isDebug(logLevel)) {
             XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Getting basic information." +
@@ -215,9 +215,9 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> 
             for (XNode xn : xDefinition._rootSelection.values()) {
                 if (xn.getKind() == XNode.XMELEMENT) {
                     XElement defEl = (XElement)xn;
-                    String tmpNs = XD2XsdUtils.getNamespacePrefix(defEl.getName());
+                    String tmpNs = XsdNamespaceUtils.getNamespacePrefix(defEl.getName());
                     if (tmpNs == null && defEl.getReferencePos() != null) {
-                        tmpNs = XD2XsdUtils.getReferenceSystemId(defEl.getReferencePos());
+                        tmpNs = XsdNamespaceUtils.getReferenceSystemId(defEl.getReferencePos());
                     }
                     if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
                         if (XsdLogger.isDebug(logLevel)) {
@@ -241,7 +241,7 @@ public class XDef2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> 
                 if (xn.getKind() == XNode.XMELEMENT) {
                     XElement defEl = (XElement)xn;
                     for (XMNode attr : defEl.getXDAttrs()) {
-                        String tmpNs = XD2XsdUtils.getNamespacePrefix(attr.getName());
+                        String tmpNs = XsdNamespaceUtils.getNamespacePrefix(attr.getName());
                         if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
                             if (XsdLogger.isDebug(logLevel)) {
                                 XsdLogger.printP(DEBUG, INITIALIZATION, xDefinition, "Some of root attribute has different namespace prefix. Attribute default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);

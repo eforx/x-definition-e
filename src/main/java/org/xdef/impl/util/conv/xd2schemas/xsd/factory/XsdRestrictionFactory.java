@@ -4,9 +4,9 @@ import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.XData;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.AbstractXsdFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetBuilder;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.AbstractXsdFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
@@ -41,7 +41,7 @@ public class XsdRestrictionFactory {
         XmlSchemaSimpleTypeRestriction restriction = null;
 
         boolean customParser = true;
-        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
         if (parserInfo == null) {
             parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
             if (parserInfo != null) {
@@ -76,10 +76,10 @@ public class XsdRestrictionFactory {
             XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating restrictions of simple content (default facet factory will be used) ...");
         }
 
-        return simpleTypeRestriction(qName, new DefaultFacetBuilder());
+        return simpleTypeRestriction(qName, new DefaultFacetFactory());
     }
 
-    private XmlSchemaSimpleTypeRestriction simpleTypeRestriction(final QName qName, final IXsdFacetBuilder facetBuilder) {
+    private XmlSchemaSimpleTypeRestriction simpleTypeRestriction(final QName qName, final IXsdFacetFactory facetBuilder) {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type restriction. QName=" + qName);
         }
@@ -90,16 +90,16 @@ public class XsdRestrictionFactory {
         return restriction;
     }
 
-    private List<XmlSchemaFacet> buildFacets(final QName qName, final IXsdFacetBuilder facetBuilder) {
+    private List<XmlSchemaFacet> buildFacets(final QName qName, final IXsdFacetFactory facetBuilder) {
         if ("double".equals(qName.getLocalPart()) || "float".equals(qName.getLocalPart())) {
-            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.DECIMAL_FLOATING);
+            facetBuilder.setValueType(IXsdFacetFactory.ValueType.DECIMAL_FLOATING);
         } else if ("int".equals(qName.getLocalPart()) || "long".equals(qName.getLocalPart())) {
-            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.DECIMAL_INTEGER);
+            facetBuilder.setValueType(IXsdFacetFactory.ValueType.DECIMAL_INTEGER);
         } else {
-            facetBuilder.setValueType(IXsdFacetBuilder.ValueType.STRING);
+            facetBuilder.setValueType(IXsdFacetFactory.ValueType.STRING);
         }
 
-        ((AbstractXsdFacetBuilder)facetBuilder).setLogLevel(logLevel);
+        ((AbstractXsdFacetFactory)facetBuilder).setLogLevel(logLevel);
         return facetBuilder.build(parameters);
     }
 
@@ -107,7 +107,7 @@ public class XsdRestrictionFactory {
     public static List<XmlSchemaFacet> buildFacets(final String parserName, final XDNamedValue[] parameters) {
         List<XmlSchemaFacet> facets = null;
 
-        Pair<QName, IXsdFacetBuilder> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
         if (parserInfo == null) {
             parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
         }

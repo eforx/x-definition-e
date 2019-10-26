@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.param;
+package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex;
 
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.RangeRegexGenerator;
@@ -9,9 +9,9 @@ import java.util.List;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
-public class IntegerRegexBuilder extends AbstractParamRegexBuilder {
+public class IntegerRegexFactory extends AbstractParamRegexFactory {
 
-    public IntegerRegexBuilder(int logLevel) {
+    public IntegerRegexFactory(int logLevel) {
         super(logLevel);
     }
 
