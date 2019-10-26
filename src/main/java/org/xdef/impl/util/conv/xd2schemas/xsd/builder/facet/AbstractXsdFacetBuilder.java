@@ -2,21 +2,38 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
+import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+
 public abstract class AbstractXsdFacetBuilder implements IXsdFacetBuilder {
 
+    protected int logLevel;
     protected ValueType valueType;
+
+    public void setLogLevel(int logLevel) {
+        this.logLevel = logLevel;
+    }
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
+        }
+
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
         if (params != null) {
             for (XDNamedValue param : params) {
                 build(facets, param);
             }
+        }
+
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Adding extra facets...");
         }
 
         extraFacets(facets, params);

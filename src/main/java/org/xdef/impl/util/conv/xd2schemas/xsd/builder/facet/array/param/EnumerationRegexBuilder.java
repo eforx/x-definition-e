@@ -1,12 +1,20 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array;
+package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param;
 
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
-public class EnumerationRegexBuilder {
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
-    public static String regex(final XDNamedValue[] params) {
+public class EnumerationRegexBuilder extends AbstractParamRegexBuilder {
+
+    public EnumerationRegexBuilder(int logLevel) {
+        super(logLevel);
+    }
+
+    public String regex(final XDNamedValue[] params) {
 
         String pattern = "";
 
@@ -24,6 +32,10 @@ public class EnumerationRegexBuilder {
                     }
                 }
             }
+        }
+
+        if (XsdLogger.isDebug(logLevel) && pattern != null) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Pattern created=\"" + pattern + "\"");
         }
 
         return pattern;

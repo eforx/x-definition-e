@@ -7,7 +7,10 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.DefaultFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param.EnumerationRegexBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param.IntegerRegexBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
 
@@ -23,6 +27,10 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
+        if (XsdLogger.isInfo(logLevel)) {
+            XsdLogger.print(INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
+        }
+
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (params != null) {
@@ -35,12 +43,16 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
             }
         }
 
-        facets.addAll(createFacet());
+        facets.addAll(createPatternFacets());
         return facets;
     }
 
     public QName determineBaseType(final XDNamedValue[] parameters) {
-        String parserName = null;
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Determination of QName...");
+        }
+
+        String parserName = "";
         boolean allParsersSame = true;
         boolean nonItemRestriction = false;
 
@@ -54,24 +66,18 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
                     ignoredParams.add(i);
                 }
                 else*/ if (values.length == 1) {
-                    XDParser parser = ((XDParser) values[0]);
-                    if (parserName == null) {
-                        parserName = parser.parserName();
-                    } else if (!parserName.equals(parser.parserName())) {
-                        System.out.println("List/Union - parsers are not same!");
-                        allParsersSame = false;
-                        ignoredParams.add(i);
+                    if (parserName.isEmpty()) {
+                        parserName = ((XDParser) values[0]).parserName();
+                    } else {
+                        allParsersSame = checkParser((XDParser) values[0], i, parserName);
                     }
                 }
             }
             else if (xVal instanceof XDParser) {
-                XDParser parser = ((XDParser) xVal);
-                if (parserName == null) {
-                    parserName = parser.parserName();
-                } else if (!parserName.equals(parser.parserName())) {
-                    System.out.println("List/Union - parsers are not same!");
-                    allParsersSame = false;
-                    ignoredParams.add(i);
+                if (parserName.isEmpty()) {
+                    parserName = ((XDParser) xVal).parserName();
+                } else {
+                    allParsersSame = checkParser((XDParser) xVal, i, parserName);
                 }
             } else {
                 nonItemRestriction = true;
@@ -79,7 +85,7 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
             }
         }
 
-        if ((nonItemRestriction == true && parserName != null) || allParsersSame == false) {
+        if ((nonItemRestriction == true && !parserName.isEmpty()) || allParsersSame == false) {
             String ignoredParamsStr = "";
             for (Integer paramIndex : ignoredParams) {
                 if (!handleIgnoredParam(parameters[paramIndex])) {
@@ -88,24 +94,29 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
             }
 
             if (!ignoredParamsStr.isEmpty()) {
-                System.out.println("List/Union facet - Using of unhandled restrictions found! Following attributes/parsers being ignored: " + ignoredParamsStr);
+                if (XsdLogger.isWarn(logLevel)) {
+                    XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),
+                            "List/Union facet - Using of unhandled restrictions found! Following attributes/parsers being ignored: " + ignoredParamsStr);
+                }
             }
         }
 
         return Constants.XSD_STRING;
     }
 
-    protected String transformToRegex(final String parserName, final XDNamedValue[] params) {
+    protected String parserParamsToRegex(final String parserName, final XDNamedValue[] params) {
         QName parserQName = XD2XsdUtils.getDefaultQName(parserName);
 
         String regex = null;
 
         if (Constants.XSD_INT.equals(parserQName)) {
-            regex = IntegerRegexBuilder.regex(params);
+            regex = new IntegerRegexBuilder(logLevel).regex(params);
         } else if (Constants.XSD_STRING.equals(parserQName)) {
-            regex = EnumerationRegexBuilder.regex(params);
+            regex = new EnumerationRegexBuilder(logLevel).regex(params);
         } else {
-            System.out.println("Unsupported list parser: " + parserName);
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Parser params to regex - Unsupported list parser! Parser=" + parserName);
+            }
         }
 
         return regex;
@@ -115,8 +126,40 @@ public abstract class AbstractArrayFacetBuilder extends DefaultFacetBuilder {
         return false;
     }
 
-    protected List<XmlSchemaFacet> createFacet() {
+    protected List<XmlSchemaFacet> createPatternFacets() {
         return null;
+    }
+
+    protected void createPatterns(final String parserName, final XDNamedValue[] params) { }
+
+    protected boolean createPatternFromValue(final XDValue xVal) {
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern from value");
+        }
+
+        if (xVal instanceof XDParser) {
+            XDParser parser = ((XDParser) xVal);
+            createPatterns(parser.parserName(),  parser.getNamedParams().getXDNamedItems());
+            return true;
+        } else {
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported type of value. ValueId=" + xVal.getItemId());
+            }
+        }
+
+        return false;
+    }
+
+    private boolean checkParser(final XDParser parser, final int index, final String parserName) {
+        if (!parserName.equals(parser.parserName())) {
+            if (XsdLogger.isDebug(logLevel)) {
+                XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"List/Union - parsers are not same!");
+            }
+            ignoredParams.add(index);
+            return false;
+        }
+
+        return true;
     }
 
 }

@@ -6,9 +6,6 @@ import org.xdef.model.XMDefinition;
 public interface XDef2SchemaAdapter<T> {
 
     T createSchema(final XDPool xdPool);
-    T createSchema(final XDPool xdPool, final String xdefName);
-    T createSchema(final XDPool xdPool, int xdefIndex);
-
     T createSchema(final XMDefinition xmDefinition);
 
 }

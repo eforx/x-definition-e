@@ -3,13 +3,15 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
-import org.xdef.XDParser;
 import org.xdef.XDValue;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
 public class UnionFacetBuilder extends AbstractArrayFacetBuilder {
 
@@ -18,33 +20,37 @@ public class UnionFacetBuilder extends AbstractArrayFacetBuilder {
     @Override
     public boolean customFacet(List<XmlSchemaFacet> facets, XDNamedValue param) {
         XDValue xVal = param.getValue();
+        boolean res = false;
         if (xVal.getItemId() == XD_CONTAINER) {
             XDValue[] values = ((XDContainer) xVal).getXDItems();
             for (XDValue v : values) {
-                if (v instanceof XDParser) {
-                    XDParser parser = ((XDParser) v);
-                    createPatterns(parser.parserName(), parser.getNamedParams().getXDNamedItems());
-                } else {
-                    System.out.println("Union - Unsupported value: " + v.getItemId());
+                boolean resTmp = createPatternFromValue(v);
+                if (res == false) {
+                    res = resTmp;
                 }
             }
-            return true;
-        } else if (xVal instanceof XDParser) {
-            XDParser parser = ((XDParser) xVal);
-            createPatterns(parser.parserName(), parser.getNamedParams().getXDNamedItems());
-            return true;
+        } else {
+            res = createPatternFromValue(xVal);
         }
 
-
-        return false;
-    }
-
-    private void createPatterns(final String parserName, final XDNamedValue[] params) {
-        facetPatterns.add(transformToRegex(parserName, params));
+        return res;
     }
 
     @Override
-    protected List<XmlSchemaFacet> createFacet() {
+    protected void createPatterns(final String parserName, final XDNamedValue[] params) {
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
+        }
+
+        facetPatterns.add(parserParamsToRegex(parserName, params));
+    }
+
+    @Override
+    protected List<XmlSchemaFacet> createPatternFacets() {
+        if (XsdLogger.isDebug(logLevel)) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
+        }
+
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (!facetPatterns.isEmpty()) {

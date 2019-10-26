@@ -9,10 +9,12 @@ import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
-import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.ListFacetBuilder;
 import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.UnionFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.AnFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.DateTimeFacetBuilder;
+import org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.xdef.NumFacetBuilder;
 
 import javax.xml.namespace.QName;
 
@@ -20,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.*;
+import static org.xdef.model.XMNode.*;
 
 public class XD2XsdUtils {
 
@@ -161,7 +164,19 @@ public class XD2XsdUtils {
                 || XDConstants.XDEF_NS_PREFIX.equals(prefix);
     }
 
-    public static void resolveElementName(final XmlSchema schema, final XmlSchemaElement elem) {
+
+
+    public static void resolveAttributeQName(final XmlSchema schema, final XmlSchemaAttribute attr, final String xName) {
+        String newName = XD2XsdUtils.resolveName(schema, xName);
+        if (!xName.equals(newName)) {
+            attr.setName(newName);
+        } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && XD2XsdUtils.isUnqualifiedName(schema, xName)) {
+            attr.setForm(XmlSchemaForm.UNQUALIFIED);
+        }
+    }
+
+
+    public static void resolveElementQName(final XmlSchema schema, final XmlSchemaElement elem) {
         final String name = elem.getName();
         final String newName = resolveName(schema, name);
 
@@ -302,8 +317,6 @@ public class XD2XsdUtils {
         }
 
         if (!"string".equals(name) && !"CDATA".equals(name) && !"int".equals(name) && !"long".equals(name)) {
-            // TODO: Add to debug print
-            XsdLogger.print(xData, "Unsupported parser type for creating of reference name. ParserName=" + parserName);
             return null;
         }
 
@@ -349,5 +362,14 @@ public class XD2XsdUtils {
         return name;
     }
 
+    public static String particleXKindToString(short kind) {
+        switch (kind) {
+            case XMSEQUENCE: return "sequence";
+            case XMMIXED: return "mixed";
+            case XMCHOICE: return "choise";
+        }
+
+        return null;
+    }
 
 }

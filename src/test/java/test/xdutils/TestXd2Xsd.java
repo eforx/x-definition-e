@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+
 public class TestXd2Xsd extends XDTester {
 
     static private boolean PRINT_SCHEMA_TO_OUTPUT = false;
@@ -107,13 +109,13 @@ public class TestXd2Xsd extends XDTester {
 
     private XDef2XsdAdapter createXdDefAdapter() {
         XDef2XsdAdapter adapter = new XDef2XsdAdapter();
-        //adapter.setVerbose(true);
+        adapter.setLogLevel(LOG_LEVEL_WARN);
         return adapter;
     }
 
     private XDPool2XsdAdapter createXdPoolAdapter() {
         XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
-        //adapter.setVerbose(true);
+        adapter.setLogLevel(LOG_LEVEL_WARN);
         return adapter;
     }
 
@@ -384,7 +386,6 @@ public class TestXd2Xsd extends XDTester {
     public void test() {
         init();
 
-
         // ============ XDef ============
 
 
@@ -461,7 +462,6 @@ public class TestXd2Xsd extends XDTester {
 
         // TODO: Inherited reference
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
-
 
     }
 

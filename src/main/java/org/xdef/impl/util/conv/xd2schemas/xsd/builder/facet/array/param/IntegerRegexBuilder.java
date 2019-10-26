@@ -1,13 +1,21 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array;
+package org.xdef.impl.util.conv.xd2schemas.xsd.builder.facet.array.param;
 
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.RangeRegexGenerator;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.List;
 
-public class IntegerRegexBuilder {
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
 
-    public static String regex(final XDNamedValue[] params) {
+public class IntegerRegexBuilder extends AbstractParamRegexBuilder {
+
+    public IntegerRegexBuilder(int logLevel) {
+        super(logLevel);
+    }
+
+    public String regex(final XDNamedValue[] params) {
         Integer rangeMin = null;
         Integer rangeMax = null;
 
@@ -35,15 +43,18 @@ public class IntegerRegexBuilder {
         RangeRegexGenerator g = new RangeRegexGenerator();
         List<String> regexs = g.getRegex(rangeMin, rangeMax);
         regexs.contains(0);
+        String pattern = null;
         if (regexs.isEmpty() == false) {
-            String pattern = regexs.get(0);
+            pattern = regexs.get(0);
             for (int i = 1; i < regexs.size(); i++) {
                 pattern += "|" + regexs.get(i);
             }
-
-            return pattern;
         }
 
-        return null;
+        if (XsdLogger.isDebug(logLevel) && pattern != null) {
+            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Pattern created=\"" + pattern + "\"");
+        }
+
+        return pattern;
     }
 }

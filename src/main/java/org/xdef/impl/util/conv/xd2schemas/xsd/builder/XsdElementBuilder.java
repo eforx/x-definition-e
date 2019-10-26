@@ -10,7 +10,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
-import org.xdef.model.XMData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -20,14 +20,16 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdElementBuilder {
 
+    private final int logLevel;
     private final XmlSchema schema;
 
-    public XsdElementBuilder(XmlSchema schema) {
+    public XsdElementBuilder(int logLevel, XmlSchema schema) {
+        this.logLevel = logLevel;
         this.schema = schema;
     }
 
@@ -36,6 +38,9 @@ public class XsdElementBuilder {
      * Example: <element name="elem_name">
      */
     public XmlSchemaElement createEmptyElement(final XElement xElement) {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, "Empty element");
+        }
         XmlSchemaElement elem = new XmlSchemaElement(schema, false);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
@@ -47,6 +52,9 @@ public class XsdElementBuilder {
      * Output: <complexType>
      */
     public XmlSchemaComplexType createEmptyComplexType() {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, "Empty complex-type");
+        }
         return new XmlSchemaComplexType(schema, false);
     }
 
@@ -55,23 +63,17 @@ public class XsdElementBuilder {
      * Output: <simpleType>
      */
     public XmlSchemaSimpleType createEmptySimpleType(boolean topLevel) {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, "Empty simple-type");
+        }
         return new XmlSchemaSimpleType(schema, topLevel);
     }
 
-    private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {
-        XDValue parseMethod = xData.getParseMethod();
-        XsdRestrictionBuilder restrictionBuilder = new XsdRestrictionBuilder(xData);
-
-        if (parseMethod instanceof XDParser) {
-            XDParser parser = ((XDParser)parseMethod);
-            restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
-            return restrictionBuilder.buildRestriction();
+    public XmlSchemaSimpleType creatSimpleTypeTop(final XData xData, final String name) {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, xData, "Reference simple-type");
         }
 
-        return restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
-    }
-
-    public XmlSchemaSimpleType creatSimpleTypeTop(final XData xData, final String name) {
         XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
         itemType.setContent(createSimpleTypeRestriction(xData));
@@ -79,50 +81,14 @@ public class XsdElementBuilder {
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData) {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, xData, "Simple-type");
+        }
+
         XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(xData.getRefTypeName());
         itemType.setContent(createSimpleTypeRestriction(xData));
         return itemType;
-    }
-
-    public XmlSchemaAttribute createAttribute(final String name, final XMData xmData) {
-        XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
-        final String importNamespace = xmData.getNSUri();
-        final String nodeName = xmData.getName();
-        if (importNamespace != null && XD2XsdUtils.isRefInDifferentNamespace(nodeName, importNamespace, schema)) {
-            attr.getRef().setTargetQName(new QName(importNamespace, nodeName));
-        } else {
-            attr.setName(name);
-
-            // TODO: Handling of reference namespaces?
-            if (xmData.getRefTypeName() != null) {
-                attr.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, xmData.getRefTypeName()));
-            } else if (XD2XsdUtils.getDefaultSimpleParserQName((XData)xmData) != null) {
-                attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
-            } else if (XD_PARSER_EQ.equals(xmData.getParserName())) {
-                // TODO: Where to get fixed value
-                //attr.setFixedValue("1.0");
-                // TODO: Possible to use non-default xsd types?
-                attr.setSchemaTypeName(XD2XsdUtils.getDefaultQName(xmData.getValueTypeName()));
-            } else {
-                attr.setSchemaType(creatSimpleType((XData)xmData));
-            }
-
-            String newName = XD2XsdUtils.resolveName(schema, name);
-            if (!name.equals(newName)) {
-                attr.setName(newName);
-            } else if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault()) && XD2XsdUtils.isUnqualifiedName(schema, name)) {
-                attr.setForm(XmlSchemaForm.UNQUALIFIED);
-            }
-        }
-
-        if (xmData.isOptional() || xmData.getOccurence().isOptional()) {
-            attr.setUse(XmlSchemaUse.OPTIONAL);
-        } else if (xmData.isRequired() || xmData.getOccurence().isRequired()) {
-            attr.setUse(XmlSchemaUse.REQUIRED);
-        }
-
-        return attr;
     }
 
     public XmlSchemaSimpleContent createSimpleContent(final XData xd) {
@@ -159,8 +125,8 @@ public class XsdElementBuilder {
      * @param groupType
      * @return
      */
-    public static XmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
-        XmlSchemaGroupParticle particle = null;
+    public XmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
+        XmlSchemaGroupParticle particle;
         switch (groupType) {
             case XNode.XMSEQUENCE: {
                 particle = new XmlSchemaSequence();
@@ -197,6 +163,23 @@ public class XsdElementBuilder {
             annotation.getItems().add(createAnnotationItem(value));
         }
         return annotation;
+    }
+
+    private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {
+        if (XsdLogger.isTrace(logLevel)) {
+            XsdLogger.printC(TRACE, CAT_XSD_ELEM_BUILDER, xData, "Simple-type restrictions");
+        }
+
+        XDValue parseMethod = xData.getParseMethod();
+        XsdRestrictionBuilder restrictionBuilder = new XsdRestrictionBuilder(xData, logLevel);
+
+        if (parseMethod instanceof XDParser) {
+            XDParser parser = ((XDParser)parseMethod);
+            restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
+            return restrictionBuilder.buildRestriction();
+        }
+
+        return restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
     }
 
     private static XmlSchemaDocumentation createAnnotationItem(final String annotation) {
