@@ -22,7 +22,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import org.xdef.xml.KXmlUtils;
 
 /** Provides screen (swing Frame) for editing of XML sources.
  * @author Vaclav Trojan
@@ -325,7 +324,7 @@ public class GUIScreen extends GUIBase {
 			_sourceID = sourceID;
 			if (newSrc == null) {
 				try {
-					URL u = KXmlUtils.getExtendedURL(sourceID);
+					URL u = SUtils.getExtendedURL(sourceID);
 					newSrc = _sources.get(u.toExternalForm());
 					if (newSrc == null) {
 						File f = new File(u.getFile());
@@ -364,6 +363,8 @@ public class GUIScreen extends GUIBase {
 		JFileChooser jf = new JFileChooser();
 		if (src._url != null && "file".equals(src._url.getProtocol())) {
 			jf.setSelectedFile(new File(src._url.getFile()));
+		} else {
+			jf.setSelectedFile(new File(".").getAbsoluteFile());
 		}
 		jf.setDialogTitle("Save to file");
 		jf.setToolTipText("Save content of the active window to a file");
