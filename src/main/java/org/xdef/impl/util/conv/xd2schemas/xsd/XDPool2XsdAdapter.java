@@ -38,7 +38,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
     private Map<String, Pair<String, String>> xDefTargetNs = null;
 
     /**
-     * X-definition names without target namespace
+     * X-definition without target namespace
      */
     private Set<String> xDefsWithoutNs = null;
 

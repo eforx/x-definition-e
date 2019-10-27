@@ -9,19 +9,20 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMES
 
 public class XsdNameUtils {
 
-    public static String getReferenceName(final String reference) {
-        int xdefNamespaceSeparatorPos = reference.indexOf(':');
+    public static String getReferenceName(final String refPos) {
+        int xdefNamespaceSeparatorPos = refPos.indexOf(':');
         if (xdefNamespaceSeparatorPos != -1) {
-            return reference.substring(xdefNamespaceSeparatorPos + 1);
+            return refPos.substring(xdefNamespaceSeparatorPos + 1);
         }
 
-        int xdefSystemSeparatorPos = reference.indexOf('#');
+        int xdefSystemSeparatorPos = refPos.indexOf('#');
         if (xdefSystemSeparatorPos != -1) {
-            return reference.substring(xdefSystemSeparatorPos + 1);
+            return refPos.substring(xdefSystemSeparatorPos + 1);
         }
 
-        return reference;
+        return refPos;
     }
+
 
     /**
      * Returns name without target namespace

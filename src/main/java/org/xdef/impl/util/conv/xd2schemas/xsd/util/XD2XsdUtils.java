@@ -109,7 +109,7 @@ public class XD2XsdUtils {
         schema.getItems().add(attr);
     }
 
-    public static void addRefType(final XmlSchema schema, final XmlSchemaType schemaType) {
+    public static void addSchemaType(final XmlSchema schema, final XmlSchemaType schemaType) {
         schema.getItems().add(schemaType);
     }
 
@@ -119,7 +119,6 @@ public class XD2XsdUtils {
 
         QName defaultQName = XD2XsdUtils.getDefaultQName(parserName);
 
-        // TODO: Has to be instance of XDParser?
         if (defaultQName != null && parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
@@ -182,7 +181,7 @@ public class XD2XsdUtils {
     }
 
     public static String createNsPrefixFromXDefName(final String name) {
-        return "ns_xDef_" + name;
+        return "prefxDef_" + name;
     }
 
     public static String createNsUriFromXDefName(final String name) {

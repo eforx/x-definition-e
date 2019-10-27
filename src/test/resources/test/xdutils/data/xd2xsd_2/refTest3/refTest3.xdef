@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:collection xmlns:xd="http://www.xdef.org/xdef/3.2">
+    <xd:def xd:name="refTest3" xd:root="a"
+     xmlns:test="http://test_ns">
+        <c xd:script = "ref refTest3_1#test:d;"></c>
+        <a>
+            <b xd:script = "ref c;"></b>
+        </a>
+    </xd:def>
+
+    <xd:def xd:name="refTest3_1" xd:root="test:e" xmlns:test="http://test_ns">
+        <test:d>
+            <f>optional int()</f>
+        </test:d>
+        <test:e/>
+    </xd:def>
+
+</xd:collection>

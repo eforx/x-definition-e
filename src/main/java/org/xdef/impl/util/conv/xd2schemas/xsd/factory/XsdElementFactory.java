@@ -11,6 +11,8 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -99,9 +101,10 @@ public class XsdElementFactory {
         XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
 
         QName qName;
-        // TODO: Handling of reference namespaces?
         if (xd.getRefTypeName() != null) {
-            qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, xd.getRefTypeName());
+            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xd.getRefTypeName());
+            final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+            qName = new QName(nsUri, xd.getRefTypeName());
         } else {
             qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
         }
@@ -162,6 +165,11 @@ public class XsdElementFactory {
     public void createSchemaImport(final XmlSchema schema, final String nsUri, final String location) {
         XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
         schemaImport.setNamespace(nsUri);
+        schemaImport.setSchemaLocation(location);
+    }
+
+    public void createSchemaInclude(final XmlSchema schema, final String location) {
+        XmlSchemaInclude schemaImport = new XmlSchemaInclude(schema);
         schemaImport.setSchemaLocation(location);
     }
 

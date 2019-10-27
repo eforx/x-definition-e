@@ -17,7 +17,6 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_EQ;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 class XDTree2XsdAdapter {
@@ -160,9 +159,10 @@ class XDTree2XsdAdapter {
             attr.setName(xData.getName());
             QName qName;
 
-            // TODO: Handling of reference namespaces?
             if (xData.getRefTypeName() != null) {
-                attr.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, xData.getRefTypeName()));
+                final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xData.getRefTypeName());
+                final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+                attr.setSchemaTypeName(new QName(nsUri, xData.getRefTypeName()));
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition" +
                             "Name=" + xData.getName());
@@ -217,17 +217,18 @@ class XDTree2XsdAdapter {
             } else if (XsdNamespaceUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
                 final String refXDefinitionName = XsdNamespaceUtils.getReferenceSystemId(xDefEl.getReferencePos());
                 final String refLocalName = XsdNameUtils.getReferenceName(xDefEl.getReferencePos());
-                // TODO: Validate target namespace?
-                xsdElem.getRef().setTargetQName(new QName(refXDefinitionName, refLocalName));
+                final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefEl.getReferencePos());
+                final String nsUri = schema.getNamespaceContext().getNamespaceURI(refNsPrefix);
+                xsdElem.getRef().setTargetQName(new QName(nsUri, refLocalName));
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element reference from different x-definition." +
                             " Name=" + xDefEl.getName() + ", Namespace=" + refXDefinitionName);
                 }
             } else {
                 xsdElem.setName(xDefEl.getName());
-                // TODO: reference namespace?
                 final String localName = XsdNameUtils.getReferenceName(xDefEl.getReferencePos());
-                xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, localName));
+                final String refNamespace = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefEl.getReferencePos());
+                xsdElem.setSchemaTypeName(new QName(refNamespace, localName));
                 XsdNameUtils.resolveElementQName(schema, xsdElem);
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element schema type name in same namespace/x-definition" +
@@ -272,7 +273,6 @@ class XDTree2XsdAdapter {
                     "Element=" + xsdElem.getName());
         }
 
-        // TODO: Should we lookup for simple type reference, which is equal to current simple type?
         final QName qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
         if (qName != null) {
             xsdElem.setSchemaTypeName(qName);

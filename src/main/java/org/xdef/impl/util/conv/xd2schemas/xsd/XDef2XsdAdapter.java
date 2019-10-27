@@ -16,9 +16,11 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMNode;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
@@ -68,20 +70,18 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
 
         createXsdSchema(namespaceCtx);
 
-        XsdElementFactory xsdBuilder = new XsdElementFactory(logLevel, schema);
+        XsdElementFactory xsdFactory = new XsdElementFactory(logLevel, schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(logLevel, schema, xsdBuilder);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(logLevel, schema, xsdFactory);
         treeAdapter.initPostprocessing(null, adapterCtx.getExtraSchemaLocationsCtx());
         treeAdapter.loadXdefRootNames(xDefinition);
 
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx());
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, schema, xsdFactory, treeAdapter, adapterCtx.getSchemaLocationsCtx());
         referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), false);
         // Extract all used references in x-definition
         referenceAdapter.createRefsAndImports(xDefinition);
 
-        addXdefNamespaces(referenceAdapter.getSystemIdImports());
-
-        transformXdef(treeAdapter);
+        transformXdef(treeAdapter, xsdFactory);
 
         // Node post-processing
         if (!treeAdapter.getPostprocessedNodes().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
@@ -98,7 +98,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Transform x-definition tree to xsd schema via treeAdapter
      * @param treeAdapter   transformation algorithm
      */
-    private void transformXdef(final XDTree2XsdAdapter treeAdapter) {
+    private void transformXdef(final XDTree2XsdAdapter treeAdapter, final XsdElementFactory xsdFactory) {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "Transform x-definition tree ...");
         }
@@ -106,9 +106,13 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         for (XElement elem : xDefinition.getXElements()) {
             if (treeAdapter.getXdRootNames().contains(elem.getName())) {
                 XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(elem);
-                XD2XsdUtils.addElement(schema, xsdElem);
-                if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
+                if (xsdElem.getRef().getTargetQName() == null) {
+                    XD2XsdUtils.addElement(schema, xsdElem);
+                    if (XsdLogger.isInfo(logLevel)) {
+                        XsdLogger.printP(INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
+                    }
+                } else {
+                    XsdPostProcessor.elemRootRef(xsdElem, elem, schema, xsdFactory);
                 }
             }
         }
@@ -182,7 +186,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Add x-definition names as namespace to namespace context
      * @param xDefs
      */
-    private void addXdefNamespaces(final Set<String> xDefs) {
+    private void addDefaultXdefinitionNamespaces(final Set<String> xDefs) {
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, PREPROCESSING, xDefinition, "Updating namespace context - add namespaces of other x-definitions");
         }

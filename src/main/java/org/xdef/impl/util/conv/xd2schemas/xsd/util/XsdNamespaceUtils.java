@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDConstants;
@@ -13,6 +14,7 @@ import org.xdef.model.XMNode;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.PREPROCESSING;
 
@@ -75,9 +77,9 @@ public class XsdNamespaceUtils {
         return hasNamespace(nodeName) && (namespaceUri != null && !namespaceUri.equals(schema.getTargetNamespace()));
     }
 
-    public static boolean isRefInDifferentSystem(final String nodeRefName, final String xdPos) {
+    public static boolean isRefInDifferentSystem(final String nodeRefPos, final String xdPos) {
         final String nodeSystemId = getReferenceSystemId(xdPos);
-        final String refSystemId = getReferenceSystemId(nodeRefName);
+        final String refSystemId = getReferenceSystemId(nodeRefPos);
         return !hasNamespace(xdPos) && !hasNamespace(refSystemId) && !nodeSystemId.equals(refSystemId);
     }
 
@@ -114,13 +116,18 @@ public class XsdNamespaceUtils {
         return null;
     }
 
-    public static String getNamespaceOrRefPrefix(final String name) {
-        String res = getReferenceSystemId(name);
-        if (res == null) {
-            res = getNamespacePrefix(name);
+    public static String getReferenceNamespacePrefix(final String refPos) {
+        int xdefNamespaceSeparatorPos = refPos.indexOf(':');
+        if (xdefNamespaceSeparatorPos == -1) {
+            return XSD_NAMESPACE_PREFIX_EMPTY;
         }
 
-        return res;
+        int xdefSystemSeparatorPos = refPos.indexOf('#');
+        if (xdefSystemSeparatorPos == -1) {
+            return XSD_NAMESPACE_PREFIX_EMPTY;
+        }
+
+        return refPos.substring(xdefSystemSeparatorPos + 1, xdefNamespaceSeparatorPos);
     }
 
     public static boolean isDefaultNamespacePrefix(final String prefix) {
@@ -199,12 +206,6 @@ public class XsdNamespaceUtils {
                     break;
                 }
             }
-        }
-
-        // Create namespace from x-definition name
-        if ((onlyRefs == true || (xDef._rootSelection != null && xDef._rootSelection.size() == 0)) && targetNamespacePrefix == null && targetNamespaceUri == null) {
-            targetNamespacePrefix = XD2XsdUtils.createNsPrefixFromXDefName(xDef.getName());
-            targetNamespaceUri = XD2XsdUtils.createNsUriFromXDefName(xDef.getName());
         }
 
         return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
