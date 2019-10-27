@@ -211,4 +211,25 @@ public class XsdNamespaceUtils {
         return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
     }
 
+    public static String createNsPrefixFromXDefName(final String name) {
+        return "prefxDef_" + name;
+    }
+
+    public static String createNsUriFromXDefName(final String name) {
+        return name;
+    }
+
+    public static String createExternalSchemaNameFromNsPrefix(final String nsPrefix) {
+        return "external_" + nsPrefix;
+    }
+
+    public static String getNsPrefixFromExternalSchemaName(final String nsPrefix) {
+        int pos = nsPrefix.lastIndexOf('_');
+        if (pos != -1) {
+            return nsPrefix.substring(pos + 1);
+        }
+
+        return nsPrefix;
+    }
+
 }

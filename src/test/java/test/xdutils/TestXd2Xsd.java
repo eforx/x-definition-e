@@ -461,6 +461,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2XsdNoRef ("refTest1", Arrays.asList(new String[] {"refTest1_valid_1"}), null);
         // TODO: Reference from complex type to no namespace root element
         //convertXdPool2XsdNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
+        convertXdPool2XsdNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

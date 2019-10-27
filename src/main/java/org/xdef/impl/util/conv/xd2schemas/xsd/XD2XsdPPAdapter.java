@@ -136,7 +136,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
         }
 
         // Namespace initialization
-        final String targetNsPrefix = XD2XsdUtils.getNsPrefixFromExternalSchemaName(importLocation.getFileName());
+        final String targetNsPrefix = XsdNamespaceUtils.getNsPrefixFromExternalSchemaName(importLocation.getFileName());
         XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, schemaName, targetNsPrefix, targetNsUri, POSTPROCESSING, logLevel);
         schema.setSchemaNamespacePrefix(targetNsPrefix);
 

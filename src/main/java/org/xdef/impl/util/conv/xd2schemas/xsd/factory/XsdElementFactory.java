@@ -110,7 +110,7 @@ public class XsdElementFactory {
         }
 
         if (qName == null) {
-            final String refParserName = XD2XsdUtils.createNameFromParser(xd);
+            final String refParserName = XsdNameUtils.createNameFromParser(xd);
             if (refParserName != null) {
                 qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
             }

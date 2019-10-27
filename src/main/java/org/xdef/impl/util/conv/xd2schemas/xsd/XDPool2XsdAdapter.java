@@ -144,7 +144,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         }
 
         for (String xDefName: xDefsWithoutNs) {
-            final String nsUri = XD2XsdUtils.createNsUriFromXDefName(xDefName);
+            final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
             if (XsdLogger.isDebug(logLevel)) {
                 XsdLogger.printP(DEBUG, PREPROCESSING, "Creating nsUri from x-definition name. XDefinitionName=" + xDefName + ", NamespaceURI=" + nsUri);
             }

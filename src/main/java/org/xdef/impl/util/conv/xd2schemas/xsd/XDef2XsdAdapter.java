@@ -194,7 +194,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         NamespaceMap namespaceMap = (NamespaceMap)schema.getNamespaceContext();
         for (String xDefName : xDefs) {
             XsdNamespaceUtils.addNamespaceToCtx(namespaceMap, xDefinition.getName(),
-                    XD2XsdUtils.createNsPrefixFromXDefName(xDefName), XD2XsdUtils.createNsUriFromXDefName(xDefName),
+                    XsdNamespaceUtils.createNsPrefixFromXDefName(xDefName), XsdNamespaceUtils.createNsUriFromXDefName(xDefName),
                     PREPROCESSING, logLevel);
         }
     }
