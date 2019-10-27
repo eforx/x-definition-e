@@ -119,7 +119,7 @@ public class TestXd2Xsd extends XDTester {
         return adapter;
     }
 
-    private void writeOutputSchemas(final String fileName, final XmlSchemaCollection outputSchemaCollection, final Set<String> schemaNames) {
+    private void writeOutputSchemas(final XmlSchemaCollection outputSchemaCollection, final Set<String> schemaNames) {
         for (String schemaName : schemaNames) {
             XmlSchema[] outputSchemas = outputSchemaCollection.getXmlSchema(schemaName);
 
@@ -331,7 +331,7 @@ public class TestXd2Xsd extends XDTester {
             if (validateAgainstRefXsd) {
                 validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), 1);
             } else {
-                writeOutputSchemas(fileName, outputXmlSchemaCollection, adapter.getSchemaNames());
+                writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
             // Validate XML files against output XSD schemas and reference XSD schemas
@@ -372,7 +372,7 @@ public class TestXd2Xsd extends XDTester {
             if (validateAgainstRefXsd) {
                 validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
             } else {
-                writeOutputSchemas(fileName, outputXmlSchemaCollection, adapter.getSchemaNames());
+                writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
             // Validate XML files against output XSD schemas and reference XSD schemas

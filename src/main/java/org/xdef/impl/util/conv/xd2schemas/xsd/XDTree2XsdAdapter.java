@@ -25,32 +25,37 @@ class XDTree2XsdAdapter {
     final private int logLevel;
     final private XmlSchema schema;
     final private XsdElementFactory xsdBuilder;
-    final private Map<String, XmlSchemaImportLocation> extraSchemaLocations;
+
+
+    private Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations;
 
     /**
-     * Nodes which will be created in extra XSD schema
+     * Nodes which will be created in post-procession
      * Key:     namespace URI
      * Value:   nodes
      */
-    final private Map<String, List<XNode>> extraNodes;
+    private Map<String, List<XNode>> postprocessedNodes;
 
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
-    protected XDTree2XsdAdapter(int logLevel, XmlSchema schema, XsdElementFactory xsdBuilder, final Map<String, List<XNode>> extraNodes, final Map<String, XmlSchemaImportLocation> extraSchemaLocations) {
+    protected XDTree2XsdAdapter(int logLevel, XmlSchema schema, XsdElementFactory xsdBuilder) {
         this.logLevel = logLevel;
         this.schema = schema;
         this.xsdBuilder = xsdBuilder;
-        this.extraNodes = extraNodes != null ? extraNodes : new HashMap<String, List<XNode>>();
-        this.extraSchemaLocations = extraSchemaLocations;
+    }
+
+    protected void initPostprocessing(final Map<String, List<XNode>> postprocessedNodes, final Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations) {
+        this.postprocessedNodes = postprocessedNodes != null ? postprocessedNodes : new HashMap<String, List<XNode>>();
+        this.postprocessedSchemaLocations = postprocessedSchemaLocations;
     }
 
     protected List<String> getXdRootNames() {
         return xdRootNames;
     }
 
-    public final Map<String, List<XNode>> getExtraNodes() {
-        return extraNodes;
+    public final Map<String, List<XNode>> getPostprocessedNodes() {
+        return postprocessedNodes;
     }
 
     protected void loadXdefRootNames(final XDefinition def) {
@@ -142,14 +147,8 @@ class XDTree2XsdAdapter {
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
             // Attribute is referencing to new namespace, which will be created in post-processing
-            if (extraSchemaLocations.get(nsUri) != null) {
-                if (extraNodes.containsKey(nsUri)) {
-                    extraNodes.get(nsUri).add(xData);
-                } else {
-                    ArrayList<XNode> nodeList = new ArrayList<XNode>();
-                    nodeList.add(xData);
-                    extraNodes.put(nsUri, nodeList);
-                }
+            if (postprocessedSchemaLocations.get(nsUri) != null) {
+                addPostprocessingNode(nsUri, xData);
             }
 
             attr.getRef().setTargetQName(new QName(refNsUri, localName));
@@ -217,11 +216,12 @@ class XDTree2XsdAdapter {
                 }
             } else if (XsdNamespaceUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
                 final String refXDefinitionName = XsdNamespaceUtils.getReferenceSystemId(xDefEl.getReferencePos());
+                final String refLocalName = XsdNameUtils.getReferenceName(xDefEl.getReferencePos());
                 // TODO: Validate target namespace?
-                xsdElem.getRef().setTargetQName(new QName(refXDefinitionName, xDefEl.getName()));
+                xsdElem.getRef().setTargetQName(new QName(refXDefinitionName, refLocalName));
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element reference from different x-definition." +
-                            "Name=" + xDefEl.getName() + ", Namespace=" + refXDefinitionName);
+                            " Name=" + xDefEl.getName() + ", Namespace=" + refXDefinitionName);
                 }
             } else {
                 xsdElem.setName(xDefEl.getName());
@@ -247,13 +247,7 @@ class XDTree2XsdAdapter {
                     }
                 } else {
                     xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-                    if (extraNodes.containsKey(nsUri)) {
-                        extraNodes.get(nsUri).add(xDefEl);
-                    } else {
-                        ArrayList<XNode> nodeList = new ArrayList<XNode>();
-                        nodeList.add(xDefEl);
-                        extraNodes.put(nsUri, nodeList);
-                    }
+                    addPostprocessingNode(nsUri, xDefEl);
                 }
             } else {
                 xsdElem.setName(xDefEl.getName());
@@ -452,6 +446,14 @@ class XDTree2XsdAdapter {
                 complexType.setMixed(true);
                 complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));
             }
+        }
+    }
+
+    private void addPostprocessingNode(final String nsUri, final XNode xNode) {
+        if (postprocessedNodes.containsKey(nsUri)) {
+            postprocessedNodes.get(nsUri).add(xNode);
+        } else {
+            postprocessedNodes.put(nsUri, new ArrayList<XNode>(Arrays.asList(xNode)));
         }
     }
 

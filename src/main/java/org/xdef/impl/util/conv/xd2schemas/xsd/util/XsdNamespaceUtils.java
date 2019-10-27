@@ -6,13 +6,15 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDConstants;
 import org.xdef.impl.XDefinition;
+import org.xdef.impl.XElement;
+import org.xdef.impl.XNode;
+import org.xdef.model.XMNode;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.PREPROCESSING;
 
 public class XsdNamespaceUtils {
 
@@ -137,20 +139,28 @@ public class XsdNamespaceUtils {
         return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
     }
 
-    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError) {
+    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError, int logLevel) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
+        boolean onlyRefs = false;
 
         // Get target namespace prefix based on root elements
-        if (xDef._rootSelection != null && xDef._rootSelection.size() > 0) {
-            Iterator<String> e = xDef._rootSelection.keySet().iterator();
-            while (e.hasNext()) {
-                String tmpNs = getNamespacePrefix(e.next());
+        if (xDef._rootSelection != null) {
+            for (Map.Entry<String, XNode> root : xDef._rootSelection.entrySet()) {
+                final String rootName = root.getKey();
+                String tmpNs = getNamespacePrefix(rootName);
                 if (targetNamespacePrefix == null) {
                     targetNamespacePrefix = tmpNs;
                 } else if (tmpNs != null && !targetNamespacePrefix.equals(tmpNs)) {
-                    System.out.println("[" + xDef.getName() + "] Expected namespace: " + targetNamespacePrefix + ", given: " + tmpNs);
+                    if (XsdLogger.isError(logLevel)) {
+                        XsdLogger.printC(ERROR, XSD_UTILS, xDef, "Expected different namespace prefix. Expected=" + targetNamespacePrefix + ", Actual=" + tmpNs);
+                    }
                     targetNamespaceError = true;
+                    break;
+                }
+
+                if (onlyRefs == false && root.getValue().getKind() == XMNode.XMELEMENT) {
+                    onlyRefs = ((XElement)root.getValue()).isReference();
                 }
             }
         }
@@ -170,7 +180,9 @@ public class XsdNamespaceUtils {
         }
 
         if (targetNamespacePrefix != null && targetNamespaceUri == null) {
-            System.out.println("[" + xDef.getName() + "] Target namespace URI has been not found for prefix: " + targetNamespacePrefix);
+            if (XsdLogger.isError(logLevel)) {
+                XsdLogger.printC(ERROR, XSD_UTILS, xDef, "Target namespace URI has been not found for prefix. Prefix=" + targetNamespacePrefix);
+            }
             targetNamespaceError = true;
         }
 
@@ -190,10 +202,10 @@ public class XsdNamespaceUtils {
         }
 
         // Create namespace from x-definition name
-        /*if (targetNamespacePrefix == null && targetNamespaceUri == null) {
+        if ((onlyRefs == true || (xDef._rootSelection != null && xDef._rootSelection.size() == 0)) && targetNamespacePrefix == null && targetNamespaceUri == null) {
             targetNamespacePrefix = XD2XsdUtils.createNsPrefixFromXDefName(xDef.getName());
             targetNamespaceUri = XD2XsdUtils.createNsUriFromXDefName(xDef.getName());
-        }*/
+        }
 
         return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
     }

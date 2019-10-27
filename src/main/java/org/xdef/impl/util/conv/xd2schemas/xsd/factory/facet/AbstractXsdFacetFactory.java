@@ -147,7 +147,9 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         } else if ("totalDigits".equals(param.getName())) {
             facets.add(totalDigits(param));
         } else if (!customFacet(facets, param)) {
-            System.out.println("Unknown reference type parameter: " + param.getName());
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unknown reference type parameter. Parameter=" + param.getName());
+            }
         }
     }
 }
