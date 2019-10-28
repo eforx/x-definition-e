@@ -69,7 +69,7 @@ public class XsdNameUtils {
         return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
     }
 
-    public static String createNameFromParser(final XData xData) {
+    public static String createRefNameFromParser(final XData xData) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
 

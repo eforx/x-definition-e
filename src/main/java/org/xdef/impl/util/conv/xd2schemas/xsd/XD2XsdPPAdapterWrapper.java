@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Transforms x-definition nodes into xsd nodes
  *
- * Creates new schemas based on post-processing via {@link #processNodes}
+ * Creates new schemas based on post-processing via {@link #transformNodes}
  */
 class XD2XsdPPAdapterWrapper extends AbstractXd2XsdAdapter {
 
@@ -43,7 +43,7 @@ class XD2XsdPPAdapterWrapper extends AbstractXd2XsdAdapter {
      * Transform given nodes {@paramref allNodesToResolve} into xsd nodes and then insert them into related schemas
      * @param allNodesToResolve     nodes to be transformed
      */
-    protected void processNodes(final Map<String, List<XNode>> allNodesToResolve) {
+    protected void transformNodes(final Map<String, List<XNode>> allNodesToResolve) {
         Map<String, XmlSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
 
         int lastSizeMap = schemasToResolve.size();

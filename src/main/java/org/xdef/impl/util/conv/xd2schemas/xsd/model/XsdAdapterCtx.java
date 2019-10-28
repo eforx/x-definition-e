@@ -103,13 +103,13 @@ public class XsdAdapterCtx {
     public void addSchemaLocation(final String nsUri, final XmlSchemaImportLocation importLocation) {
         if (schemaLocationsCtx.containsKey(nsUri)) {
             if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Schema import already exists for namespace URI. NamespaceURI=" + nsUri);
+                XsdLogger.printP(INFO, PREPROCESSING, "Schema location already exists for namespace URI. NamespaceURI=" + nsUri);
             }
             return;
         }
 
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Add schema import. NamespaceURI=" + nsUri + ", FileName=" + importLocation.getFileName());
+            XsdLogger.printP(INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocalition(null));
         }
 
         schemaLocationsCtx.put(nsUri, importLocation);

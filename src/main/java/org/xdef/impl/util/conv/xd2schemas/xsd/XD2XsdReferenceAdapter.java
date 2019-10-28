@@ -19,6 +19,7 @@ import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.model.XMNode.XMATTRIBUTE;
 
 class XD2XsdReferenceAdapter {
 
@@ -75,19 +76,18 @@ class XD2XsdReferenceAdapter {
 
     private void extractRefsAndImports(XDefinition xDef) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, xDef, "Creating definition of references ...");
+            XsdLogger.printP(INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
         }
 
         final Set<XMNode> processed = new HashSet<XMNode>();
-        final XElement[] elems = xDef.getXElements();
 
         // Extract all simple types and imports
         if (XsdLogger.isInfo(logLevel)) {
             XsdLogger.printP(INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
         }
 
-        for (int i = 0; i < elems.length; i++) {
-            extractSimpleRefsAndImports(elems[i], processed, false);
+        for (XElement elem : xDef.getXElements()) {
+            extractSimpleRefsAndImports(elem, processed, false);
         }
 
         // Extract all complex types
@@ -95,9 +95,9 @@ class XD2XsdReferenceAdapter {
             XsdLogger.printP(INFO, PREPROCESSING, xDef, "Extracting complex references ...");
         }
 
-        for (int i = 0; i < elems.length; i++) {
-            if (!treeAdapter.getXdRootNames().contains(elems[i].getName())) {
-                extractElementRefs(elems[i]);
+        for (XElement elem : xDef.getXElements()) {
+            if (!treeAdapter.getXdRootNames().contains(elem.getName())) {
+                extractElementRefs(elem);
             }
         }
     }
@@ -144,17 +144,16 @@ class XD2XsdReferenceAdapter {
         XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
         XmlSchemaType elementType = xsdElem.getSchemaType();
         if (elementType == null) {
-            if (xsdElem.getRef().getTargetQName() == null) {
-                XD2XsdUtils.addElement(schema, xsdElem);
-                if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
-                }
-            } else {
-                XsdPostProcessor.elemRootRef(xsdElem, (XElement) xNode, schema, xsdFactory);
+            if (XsdLogger.isInfo(logLevel)) {
+                XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
+            }
+            if (xsdElem.getRef().getTargetQName() != null) {
+                XsdPostProcessor.elementTopLevelRef(xsdElem, (XElement)xNode, schema, xsdFactory);
             }
         } else if (elementType instanceof XmlSchemaType) {
             elementType.setName(xsdElem.getName());
             XD2XsdUtils.addSchemaType(schema, elementType);
+            schema.getItems().remove(xsdElem);
             if (XsdLogger.isInfo(logLevel)) {
                 XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Element=" + xsdElem.getName());
             }
@@ -180,7 +179,7 @@ class XD2XsdReferenceAdapter {
                 XMNode[] attrs = xDefEl.getXDAttrs();
 
                 for (int i = 0; i < attrs.length; i++) {
-                    addSimpleTypeReference(xDefEl, (XData)attrs[i], true);
+                    addSimpleTypeReference((XData)attrs[i]);
                 }
 
                 boolean isRef = false;
@@ -226,11 +225,11 @@ class XD2XsdReferenceAdapter {
                 }
 
                 int childrenCount = xDefEl._childNodes.length;
-                for (int i = 0; i < xDefEl._childNodes.length; i++) {
-                    if (xDefEl._childNodes[i].getKind() == XNode.XMTEXT && childrenCount > 1) {
-                        addSimpleTypeReference(xDefEl, (XData) xDefEl._childNodes[i], false);
+                for (XNode xChild : xDefEl._childNodes) {
+                    if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
+                        addSimpleTypeReference((XData) xChild);
                     } else {
-                        extractSimpleRefsAndImports(xDefEl._childNodes[i], processed, xDefEl.isReference() || XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema));
+                        extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema));
                     }
                 }
 
@@ -251,24 +250,25 @@ class XD2XsdReferenceAdapter {
         }
     }
 
-    private void addSimpleTypeReference(final XElement xElem, final XData xData, boolean isAttrRef) {
+    private void addSimpleTypeReference(final XData xData) {
         String refTypeName = xData.getRefTypeName();
+        final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
 
         // Simple type node
         if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
             xsdFactory.creatSimpleTypeTop(xData, refTypeName);
             if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, xData, "Creating simple type definition from reference. ReferenceName=" + refTypeName);
+                XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type definition from reference. Name=" + refTypeName);
             }
             return;
         }
 
         if (isAttrRef == false && refTypeName == null && XD2XsdUtils.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
-            refTypeName = XsdNameUtils.createNameFromParser(xData);
+            refTypeName = XsdNameUtils.createRefNameFromParser(xData);
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
                 xsdFactory.creatSimpleTypeTop(xData, refTypeName);
                 if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, PREPROCESSING, xData, "Creating simple type reference from parser. ReferenceName=" + refTypeName);
+                    XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
                 }
                 return;
             }
@@ -289,7 +289,7 @@ class XD2XsdReferenceAdapter {
 
         if (schemaLocations.containsKey(refSystemId)) {
             if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Add schema import. SchemaName=" + refSystemId);
+                XsdLogger.printP(INFO, PREPROCESSING, "Add schema include. SchemaName=" + refSystemId);
             }
 
             xsdFactory.createSchemaInclude(schema, schemaLocations.get(refSystemId).buildLocalition(refSystemId));

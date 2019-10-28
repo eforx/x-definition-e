@@ -7,10 +7,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
 
 import javax.xml.namespace.QName;
@@ -74,10 +71,10 @@ class XDTree2XsdAdapter {
 
     protected XmlSchemaObject convertTree(XNode xn) {
         xdProcessedNodes = new HashSet<XMNode>();
-        return convertTreeInt(xn);
+        return convertTreeInt(xn, true);
     }
 
-    private XmlSchemaObject convertTreeInt(XNode xn) {
+    private XmlSchemaObject convertTreeInt(XNode xn, boolean topLevel) {
 
         if (!xdProcessedNodes.add(xn)) {
             if (XsdLogger.isDebug(logLevel)) {
@@ -90,26 +87,19 @@ class XDTree2XsdAdapter {
         switch (xdElemKind) {
             case XNode.XMATTRIBUTE: {
                 XData xd = (XData) xn;
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, TRANSFORMATION, xn, "Processing XMAttr node");
-                }
                 return createAttribute(xd);
             }
             case XNode.XMTEXT: {
                 XData xd = (XData) xn;
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, TRANSFORMATION, xn, "Processing XMText node");
+                if (XsdLogger.isInfo(logLevel)) {
+                    XsdLogger.printP(INFO, TRANSFORMATION, xd, "Creating simple content ...");
                 }
 
                 return xsdBuilder.createSimpleContent(xd);
             }
             case XNode.XMELEMENT: {
                 XElement xd = (XElement) xn;
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, TRANSFORMATION, xn, "Processing XMElement node");
-                }
-
-                return createElement(xd);
+                return createElement(xd, topLevel);
             }
             case XNode.XMSELECTOR_END:
                 return null;
@@ -137,6 +127,10 @@ class XDTree2XsdAdapter {
     }
 
     private XmlSchemaAttribute createAttribute(final XData xData) {
+        if (XsdLogger.isInfo(logLevel)) {
+            XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating attribute ...");
+        }
+
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, false);
         final String refNsUri = xData.getNSUri();
         final String nodeName = xData.getName();
@@ -164,14 +158,14 @@ class XDTree2XsdAdapter {
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                 attr.setSchemaTypeName(new QName(nsUri, xData.getRefTypeName()));
                 if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition" +
-                            "Name=" + xData.getName());
+                    XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition." +
+                            " Name=" + xData.getName() + ", Type=" + attr.getSchemaTypeName());
                 }
             } else if ((qName = XD2XsdUtils.getDefaultSimpleParserQName(xData)) != null) {
                 attr.setSchemaTypeName(qName);
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype" +
-                            "Element=" + xData.getName() + ", DataType=" + qName.getLocalPart());
+                            "Element=" + xData.getName() + ", Type=" + qName);
                 }
             } else if (XD_PARSER_EQ.equals(xData.getParserName())) {
                 qName = XD2XsdUtils.getDefaultQName(xData.getValueTypeName());
@@ -181,7 +175,7 @@ class XDTree2XsdAdapter {
                 attr.setSchemaTypeName(qName);
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, TRANSFORMATION, xData, "Content of attribute contains datatype with fixed value" +
-                            "Element=" + xData.getName() + ", DataType=" + qName.getLocalPart());
+                            "Element=" + xData.getName() + ", Type=" + qName);
                 }
             } else {
                 attr.setSchemaType(xsdBuilder.creatSimpleType(xData));
@@ -204,8 +198,12 @@ class XDTree2XsdAdapter {
      * @param xDefEl
      * @return
      */
-    private XmlSchemaObject createElement(final XElement xDefEl) {
-        XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(xDefEl);
+    private XmlSchemaObject createElement(final XElement xDefEl, boolean topLevel) {
+        if (XsdLogger.isInfo(logLevel)) {
+            XsdLogger.printP(INFO, TRANSFORMATION, xDefEl, "Creating element ...");
+        }
+
+        XmlSchemaElement xsdElem = xsdBuilder.createEmptyElement(xDefEl, topLevel);
 
         if (xDefEl.isReference()) {
             if (XsdNamespaceUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
@@ -287,7 +285,7 @@ class XDTree2XsdAdapter {
 
     private void addComplexContentToElem(final XmlSchemaElement xsdElem, final XElement defEl) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, TRANSFORMATION, defEl, "Creating complex content of element.");
+            XsdLogger.printP(INFO, TRANSFORMATION, defEl, "Creating complex content of element...");
         }
 
         XmlSchemaComplexType complexType = xsdBuilder.createEmptyComplexType();
@@ -308,13 +306,13 @@ class XDTree2XsdAdapter {
                         XsdLogger.printP(WARN, TRANSFORMATION, defEl, "Contains multiple particle group inside element!");
                     }
                 }
-                group = (XmlSchemaGroupParticle) convertTreeInt(xnChild);
+                group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
 
                 if (XsdLogger.isDebug(logLevel)) {
                     XsdLogger.printP(DEBUG, TRANSFORMATION, defEl, "Add particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
                 }
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
-                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild);
+                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
                 if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
                     if (XsdLogger.isDebug(logLevel)) {
                         XsdLogger.printP(DEBUG, TRANSFORMATION, defEl, "Add simple content with attributes to complex content of element.");
@@ -324,7 +322,7 @@ class XDTree2XsdAdapter {
 
                     for (int j = 0; j < attrs.length; j++) {
                         if (simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension)
-                            ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j]));
+                            ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[j], false));
                     }
 
                     hasSimpleContent = true;
@@ -334,7 +332,7 @@ class XDTree2XsdAdapter {
                     }
                 }
             } else {
-                XmlSchemaObject xsdChild = convertTreeInt(xnChild);
+                XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
                 if (xsdChild != null) {
                     if (XsdLogger.isDebug(logLevel)) {
                         XsdLogger.printP(DEBUG, TRANSFORMATION, defEl, "Add child to particle of element.");
@@ -364,7 +362,7 @@ class XDTree2XsdAdapter {
             complexType.setParticle(group);
         }
 
-        postProcessComplexContent(defEl, complexType);
+        XsdPostProcessor.elementComplexContent(schema, defEl, complexType, logLevel);
 
         if (hasSimpleContent == false) {
             if (XsdLogger.isDebug(logLevel)) {
@@ -372,81 +370,11 @@ class XDTree2XsdAdapter {
             }
 
             for (int i = 0; i < attrs.length; i++) {
-                complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i]));
+                complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(attrs[i], false));
             }
         }
 
         xsdElem.setType(complexType);
-    }
-
-    private void postProcessComplexContent(final XElement defEl, final XmlSchemaComplexType complexType) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
-        }
-
-        // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
-        {
-            boolean allElementsUnbounded = true;
-            boolean anyElementUnbounded = false;
-
-            if (complexType.getParticle() instanceof XmlSchemaAll) {
-
-                for (XNode xNode : defEl._childNodes) {
-                    if (xNode.getKind() == XNode.XMELEMENT) {
-                        if (!xNode.isMaxUnlimited() && !xNode.isUnbounded()) {
-                            allElementsUnbounded = false;
-                        } else if (xNode.maxOccurs() > 1) {
-                            anyElementUnbounded = true;
-                        }
-                    }
-                }
-
-                if (allElementsUnbounded) {
-                    if (XsdLogger.isDebug(logLevel)) {
-                        XsdLogger.printP(DEBUG, POSTPROCESSING, defEl, "Complex content contains xs:all with only unbounded elements. Update to unbounded xs:choise.");
-                    }
-
-                    XmlSchemaChoice group = new XmlSchemaChoice();
-                    group.setMaxOccurs(Long.MAX_VALUE);
-
-                    // Copy elements
-                    for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
-                        group.getItems().add((XmlSchemaChoiceMember) member);
-                    }
-
-                    complexType.setParticle(group);
-                } else if (anyElementUnbounded) {
-                    // TODO: XD->XSD Solve?
-                    if (XsdLogger.isError(logLevel)) {
-                        XsdLogger.printP(ERROR, POSTPROCESSING, defEl, "xs:all contains element which has maxOccurs higher than 1");
-                    }
-
-                }
-            }
-        }
-
-        // element contains simple content and particle -> XSD does not support restrictions for text if element contains elements
-        // We have to use mixed attribute for root element and remove simple content
-        {
-            if (complexType.getParticle() != null && complexType.getContentModel() != null && complexType.getContentModel() instanceof XmlSchemaSimpleContent) {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.printP(WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
-                }
-
-                // Copy attributes from simple content
-                XmlSchemaContent content = complexType.getContentModel().getContent();
-                if (content instanceof XmlSchemaSimpleContentExtension) {
-                    List attrs = ((XmlSchemaSimpleContentExtension) content).getAttributes();
-                    if (attrs != null && !attrs.isEmpty()) {
-                        complexType.getAttributes().addAll(attrs);
-                    }
-                }
-
-                complexType.setContentModel(null);
-                complexType.setMixed(true);
-                complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));
-            }
-        }
     }
 
     private void addPostprocessingNode(final String nsUri, final XNode xNode) {

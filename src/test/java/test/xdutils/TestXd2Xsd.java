@@ -446,7 +446,8 @@ public class TestXd2Xsd extends XDTester {
         // TODO: unknown attr2
 //        convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
 
-        // TODO: Local and global references without namespace
+        // TODO: Local and global declaration scope
+        // TODO: root element as reference
         //      Top level reference
 //        convertXdPool2XsdNoRef ("globalAndLocalTest",
 //                Arrays.asList(new String[] {"globalAndLocalTest_X", "globalAndLocalTest_Y", "globalAndLocalTest_Z"}),

@@ -81,7 +81,7 @@ public class XsdRestrictionFactory {
 
     private XmlSchemaSimpleTypeRestriction simpleTypeRestriction(final QName qName, final IXsdFacetFactory facetBuilder) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type restriction. QName=" + qName);
+            XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type restriction. Type=" + qName);
         }
 
         XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();

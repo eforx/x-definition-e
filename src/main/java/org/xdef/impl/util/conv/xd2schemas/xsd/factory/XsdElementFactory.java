@@ -39,11 +39,11 @@ public class XsdElementFactory {
      * Create named xsd element
      * Example: <element name="elem_name">
      */
-    public XmlSchemaElement createEmptyElement(final XElement xElement) {
+    public XmlSchemaElement createEmptyElement(final XElement xElement, boolean topLevel) {
         if (XsdLogger.isTrace(logLevel)) {
             XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Empty element");
         }
-        XmlSchemaElement elem = new XmlSchemaElement(schema, false);
+        XmlSchemaElement elem = new XmlSchemaElement(schema, topLevel);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         return elem;
@@ -105,20 +105,33 @@ public class XsdElementFactory {
             final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xd.getRefTypeName());
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
             qName = new QName(nsUri, xd.getRefTypeName());
+            if (XsdLogger.isDebug(logLevel)) {
+                XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + xd.getRefTypeName());
+            }
         } else {
             qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
         }
 
         if (qName == null) {
-            final String refParserName = XsdNameUtils.createNameFromParser(xd);
+            final String refParserName = XsdNameUtils.createRefNameFromParser(xd);
             if (refParserName != null) {
                 qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
+                if (XsdLogger.isDebug(logLevel)) {
+                    XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using parser. Parser=" + refParserName);
+                }
+            }
+        } else {
+            if (XsdLogger.isDebug(logLevel)) {
+                XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using simple parser. Parser=" + qName.getLocalPart());
             }
         }
 
         if (qName != null) {
             XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
             contentExtension.setBaseTypeName(qName);
+            if (XsdLogger.isInfo(logLevel)) {
+                XsdLogger.printP(INFO, XSD_ELEM_FACTORY, xd, "Simple-content extending type. nsUri=" + qName.getNamespaceURI() + ", localName=" + xd.getRefTypeName());
+            }
             content.setContent(contentExtension);
             return content;
         }

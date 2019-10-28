@@ -165,7 +165,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      */
     private void transformNodes(final XDTree2XsdAdapter treeAdapter, final List<XNode> nodes) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "Transform x-definition tree to schema ...");
+            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "*** Transformation of x-definition tree to schema ***");
         }
 
         List<XNode> nodesToResolve = (ArrayList)((ArrayList)nodes).clone();
@@ -179,7 +179,6 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
                 xsdElem.setMinOccurs(1);
                 xsdElem.setMaxOccurs(1);
 
-                XD2XsdUtils.addElement(schema, xsdElem);
                 if (XsdLogger.isInfo(logLevel)) {
                     XsdLogger.printP(INFO, POSTPROCESSING, n, "Add definition of reference as element. Element=" + xsdElem.getName());
                 }

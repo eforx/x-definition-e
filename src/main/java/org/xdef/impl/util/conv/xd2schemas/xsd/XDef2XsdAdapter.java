@@ -1,10 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
@@ -20,7 +17,6 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMNode;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
@@ -78,17 +74,19 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
 
         XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, schema, xsdFactory, treeAdapter, adapterCtx.getSchemaLocationsCtx());
         referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), false);
-        // Extract all used references in x-definition
         referenceAdapter.createRefsAndImports(xDefinition);
 
         transformXdef(treeAdapter, xsdFactory);
 
-        // Node post-processing
-        if (!treeAdapter.getPostprocessedNodes().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
-            XD2XsdPPAdapterWrapper postProcessingAdapter = new XD2XsdPPAdapterWrapper(logLevel, xDefinition);
-            postProcessingAdapter.setAdapterCtx(adapterCtx);
-            postProcessingAdapter.setSourceNamespaceCtx(namespaceCtx, schema.getSchemaNamespacePrefix());
-            postProcessingAdapter.processNodes(treeAdapter.getPostprocessedNodes());
+        // Post-processing
+        {
+            // Nodes from different namespace
+            if (!treeAdapter.getPostprocessedNodes().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
+                XD2XsdPPAdapterWrapper postProcessingAdapter = new XD2XsdPPAdapterWrapper(logLevel, xDefinition);
+                postProcessingAdapter.setAdapterCtx(adapterCtx);
+                postProcessingAdapter.setSourceNamespaceCtx(namespaceCtx, schema.getSchemaNamespacePrefix());
+                postProcessingAdapter.transformNodes(treeAdapter.getPostprocessedNodes());
+            }
         }
 
         return adapterCtx.getXmlSchemaCollection();
@@ -100,19 +98,19 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      */
     private void transformXdef(final XDTree2XsdAdapter treeAdapter, final XsdElementFactory xsdFactory) {
         if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, XSD_XDEF_ADAPTER, "Transform x-definition tree ...");
+            XsdLogger.printP(INFO, TRANSFORMATION, xDefinition, "*** Transformation of x-definition tree ***");
         }
 
         for (XElement elem : xDefinition.getXElements()) {
             if (treeAdapter.getXdRootNames().contains(elem.getName())) {
-                XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(elem);
-                if (xsdElem.getRef().getTargetQName() == null) {
-                    XD2XsdUtils.addElement(schema, xsdElem);
-                    if (XsdLogger.isInfo(logLevel)) {
-                        XsdLogger.printP(INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
+                XmlSchemaObject xsdObj = treeAdapter.convertTree(elem);
+                if (xsdObj instanceof XmlSchemaElement) {
+                    if (((XmlSchemaElement) xsdObj).getRef().getTargetQName() != null) {
+                        XsdPostProcessor.elementTopLevelRef((XmlSchemaElement) xsdObj, elem, schema, xsdFactory);
                     }
-                } else {
-                    XsdPostProcessor.elemRootRef(xsdElem, elem, schema, xsdFactory);
+                }
+                if (XsdLogger.isInfo(logLevel)) {
+                    XsdLogger.printP(INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
                 }
             }
         }
