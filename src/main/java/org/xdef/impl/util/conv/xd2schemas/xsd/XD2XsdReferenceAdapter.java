@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
@@ -148,7 +147,7 @@ class XD2XsdReferenceAdapter {
                 XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
             }
             if (xsdElem.getRef().getTargetQName() != null) {
-                XsdPostProcessor.elementTopLevelRef(xsdElem, (XElement)xNode, schema, xsdFactory);
+                XsdPostProcessor.elementTopLevelRef(xsdElem, (XElement)xNode, xsdFactory);
             }
         } else if (elementType instanceof XmlSchemaType) {
             elementType.setName(xsdElem.getName());
@@ -185,22 +184,25 @@ class XD2XsdReferenceAdapter {
                 boolean isRef = false;
 
                 if (xDefEl.isReference()) {
-                    if (XsdNamespaceUtils.isRefInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
-                        addSchemaImportFromElem(xDefEl.getNSUri(), xDefEl.getReferencePos());
-                        isRef = true;
-                    } else if (XsdNamespaceUtils.isRefInDifferentSystem(xDefEl.getReferencePos(), xDefEl.getXDPosition())) {
-                        final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefEl.getReferencePos());
-                        if (XSD_NAMESPACE_PREFIX_EMPTY.equals(refNsPrefix)) {
-                            addSchemaInclude(xDefEl.getReferencePos());
-                        } else {
-                            final String nsUri = schema.getNamespaceContext().getNamespaceURI(refNsPrefix);
-                            addSchemaImportFromElem(nsUri, xDefEl.getReferencePos());
+                    final String refPos = xDefEl.getReferencePos();
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
+                        addSchemaImportFromElem(xDefEl.getNSUri(), refPos);
+                    } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
+                        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
+                        XmlSchema refSchema = XsdNamespaceUtils.getReferenceSchema(schema.getParent(), refSystemId, PREPROCESSING, logLevel);
+                        if (refSchema != null) {
+                            final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
+                            final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
+                            addSchemaImportFromElem(nsUri, refPos);
                         }
-                        isRef = true;
-                    }
+                    } else if (XsdNamespaceUtils.isRefInDifferentSystem(refPos, xDefEl.getXDPosition())) {
+                        addSchemaInclude(refPos);
+                    } // else {} // Reference in same x-definition and same namespace
+
+                    isRef = true;
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-                    if (XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema) && postProcessing == false) {
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema) && postProcessing == false) {
                         final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                         final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                         if (nsUri == null || nsUri.isEmpty()) {
@@ -220,16 +222,14 @@ class XD2XsdReferenceAdapter {
                     }
                 }
 
-                if (isRef) {
-                    return;
-                }
-
-                int childrenCount = xDefEl._childNodes.length;
-                for (XNode xChild : xDefEl._childNodes) {
-                    if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
-                        addSimpleTypeReference((XData) xChild);
-                    } else {
-                        extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isInDifferentNamespace(xDefEl.getName(), schema));
+                if (isRef == false) {
+                    int childrenCount = xDefEl._childNodes.length;
+                    for (XNode xChild : xDefEl._childNodes) {
+                        if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
+                            addSimpleTypeReference((XData) xChild);
+                        } else {
+                            extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema));
+                        }
                     }
                 }
 
@@ -275,7 +275,7 @@ class XD2XsdReferenceAdapter {
         }
 
         final String importNamespace = xData.getNSUri();
-        if (importNamespace != null && XsdNamespaceUtils.isRefInDifferentNamespace(xData.getName(), importNamespace, schema)) {
+        if (importNamespace != null && XsdNamespaceUtils.isNodeInDifferentNamespace(xData.getName(), importNamespace, schema)) {
             addSchemaImportFromSimpleType(XsdNamespaceUtils.getNamespacePrefix(xData.getName()), importNamespace);
         }
     }
@@ -353,7 +353,7 @@ class XD2XsdReferenceAdapter {
     }
 
     private void addPostProcessingSchemaImport(final String nsPrefix, final String nsUri) {
-        final String schemaName = XsdNamespaceUtils.createExternalSchemaNameFromNsPrefix(nsPrefix);
+        final String schemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
         postprocessedSchemaLocations.put(nsUri, new XmlSchemaImportLocation(nsUri, schemaName));
 
         if (XsdLogger.isInfo(logLevel)) {

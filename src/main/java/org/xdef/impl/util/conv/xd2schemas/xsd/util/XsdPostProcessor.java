@@ -8,6 +8,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import javax.xml.namespace.QName;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.POSTPROCESSING;
 
@@ -15,25 +16,35 @@ public class XsdPostProcessor {
 
     /**
      * Transform root element containing reference to local type + complexType
+     *
+     * TODO: chaining transformation of references - transform also definition of reference into complex type
      */
-    public static void elementTopLevelRef(final XmlSchemaElement xsdElem, final XElement xDefEl, final XmlSchema schema, final XsdElementFactory xsdFactory) {
+    public static void elementTopLevelRef(final XmlSchemaElement xsdElem, final XElement xDefEl, final XsdElementFactory xsdFactory) {
+        final String newRefLocalName = XsdNamespaceUtils.createRefLocalName(xDefEl.getName());
         final QName qName = xsdElem.getRef().getTargetQName();
         xsdElem.getRef().setTargetQName(null);
-        xsdElem.setName(xDefEl.getName());
-        //xsdElem.setSchemaTypeName(new QName("", "test"));
 
         // Creating complex content with extension to original reference
-        XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType();
-        complexType.setName(xDefEl.getName());
+        xsdFactory.createComplexContentWithExt(newRefLocalName, qName);
+        xsdElem.setName(xDefEl.getName());
+        xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, newRefLocalName));
+    }
 
-        // Create complex content
-        XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
-        XmlSchemaComplexContentExtension contentExtension = new XmlSchemaComplexContentExtension();
-        contentExtension.setBaseTypeName(qName);
-        complexContent.setContent(contentExtension);
-        complexType.setContentModel(complexContent);
-
-        XD2XsdUtils.addSchemaType(schema, complexType);
+    /**
+     * Transform element using reference to different x-definition and different namespace to local complex type
+     *
+     * TODO: chaining transformation of references - transform also definition of reference into complex type
+     * @param xsdElem
+     * @param xDefEl
+     * @param nsUri
+     * @param refLocalName
+     * @param xsdFactory
+     */
+    public static void elementRef2Complex(final XmlSchemaElement xsdElem, final XElement xDefEl, final String nsPrefix, final String nsUri, final String refLocalName, final XsdElementFactory xsdFactory) {
+        final String newRefLocalName = XsdNamespaceUtils.createRefNameDiffSystemAndNs(nsPrefix, refLocalName);
+        xsdFactory.createComplexContentWithExt(newRefLocalName, new QName(nsUri, refLocalName));
+        xsdElem.setName(xDefEl.getName());
+        xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, newRefLocalName));
     }
 
     public static void elementComplexContent(final XmlSchema schema, final XElement defEl, final XmlSchemaComplexType complexType, int logLevel) {

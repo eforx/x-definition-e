@@ -53,11 +53,11 @@ public class XsdElementFactory {
      * Create complexType element
      * Output: <complexType>
      */
-    public XmlSchemaComplexType createEmptyComplexType() {
+    public XmlSchemaComplexType createEmptyComplexType(boolean topLevel) {
         if (XsdLogger.isTrace(logLevel)) {
             XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Empty complex-type");
         }
-        return new XmlSchemaComplexType(schema, false);
+        return new XmlSchemaComplexType(schema, topLevel);
     }
 
     /**
@@ -198,6 +198,17 @@ public class XsdElementFactory {
             annotation.getItems().add(createAnnotationItem(value));
         }
         return annotation;
+    }
+
+    public XmlSchemaComplexType createComplexContentWithExt(final String name, final QName qName) {
+        XmlSchemaComplexType complexType = createEmptyComplexType(true);
+        XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
+        XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();
+        complexContentExtension.setBaseTypeName(qName);
+        complexContent.setContent(complexContentExtension);
+        complexType.setContentModel(complexContent);
+        complexType.setName(name);
+        return complexType;
     }
 
     private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {

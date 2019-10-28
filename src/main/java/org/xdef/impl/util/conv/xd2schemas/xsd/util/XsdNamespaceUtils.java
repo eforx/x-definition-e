@@ -16,7 +16,6 @@ import java.util.Map;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.PREPROCESSING;
 
 public class XsdNamespaceUtils {
 
@@ -72,26 +71,49 @@ public class XsdNamespaceUtils {
         }
     }
 
-    // If name contains ":" or reference has different namespace, then element contains external reference
-    public static boolean isRefInDifferentNamespace(final String nodeName, final String namespaceUri, final XmlSchema schema) {
+    /**
+     * Returns true if node name is using different namespace than schema
+     * @param nodeName
+     * @param namespaceUri
+     * @param schema
+     * @return
+     */
+    public static boolean isNodeInDifferentNamespace(final String nodeName, final String namespaceUri, final XmlSchema schema) {
         return hasNamespace(nodeName) && (namespaceUri != null && !namespaceUri.equals(schema.getTargetNamespace()));
     }
 
-    public static boolean isRefInDifferentSystem(final String nodeRefPos, final String xdPos) {
-        final String nodeSystemId = getReferenceSystemId(xdPos);
-        final String refSystemId = getReferenceSystemId(nodeRefPos);
-        return !hasNamespace(xdPos) && !hasNamespace(refSystemId) && !nodeSystemId.equals(refSystemId);
-    }
-
     /**
-     * Check if element name is in different namespace compare to schema target namespace
+     * Returns true if node name is using different namespace prefix than schema target namespace
      * @param nodeName
      * @param schema
      * @return
      */
-    public static boolean isInDifferentNamespace(final String nodeName, final XmlSchema schema) {
+    public static boolean isNodeInDifferentNamespacePrefix(final String nodeName, final XmlSchema schema) {
         String nodeNsPrefix = getNamespacePrefix(nodeName);
         return nodeNsPrefix != null && !nodeNsPrefix.equals(schema.getSchemaNamespacePrefix());
+    }
+
+    /**
+     * Return true if reference is using different namespace prefix than schema target namespace
+     * @param nodeRefPos
+     * @param schema
+     * @return
+     */
+    public static boolean isRefInDifferentNamespacePrefix(final String nodeRefPos, final XmlSchema schema) {
+        final String refNsPrefix = getReferenceNamespacePrefix(nodeRefPos);
+        return !XSD_NAMESPACE_PREFIX_EMPTY.equals(refNsPrefix) && !refNsPrefix.equals(schema.getSchemaNamespacePrefix());
+    }
+
+    /**
+     * Return true if reference is in different x-definition
+     * @param nodeRefPos
+     * @param xdPos
+     * @return
+     */
+    public static boolean isRefInDifferentSystem(final String nodeRefPos, final String xdPos) {
+        final String nodeSystemId = getReferenceSystemId(xdPos);
+        final String refSystemId = getReferenceSystemId(nodeRefPos);
+        return !nodeSystemId.equals(refSystemId);
     }
 
     private static boolean hasNamespace(final String name) {
@@ -211,25 +233,47 @@ public class XsdNamespaceUtils {
         return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
     }
 
-    public static String createNsPrefixFromXDefName(final String name) {
-        return "prefxDef_" + name;
-    }
-
     public static String createNsUriFromXDefName(final String name) {
         return name;
     }
 
-    public static String createExternalSchemaNameFromNsPrefix(final String nsPrefix) {
+    public static String createExtraSchemaNameFromNsPrefix(final String nsPrefix) {
         return "external_" + nsPrefix;
     }
 
-    public static String getNsPrefixFromExternalSchemaName(final String nsPrefix) {
+    public static String getNsPrefixFromExtraSchemaName(final String nsPrefix) {
         int pos = nsPrefix.lastIndexOf('_');
         if (pos != -1) {
             return nsPrefix.substring(pos + 1);
         }
 
         return nsPrefix;
+    }
+
+    public static String createRefNameDiffSystemAndNs(final String nsUri, final String refLocalName) {
+        return "ext_" + nsUri + "_" + refLocalName;
+    }
+
+    public static String createRefLocalName(final String name) {
+        return "loc_" + name;
+    }
+
+    public static XmlSchema getReferenceSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, final String phase, int logLevel) {
+        XmlSchema[] schemas = xmlCollection.getXmlSchema(refSystemId);
+        if (schemas == null || schemas.length == 0) {
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.printP(WARN, phase, "Schema with required name not found! Name=" + refSystemId);
+            }
+            return null;
+        }
+
+        if (schemas.length > 1) {
+            if (XsdLogger.isWarn(logLevel)) {
+                XsdLogger.printP(WARN, phase, "Multiple schemas with required name have been found! Name=" + refSystemId);
+            }
+        }
+
+        return schemas[0];
     }
 
 }
