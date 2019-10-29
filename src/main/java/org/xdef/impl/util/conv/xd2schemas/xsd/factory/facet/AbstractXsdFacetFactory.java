@@ -2,27 +2,22 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
-    protected int logLevel;
     protected ValueType valueType;
-
-    public void setLogLevel(int logLevel) {
-        this.logLevel = logLevel;
-    }
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
-        }
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
         if (params != null) {
@@ -31,12 +26,8 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
             }
         }
 
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Adding extra facets...");
-        }
-
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Adding extra facets...");
         extraFacets(facets, params);
-
         return facets;
     }
 
@@ -147,9 +138,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         } else if ("totalDigits".equals(param.getName())) {
             facets.add(totalDigits(param));
         } else if (!customFacet(facets, param)) {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unknown reference type parameter. Parameter=" + param.getName());
-            }
+            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unknown reference type parameter. Parameter=" + param.getName());
         }
     }
 }

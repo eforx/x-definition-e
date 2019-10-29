@@ -6,12 +6,14 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 
 import java.util.*;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 /**
@@ -29,8 +31,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      */
     private XmlSchema schema = null;
 
-    protected XD2XsdPPAdapter(int logLevel, XDefinition xDefinition) {
-        this.logLevel = logLevel;
+    protected XD2XsdPPAdapter(XDefinition xDefinition) {
         this.sourceXDefinition = xDefinition;
     }
 
@@ -39,20 +40,18 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
                                         final List<XNode> nodesInSchemaToResolve,
                                         final String targetNsUri,
                                         final XmlSchemaImportLocation importLocation) {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
-            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
-            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
-        }
+        XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
+        XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
+        XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
 
         createXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
-        XsdElementFactory xsdBuilder = new XsdElementFactory(logLevel, schema);
+        XsdElementFactory xsdBuilder = new XsdElementFactory(schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(logLevel, schema, xsdBuilder);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdBuilder);
         treeAdapter.initPostprocessing(allNodesToResolve, adapterCtx.getExtraSchemaLocationsCtx());
 
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(logLevel, schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx());
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx());
         referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), true);
         referenceAdapter.extractRefsAndImports(nodesInSchemaToResolve);
 
@@ -86,31 +85,14 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      * @return  instance of xml schema
      */
     private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
-        XmlSchema schema = null;
-
-        XmlSchema[] schemas = adapterCtx.getXmlSchemaCollection().getXmlSchema(schemaName);
-        if (schemas != null) {
-            if (schemas.length == 1) {
-                schema = schemas[0];
-            } else if (schemas.length > 1) {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.printP(WARN, POSTPROCESSING, sourceXDefinition, "Schema with this name has been already created! Name=" + schemaName);
-                }
-
-                schema = schemas[0];
-            }
-        }
+        XmlSchema schema = XsdNamespaceUtils.getReferenceSchema(adapterCtx.getXmlSchemaCollection(), schemaName, false, POSTPROCESSING);
 
         if (schema == null) {
             adapterCtx.addSchemaName(schemaName);
             schema = new XmlSchema(targetNsUri, schemaName, adapterCtx.getXmlSchemaCollection());
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.print(INFO, POSTPROCESSING, schemaName, "Initialize extra XSD schema");
-            }
+            XsdLogger.print(LOG_INFO, POSTPROCESSING, schemaName, "Initialize new XSD schema");
         } else {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.print(INFO, POSTPROCESSING, schemaName, "Schema already exists");
-            }
+            XsdLogger.print(LOG_INFO, POSTPROCESSING, schemaName, "Schema already exists");
         }
 
         return schema;
@@ -131,13 +113,11 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
                                      final NamespaceMap namespaceCtx,
                                      final String targetNsUri,
                                      final XmlSchemaImportLocation importLocation) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, POSTPROCESSING, sourceXDefinition, "Initializing namespace context ...");
-        }
+        XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, sourceXDefinition, "Initializing namespace context ...");
 
         // Namespace initialization
         final String targetNsPrefix = XsdNamespaceUtils.getNsPrefixFromExtraSchemaName(importLocation.getFileName());
-        XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, schemaName, targetNsPrefix, targetNsUri, POSTPROCESSING, logLevel);
+        XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, schemaName, targetNsPrefix, targetNsUri, POSTPROCESSING);
         schema.setSchemaNamespacePrefix(targetNsPrefix);
 
         NamespaceMap currNamespaceCtx = (NamespaceMap)schema.getNamespaceContext();
@@ -164,9 +144,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      * @param nodes             source nodes to transform
      */
     private void transformNodes(final XDTree2XsdAdapter treeAdapter, final List<XNode> nodes) {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printC(INFO, XSD_XDEF_EXTRA_ADAPTER, "*** Transformation of x-definition tree to schema ***");
-        }
+        XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "*** Transformation of x-definition tree to schema ***");
 
         List<XNode> nodesToResolve = (ArrayList)((ArrayList)nodes).clone();
 
@@ -179,9 +157,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
                 xsdElem.setMinOccurs(1);
                 xsdElem.setMaxOccurs(1);
 
-                if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, POSTPROCESSING, n, "Add definition of reference as element. Element=" + xsdElem.getName());
-                }
+                XsdLogger.printP(LOG_INFO, POSTPROCESSING, n, "Add definition of reference as element. Element=" + xsdElem.getName());
             } else if (xsdNode instanceof XmlSchemaAttribute) {
                 XmlSchemaAttribute xsdAttr = (XmlSchemaAttribute)xsdNode;
                 // Reset usage

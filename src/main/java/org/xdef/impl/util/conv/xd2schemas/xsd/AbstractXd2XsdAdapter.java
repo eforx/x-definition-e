@@ -4,14 +4,9 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_LEVEL_INFO;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
 
 public abstract class AbstractXd2XsdAdapter {
-
-    /**
-     * Logging level
-     */
-    protected int logLevel = LOG_LEVEL_INFO;
 
     /**
      * Adapter context
@@ -24,14 +19,6 @@ public abstract class AbstractXd2XsdAdapter {
      */
     protected void setAdapterCtx(XsdAdapterCtx adapterCtx) {
         this.adapterCtx = adapterCtx;
-    }
-
-    /**
-     * Set logging level
-     * @param logLevel      log level
-     */
-    public void setLogLevel(int logLevel) {
-        this.logLevel = logLevel;
     }
 
     /**

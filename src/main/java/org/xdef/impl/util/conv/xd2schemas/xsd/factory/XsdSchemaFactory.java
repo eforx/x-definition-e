@@ -12,34 +12,26 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
 
 public class XsdSchemaFactory {
 
-    private final int logLevel;
     private final XsdAdapterCtx adapterCtx;
 
-    public XsdSchemaFactory(int logLevel, XsdAdapterCtx adapterCtx) {
-        this.logLevel = logLevel;
+    public XsdSchemaFactory(XsdAdapterCtx adapterCtx) {
         this.adapterCtx = adapterCtx;
     }
 
     public XmlSchema createXsdSchema(final XDefinition xDef, Pair<String, String> targetNamespace) {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, xDef, "Initialize xsd schema.");
-        }
+        XsdLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Initialize xsd schema.");
 
         if (targetNamespace != null) {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, INITIALIZATION, xDef, "Creating XSD schema. " +
-                        "systemName=" + xDef.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());
-            }
+            XsdLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD schema. " +
+                    "systemName=" + xDef.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());
         } else {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, INITIALIZATION, xDef, "Creating XSD schema. SystemName=" + xDef.getName());
-            }
-
+            XsdLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD schema. SystemName=" + xDef.getName());
             targetNamespace = new Pair<String, String>(null, null);
         }
 
@@ -56,16 +48,14 @@ public class XsdSchemaFactory {
      * Initialize xsd schema namespace
      */
     private void initSchemaNamespace(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Initializing namespace context ...");
-        }
+        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Initializing namespace context ...");
 
         if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
             xmlSchema.setSchemaNamespacePrefix(targetNamespace.getKey());
         }
 
         NamespaceMap namespaceCtx = XsdNamespaceUtils.createCtx();
-        XsdNamespaceUtils.initCtx(namespaceCtx, xDef, targetNamespace.getKey(), targetNamespace.getValue(), INITIALIZATION, logLevel);
+        XsdNamespaceUtils.initCtx(namespaceCtx, xDef, targetNamespace.getKey(), targetNamespace.getValue());
 
         xmlSchema.setNamespaceContext(namespaceCtx);
     }
@@ -80,17 +70,13 @@ public class XsdSchemaFactory {
         XmlSchemaForm attrSchemaForm = getAttrDefaultForm(xDef, targetNamespace.getKey());
         xmlSchema.setAttributeFormDefault(attrSchemaForm);
 
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Setting element default schema form. Form=" + elemSchemaForm);
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Setting attribute default schema form. Form=" + attrSchemaForm);
-        }
+        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Setting element default schema form. Form=" + elemSchemaForm);
+        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Setting attribute default schema form. Form=" + attrSchemaForm);
     }
 
     private XmlSchemaForm getElemDefaultForm(final XDefinition xDef, final String targetNsPrefix) {
         if (targetNsPrefix != null && targetNsPrefix.trim().isEmpty()) {
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Target namespace prefix is empty. Element default form will be Qualified");
-            }
+            XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Target namespace prefix is empty. Element default form will be Qualified");
             return XmlSchemaForm.QUALIFIED;
         }
 
@@ -103,18 +89,14 @@ public class XsdSchemaFactory {
                         tmpNs = XsdNamespaceUtils.getReferenceSystemId(defEl.getReferencePos());
                     }
                     if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
-                        if (XsdLogger.isDebug(logLevel)) {
-                            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Some of root element has different namespace prefix. Element default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);
-                        }
+                        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Some of root element has different namespace prefix. Element default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);
                         return XmlSchemaForm.QUALIFIED;
                     }
                 }
             }
         }
 
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "All root elements have same namespace prefix. Element default form will be Unqualified");
-        }
+        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "All root elements have same namespace prefix. Element default form will be Unqualified");
         return XmlSchemaForm.UNQUALIFIED;
     }
 
@@ -126,9 +108,7 @@ public class XsdSchemaFactory {
                     for (XMNode attr : defEl.getXDAttrs()) {
                         String tmpNs = XsdNamespaceUtils.getNamespacePrefix(attr.getName());
                         if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
-                            if (XsdLogger.isDebug(logLevel)) {
-                                XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "Some of root attribute has different namespace prefix. Attribute default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);
-                            }
+                            XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Some of root attribute has different namespace prefix. Attribute default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);
                             return XmlSchemaForm.QUALIFIED;
                         }
                     }
@@ -136,9 +116,7 @@ public class XsdSchemaFactory {
             }
         }
 
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, INITIALIZATION, xDef, "All root attributes have same namespace prefix. Attribute default form will be Unqualified");
-        }
+        XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "All root attributes have same namespace prefix. Attribute default form will be Unqualified");
         return XmlSchemaForm.UNQUALIFIED;
     }
 }

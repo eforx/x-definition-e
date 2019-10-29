@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_DEBUG;
 
 public class UnionFacetFactory extends AbstractArrayFacetFactory {
 
@@ -38,18 +38,13 @@ public class UnionFacetFactory extends AbstractArrayFacetFactory {
 
     @Override
     protected void createPatterns(final String parserName, final XDNamedValue[] params) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
-        }
-
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
         facetPatterns.add(parserParamsToRegex(parserName, params));
     }
 
     @Override
     protected List<XmlSchemaFacet> createPatternFacets() {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
-        }
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 

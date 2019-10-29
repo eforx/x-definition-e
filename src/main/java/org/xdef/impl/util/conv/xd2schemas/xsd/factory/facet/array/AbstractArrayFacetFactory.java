@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
@@ -27,9 +28,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.print(INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
-        }
+        XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
@@ -48,9 +47,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
     }
 
     public QName determineBaseType(final XDNamedValue[] parameters) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Determination of QName...");
-        }
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Determination of QName...");
 
         String parserName = "";
         boolean allParsersSame = true;
@@ -94,10 +91,8 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
             }
 
             if (!ignoredParamsStr.isEmpty()) {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),
-                            "List/Union facet - Using of unhandled restrictions found! Following attributes/parsers being ignored: " + ignoredParamsStr);
-                }
+                XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),
+                        "List/Union facet - Using of unhandled restrictions found! Following attributes/parsers being ignored: " + ignoredParamsStr);
             }
         }
 
@@ -110,13 +105,11 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
         String regex = null;
 
         if (Constants.XSD_INT.equals(parserQName)) {
-            regex = new IntegerRegexFactory(logLevel).regex(params);
+            regex = new IntegerRegexFactory().regex(params);
         } else if (Constants.XSD_STRING.equals(parserQName)) {
-            regex = new EnumerationRegexFactory(logLevel).regex(params);
+            regex = new EnumerationRegexFactory().regex(params);
         } else {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Parser params to regex - Unsupported list parser! Parser=" + parserName);
-            }
+            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Parser params to regex - Unsupported list parser! Parser=" + parserName);
         }
 
         return regex;
@@ -133,18 +126,14 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
     protected void createPatterns(final String parserName, final XDNamedValue[] params) { }
 
     protected boolean createPatternFromValue(final XDValue xVal) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern from value");
-        }
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern from value");
 
         if (xVal instanceof XDParser) {
             XDParser parser = ((XDParser) xVal);
             createPatterns(parser.parserName(),  parser.getNamedParams().getXDNamedItems());
             return true;
         } else {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.print(WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported type of value. ValueId=" + xVal.getItemId());
-            }
+            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported type of value. ValueId=" + xVal.getItemId());
         }
 
         return false;
@@ -152,9 +141,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
 
     private boolean checkParser(final XDParser parser, final int index, final String parserName) {
         if (!parserName.equals(parser.parserName())) {
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"List/Union - parsers are not same!");
-            }
+            XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"List/Union - parsers are not same!");
             ignoredParams.add(index);
             return false;
         }

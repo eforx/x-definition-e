@@ -6,14 +6,10 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_DEBUG;
 
 public class IntegerRegexFactory extends AbstractParamRegexFactory {
-
-    public IntegerRegexFactory(int logLevel) {
-        super(logLevel);
-    }
 
     public String regex(final XDNamedValue[] params) {
         Integer rangeMin = null;
@@ -51,10 +47,7 @@ public class IntegerRegexFactory extends AbstractParamRegexFactory {
             }
         }
 
-        if (XsdLogger.isDebug(logLevel) && pattern != null) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Pattern created=\"" + pattern + "\"");
-        }
-
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Pattern created=\"" + pattern + "\"");
         return pattern;
     }
 }

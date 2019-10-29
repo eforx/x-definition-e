@@ -8,12 +8,15 @@ import org.xdef.impl.util.conv.xd2schemas.XDPool2SchemaAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 
 import java.util.*;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 /**
@@ -45,7 +48,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         }
 
         this.xdPool = xdPool;
-        adapterCtx = new XsdAdapterCtx(logLevel);
+        adapterCtx = new XsdAdapterCtx();
         adapterCtx.init();
 
         init();
@@ -101,9 +104,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
     }
 
     private void init() {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "*** Initialize ***");
-        }
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "*** Initialize ***");
 
         initTargetNamespaces();
         initXsdSchemas();
@@ -114,9 +115,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
      * Find target namespaces for all x-definitions from XPool
      */
     private void initTargetNamespaces() {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Initialize target namespaces ...");
-        }
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Initialize target namespaces ...");
 
         xDefsWithoutNs = new HashSet<String>();
         xDefTargetNs = new HashMap<String, Pair<String, String>>();
@@ -125,35 +124,26 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
             final String xDefName = xDef.getName();
             Boolean targetNamespaceError = false;
 
-            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef, targetNamespaceError, logLevel);
+            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef, targetNamespaceError);
             if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
                 if (xDefTargetNs.containsKey(xDefName)) {
-                    if (XsdLogger.isWarn(logLevel)) {
-                        XsdLogger.printP(WARN, PREPROCESSING, "Target namespace of x-definition is already defined. XDefinition=" + xDefName);
-                    }
+                    XsdLogger.printP(LOG_WARN, PREPROCESSING, "Target namespace of x-definition is already defined. XDefinition=" + xDefName);
                 } else {
                     xDefTargetNs.put(xDefName, new Pair(targetNamespace.getKey(), targetNamespace.getValue()));
-                    if (XsdLogger.isInfo(logLevel)) {
-                        XsdLogger.printP(INFO, PREPROCESSING, "Add target namespace to x-definition. " +
-                                "XDefinition=" + xDefName + ", naPrefix=" + targetNamespace.getKey() + ", nsUri=" + targetNamespace.getValue());
-                    }
+                    XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add target namespace to x-definition. " +
+                            "XDefinition=" + xDefName + ", naPrefix=" + targetNamespace.getKey() + ", nsUri=" + targetNamespace.getValue());
                 }
             } else {
                 xDefsWithoutNs.add(xDefName);
-                if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, PREPROCESSING, "X-definition has no target namespace. XDefinition=" + xDefName);
-                }
+                XsdLogger.printP(LOG_INFO, PREPROCESSING, "X-definition has no target namespace. XDefinition=" + xDefName);
             }
         }
     }
 
     private void initXsdSchemas() {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Initialize xsd schemas ...");
-        }
+        XsdLogger.printP(LOG_INFO, INITIALIZATION, "Initialize xsd schemas ...");
 
-        XsdSchemaFactory schemaFactory = new XsdSchemaFactory(logLevel, adapterCtx);
-
+        XsdSchemaFactory schemaFactory = new XsdSchemaFactory(adapterCtx);
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {
             schemaFactory.createXsdSchema((XDefinition)xDef, xDefTargetNs.get(xDef.getName()));
         }
@@ -163,9 +153,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
      * Creates schema location context based on x-definition target namespace and x-definition name
      */
     private void initSchemaLocations() {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Initialize schema location ...");
-        }
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Initialize schema locations ...");
 
         for (Map.Entry<String, Pair<String, String>> entry : xDefTargetNs.entrySet()) {
             final String nsUri = entry.getValue().getValue();
@@ -175,10 +163,8 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
 
         for (String xDefName: xDefsWithoutNs) {
             final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, PREPROCESSING, "Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
-            }
             adapterCtx.addSchemaLocation(nsUri, new XmlSchemaImportLocation(nsUri, xDefName));
+            XsdLogger.printP(LOG_DEBUG, PREPROCESSING, "Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
         }
     }
 
@@ -188,7 +174,6 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
      */
     private XDef2XsdAdapter createXDefAdapter() {
         XDef2XsdAdapter adapter = new XDef2XsdAdapter();
-        adapter.setLogLevel(logLevel);
         adapter.setAdapterCtx(adapterCtx);
         return adapter;
     }

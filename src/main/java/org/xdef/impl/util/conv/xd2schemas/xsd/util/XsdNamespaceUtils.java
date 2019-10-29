@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdNamespaceUtils {
@@ -28,13 +29,11 @@ public class XsdNamespaceUtils {
 
     /**
      * Namespace context initialization based on x-definition
-     * @param xDef
-     * @param logLevel
      */
-    public static void initCtx(final NamespaceMap namespaceMap, final XDefinition xDef, final String targetNsPrefix, final String targetNsUri, final String phase, int logLevel) {
+    public static void initCtx(final NamespaceMap namespaceMap, final XDefinition xDef, final String targetNsPrefix, final String targetNsUri) {
         // Target namespace
         if (targetNsPrefix != null && targetNsUri != null) {
-            addNamespaceToCtx(namespaceMap, xDef.getName(), targetNsPrefix, targetNsUri, phase, logLevel);
+            addNamespaceToCtx(namespaceMap, xDef.getName(), targetNsPrefix, targetNsUri, INITIALIZATION);
         }
 
         for (Map.Entry<String, String> entry : xDef._namespaces.entrySet()) {
@@ -46,11 +45,9 @@ public class XsdNamespaceUtils {
             }
 
             if (!namespaceMap.containsKey(nsPrefix)) {
-                addNamespaceToCtx(namespaceMap, xDef.getName(), nsPrefix, nsUri, phase, logLevel);
+                addNamespaceToCtx(namespaceMap, xDef.getName(), nsPrefix, nsUri, INITIALIZATION);
             } else {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.printP(WARN, phase, xDef, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
-                }
+                XsdLogger.printP(LOG_WARN, INITIALIZATION, xDef, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
             }
         }
     }
@@ -62,13 +59,10 @@ public class XsdNamespaceUtils {
      * @param nsPrefix      namespace prefix
      * @param nsUri         namespace URI
      * @param phase
-     * @param logLevel
      */
-    public static void addNamespaceToCtx(final NamespaceMap namespaceMap, final String category, final String nsPrefix, final String nsUri, final String phase, int logLevel) {
+    public static void addNamespaceToCtx(final NamespaceMap namespaceMap, final String category, final String nsPrefix, final String nsUri, final AlgPhase phase) {
         namespaceMap.add(nsPrefix, nsUri);
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, phase, category, "Add namespace. Prefix=" + nsPrefix + ", Uri=" + nsUri);
-        }
+        XsdLogger.print(LOG_DEBUG, phase, category, "Add namespace. Prefix=" + nsPrefix + ", Uri=" + nsUri);
     }
 
     /**
@@ -168,7 +162,7 @@ public class XsdNamespaceUtils {
         return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
     }
 
-    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError, int logLevel) {
+    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
         boolean onlyRefs = false;
@@ -181,9 +175,7 @@ public class XsdNamespaceUtils {
                 if (targetNamespacePrefix == null) {
                     targetNamespacePrefix = tmpNs;
                 } else if (tmpNs != null && !targetNamespacePrefix.equals(tmpNs)) {
-                    if (XsdLogger.isError(logLevel)) {
-                        XsdLogger.printC(ERROR, XSD_UTILS, xDef, "Expected different namespace prefix. Expected=" + targetNamespacePrefix + ", Actual=" + tmpNs);
-                    }
+                    XsdLogger.printG(LOG_ERROR, XSD_UTILS, xDef, "Expected different namespace prefix. Expected=" + targetNamespacePrefix + ", Actual=" + tmpNs);
                     targetNamespaceError = true;
                     break;
                 }
@@ -209,9 +201,7 @@ public class XsdNamespaceUtils {
         }
 
         if (targetNamespacePrefix != null && targetNamespaceUri == null) {
-            if (XsdLogger.isError(logLevel)) {
-                XsdLogger.printC(ERROR, XSD_UTILS, xDef, "Target namespace URI has been not found for prefix. Prefix=" + targetNamespacePrefix);
-            }
+            XsdLogger.printG(LOG_ERROR, XSD_UTILS, xDef, "Target namespace URI has been not found for prefix. Prefix=" + targetNamespacePrefix);
             targetNamespaceError = true;
         }
 
@@ -258,19 +248,19 @@ public class XsdNamespaceUtils {
         return "loc_" + name;
     }
 
-    public static XmlSchema getReferenceSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, final String phase, int logLevel) {
+    public static XmlSchema getReferenceSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, boolean shouldExists, final AlgPhase phase) {
         XmlSchema[] schemas = xmlCollection.getXmlSchema(refSystemId);
         if (schemas == null || schemas.length == 0) {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(WARN, phase, "Schema with required name not found! Name=" + refSystemId);
+            if (shouldExists == true) {
+                XsdLogger.printP(LOG_WARN, phase, "Schema with required name not found! Name=" + refSystemId);
+                throw new RuntimeException("Referenced schema does not exist! Name=" + refSystemId);
             }
+
             return null;
         }
 
         if (schemas.length > 1) {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(WARN, phase, "Multiple schemas with required name have been found! Name=" + refSystemId);
-            }
+            XsdLogger.printP(LOG_WARN, phase, "Multiple schemas with required name have been found! Name=" + refSystemId);
         }
 
         return schemas[0];

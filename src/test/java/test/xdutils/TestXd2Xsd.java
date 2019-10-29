@@ -8,6 +8,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
 import test.utils.XDTester;
@@ -15,7 +16,6 @@ import test.utils.XDTester;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +44,8 @@ public class TestXd2Xsd extends XDTester {
         _refFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
+
+        XsdLogger.setLogLevel(LOG_WARN);
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -109,13 +111,11 @@ public class TestXd2Xsd extends XDTester {
 
     private XDef2XsdAdapter createXdDefAdapter() {
         XDef2XsdAdapter adapter = new XDef2XsdAdapter();
-        adapter.setLogLevel(LOG_LEVEL_WARN);
         return adapter;
     }
 
     private XDPool2XsdAdapter createXdPoolAdapter() {
         XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
-        adapter.setLogLevel(LOG_LEVEL_WARN);
         return adapter;
     }
 

@@ -27,22 +27,18 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdElementFactory {
 
-    private final int logLevel;
     private final XmlSchema schema;
 
-    public XsdElementFactory(int logLevel, XmlSchema schema) {
-        this.logLevel = logLevel;
+    public XsdElementFactory(XmlSchema schema) {
         this.schema = schema;
     }
 
     /**
      * Create named xsd element
-     * Example: <element name="elem_name">
+     * Example: <element>
      */
     public XmlSchemaElement createEmptyElement(final XElement xElement, boolean topLevel) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Empty element");
-        }
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Empty element. Top=" + topLevel);
         XmlSchemaElement elem = new XmlSchemaElement(schema, topLevel);
         elem.setMinOccurs(xElement.getOccurence().minOccurs());
         elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
@@ -54,9 +50,7 @@ public class XsdElementFactory {
      * Output: <complexType>
      */
     public XmlSchemaComplexType createEmptyComplexType(boolean topLevel) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Empty complex-type");
-        }
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Empty complex-type. Top=" + topLevel);
         return new XmlSchemaComplexType(schema, topLevel);
     }
 
@@ -65,17 +59,12 @@ public class XsdElementFactory {
      * Output: <simpleType>
      */
     public XmlSchemaSimpleType createEmptySimpleType(boolean topLevel) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Empty simple-type");
-        }
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Empty simple-type. Top=" + topLevel);
         return new XmlSchemaSimpleType(schema, topLevel);
     }
 
     public XmlSchemaSimpleType creatSimpleTypeTop(final XData xData, final String name) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type");
-        }
-
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type. Name=" + name);
         XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
         itemType.setContent(createSimpleTypeRestriction(xData));
@@ -83,56 +72,43 @@ public class XsdElementFactory {
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
-        }
-
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
         XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(xData.getRefTypeName());
         itemType.setContent(createSimpleTypeRestriction(xData));
         return itemType;
     }
 
-    public XmlSchemaSimpleContent createSimpleContent(final XData xd) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, xd, "Simple-content");
-        }
+    public XmlSchemaSimpleContent createSimpleContent(final XData xData) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-content");
 
         XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
 
         QName qName;
-        if (xd.getRefTypeName() != null) {
-            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xd.getRefTypeName());
+        if (xData.getRefTypeName() != null) {
+            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xData.getRefTypeName());
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            qName = new QName(nsUri, xd.getRefTypeName());
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + xd.getRefTypeName());
-            }
+            qName = new QName(nsUri, xData.getRefTypeName());
+            XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + xData.getRefTypeName());
         } else {
-            qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
+            qName = XD2XsdUtils.getDefaultSimpleParserQName(xData);
         }
 
         if (qName == null) {
-            final String refParserName = XsdNameUtils.createRefNameFromParser(xd);
+            final String refParserName = XsdNameUtils.createRefNameFromParser(xData);
             if (refParserName != null) {
                 qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using parser. Parser=" + refParserName);
-                }
+                XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using parser. Parser=" + refParserName);
             }
         } else {
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, XSD_ELEM_FACTORY, xd, "Simple-content using simple parser. Parser=" + qName.getLocalPart());
-            }
+            XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using simple parser. Parser=" + qName.getLocalPart());
         }
 
         if (qName != null) {
             XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
             contentExtension.setBaseTypeName(qName);
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, XSD_ELEM_FACTORY, xd, "Simple-content extending type. nsUri=" + qName.getNamespaceURI() + ", localName=" + xd.getRefTypeName());
-            }
             content.setContent(contentExtension);
+            XsdLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xData, "Simple-content extending type. nsUri=" + qName.getNamespaceURI() + ", localName=" + xData.getRefTypeName());
             return content;
         }
 
@@ -146,9 +122,7 @@ public class XsdElementFactory {
      * @return
      */
     public XmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, "Particle=" + XD2XsdUtils.particleXKindToString(groupType));
-        }
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Particle=" + XD2XsdUtils.particleXKindToString(groupType));
 
         XmlSchemaGroupParticle particle;
         switch (groupType) {
@@ -212,12 +186,10 @@ public class XsdElementFactory {
     }
 
     private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {
-        if (XsdLogger.isTrace(logLevel)) {
-            XsdLogger.printC(TRACE, XSD_ELEM_FACTORY, xData, "Simple-type restrictions");
-        }
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type restrictions");
 
         XDValue parseMethod = xData.getParseMethod();
-        XsdRestrictionFactory restrictionBuilder = new XsdRestrictionFactory(xData, logLevel);
+        XsdRestrictionFactory restrictionBuilder = new XsdRestrictionFactory(xData);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);

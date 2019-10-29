@@ -7,6 +7,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class ListFacetFactory extends AbstractArrayFacetFactory {
@@ -22,18 +23,13 @@ public class ListFacetFactory extends AbstractArrayFacetFactory {
 
     @Override
     protected void createPatterns(final String parserName, final XDNamedValue[] params) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
-        }
-
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
         regex = parserParamsToRegex(parserName, params);
     }
 
     @Override
     protected List<XmlSchemaFacet> createPatternFacets() {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.print(DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
-        }
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 

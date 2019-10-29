@@ -9,8 +9,8 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.POSTPROCESSING;
 
 public class XsdPostProcessor {
 
@@ -47,10 +47,8 @@ public class XsdPostProcessor {
         xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, newRefLocalName));
     }
 
-    public static void elementComplexContent(final XmlSchema schema, final XElement defEl, final XmlSchemaComplexType complexType, int logLevel) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
-        }
+    public static void elementComplexContent(final XElement defEl, final XmlSchemaComplexType complexType) {
+        XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
 
         // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
         {
@@ -70,9 +68,7 @@ public class XsdPostProcessor {
                 }
 
                 if (allElementsUnbounded) {
-                    if (XsdLogger.isDebug(logLevel)) {
-                        XsdLogger.printP(DEBUG, POSTPROCESSING, defEl, "Complex content contains xs:all with only unbounded elements. Update to unbounded xs:choise.");
-                    }
+                    XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Complex content contains xs:all with only unbounded elements. Update to unbounded xs:choise.");
 
                     XmlSchemaChoice group = new XmlSchemaChoice();
                     group.setMaxOccurs(Long.MAX_VALUE);
@@ -85,10 +81,7 @@ public class XsdPostProcessor {
                     complexType.setParticle(group);
                 } else if (anyElementUnbounded) {
                     // TODO: XD->XSD Solve?
-                    if (XsdLogger.isError(logLevel)) {
-                        XsdLogger.printP(ERROR, POSTPROCESSING, defEl, "xs:all contains element which has maxOccurs higher than 1");
-                    }
-
+                    XsdLogger.printP(LOG_ERROR, POSTPROCESSING, defEl, "xs:all contains element which has maxOccurs higher than 1");
                 }
             }
         }
@@ -97,9 +90,7 @@ public class XsdPostProcessor {
         // We have to use mixed attribute for root element and remove simple content
         {
             if (complexType.getParticle() != null && complexType.getContentModel() != null && complexType.getContentModel() instanceof XmlSchemaSimpleContent) {
-                if (XsdLogger.isWarn(logLevel)) {
-                    XsdLogger.printP(WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
-                }
+                XsdLogger.printP(LOG_WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
 
                 // Copy attributes from simple content
                 XmlSchemaContent content = complexType.getContentModel().getContent();

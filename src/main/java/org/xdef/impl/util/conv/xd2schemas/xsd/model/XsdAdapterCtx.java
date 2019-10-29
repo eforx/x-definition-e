@@ -8,14 +8,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 /**
  * Basic XSD context for transformation x-definition to XSD schema
  */
 public class XsdAdapterCtx {
-
-    private final int logLevel;
 
     /**
      * Names of created xsd schemas
@@ -41,10 +40,6 @@ public class XsdAdapterCtx {
      */
     private XmlSchemaCollection xmlSchemaCollection = null;
 
-    public XsdAdapterCtx(int logLevel) {
-        this.logLevel = logLevel;
-    }
-
     public void init() {
         schemaNames = new HashSet<String>();
         schemaLocationsCtx = new HashMap<String, XmlSchemaImportLocation>();
@@ -58,10 +53,7 @@ public class XsdAdapterCtx {
      */
     public void addSchemaName(final String name) throws RuntimeException {
         if (!schemaNames.add(name)) {
-            if (XsdLogger.isError(logLevel)) {
-                XsdLogger.printC(ERROR, XSD_ADAPTER_CTX, "Schema with this name has been already processed! Name=" + name);
-            }
-
+            XsdLogger.printG(LOG_ERROR, XSD_ADAPTER_CTX, "Schema with this name has been already processed! Name=" + name);
             throw new RuntimeException("X-definition name duplication");
         }
     }
@@ -73,16 +65,11 @@ public class XsdAdapterCtx {
      */
     public void addSchemaLocation(final String nsUri, final XmlSchemaImportLocation importLocation) {
         if (schemaLocationsCtx.containsKey(nsUri)) {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Schema location already exists for namespace URI. NamespaceURI=" + nsUri);
-            }
+            XsdLogger.printG(LOG_WARN, XSD_ADAPTER_CTX, "Schema location already exists for namespace URI. NamespaceURI=" + nsUri);
             return;
         }
 
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocalition(null));
-        }
-
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocalition(null));
         schemaLocationsCtx.put(nsUri, importLocation);
     }
 

@@ -1,7 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.xdef.impl.XNode;
-import org.xdef.model.XMDefinition;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
@@ -9,54 +8,66 @@ import static org.xdef.model.XMNode.XMTEXT;
 
 public class XsdLogger {
 
-    public static boolean isError(int logLevel) {
-        return logLevel >= LOG_LEVEL_ERROR;
+    private static int LOG_LEVEL = LOG_WARN;
+
+    public static void setLogLevel(int logLevel) {
+        LOG_LEVEL = logLevel;
     }
 
-    public static boolean isWarn(int logLevel) {
-        return logLevel >= LOG_LEVEL_WARN;
+    public static void print(int level, final AlgPhase phase, final String group, final String msg) {
+        print(level, phase, group, null, msg);
     }
 
-    public static boolean isInfo(int logLevel) {
-        return logLevel >= LOG_LEVEL_INFO;
+    public static void printP(int level, final AlgPhase phase, final XNode node, final String msg) {
+        print(level, phase, null, node, msg);
     }
 
-    public static boolean isDebug(int logLevel) {
-        return logLevel >= LOG_LEVEL_DEBUG;
+    public static void printP(int level, final AlgPhase phase, final String msg) {
+        print(level, phase, null, null, msg);
     }
 
-    public static boolean isTrace(int logLevel) {
-        return logLevel >= LOG_LEVEL_TRACE;
+    public static void printG(int level, final String group, final String msg) {
+        print(level, null, group, null, msg);
     }
 
-    public static void print(final String level, final String phase, final String category, final String msg) {
-        System.out.println("[" + level + "][" + category + "] " + phase + ": " + msg);
+    public static void printG(int level, final String group, final XNode node, final String msg) {
+        print(level, null, group, node, msg);
     }
 
-    public static void printP(final String level, final String phase, final XNode node, final String msg) {
-        if (node.getKind() == XMDEFINITION) {
-            System.out.println("[" + level + "][" + node.getXMDefinition().getName() + "] " + phase + ": " + msg);
-        } else {
-            System.out.println("[" + level + "][" + node.getXMDefinition().getName() + ":" + getXNodeName(node) + "] " + phase + ": " + msg);
+    private static void print(int level, final AlgPhase phase, final String group, final XNode node, final String msg) {
+        if (level > LOG_LEVEL) {
+            return;
         }
-    }
 
-    public static void printP(final String level, final String phase, final String msg) {
-        System.out.println("[" + level + "] " + phase + ": " + msg);
-    }
-
-    public static void printC(final String level, final String category, final String msg) {
-        System.out.println("[" + level + "][" + category + "] " + msg);
-    }
-
-    public static void printC(final String level, final String category, final XNode node, final String msg) {
-        if (node.getKind() == XMDEFINITION) {
-            System.out.println("[" + level + "][" + category + "][" + node.getXMDefinition().getName() + "] " + msg);
-        } else {
-            System.out.println("[" + level + "][" + category + "][" + node.getXMDefinition().getName() + ":" + getXNodeName(node) + "] " + msg);
+        String log = "[" + levelToString(level) + "]";
+        if (group != null) {
+            log += "[" + group + "]";
         }
+        if (node != null) {
+            if (node.getKind() == XMDEFINITION) {
+                log += "[" + node.getXMDefinition().getName() + "]";
+            } else {
+                log += "[" + node.getXMDefinition().getName() + " - " + getXNodeName(node) +  "]";
+            }
+        }
+        if (phase != null) {
+            log += " " + phase.getVal() + ":";
+        }
+        log += " " + msg;
+        System.out.println(log);
     }
 
+    private static String levelToString(int level) {
+        switch (level) {
+            case LOG_ERROR:     return "ERROR";
+            case LOG_WARN:      return "WARN";
+            case LOG_INFO:      return "INFO";
+            case LOG_DEBUG:     return "DEBUG";
+            case LOG_TRACE:     return "TRACE";
+        }
+
+        return "";
+    }
 
     private static String getXNodeName(final XNode node) {
         String nodeName = node.getName();

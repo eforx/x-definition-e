@@ -4,8 +4,12 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.*;
+
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
 
 /**
  * Transforms x-definition nodes into xsd nodes
@@ -24,8 +28,7 @@ class XD2XsdPPAdapterWrapper extends AbstractXd2XsdAdapter {
      */
     private NamespaceMap sourceNamespaceCtx = null;
 
-    protected XD2XsdPPAdapterWrapper(int logLevel, XDefinition xDefinition) {
-        this.logLevel = logLevel;
+    protected XD2XsdPPAdapterWrapper(XDefinition xDefinition) {
         this.sourceXDefinition = xDefinition;
     }
 
@@ -44,6 +47,8 @@ class XD2XsdPPAdapterWrapper extends AbstractXd2XsdAdapter {
      * @param allNodesToResolve     nodes to be transformed
      */
     protected void transformNodes(final Map<String, List<XNode>> allNodesToResolve) {
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, sourceXDefinition, "Transforming gathered nodes into extra schemas ...");
+
         Map<String, XmlSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
 
         int lastSizeMap = schemasToResolve.size();
@@ -56,7 +61,7 @@ class XD2XsdPPAdapterWrapper extends AbstractXd2XsdAdapter {
                 List<XNode> nodesInSchemaToResolve = allNodesToResolve.get(schemaTargetNsUri);
                 if (nodesInSchemaToResolve != null) {
                     if (!nodesInSchemaToResolve.isEmpty()) {
-                        XD2XsdPPAdapter adapter = new XD2XsdPPAdapter(logLevel, sourceXDefinition);
+                        XD2XsdPPAdapter adapter = new XD2XsdPPAdapter(sourceXDefinition);
                         adapter.setAdapterCtx(adapterCtx);
                         adapter.createOrUpdateSchema(new NamespaceMap((HashMap) sourceNamespaceCtx.clone()), allNodesToResolve, nodesInSchemaToResolve, schemaTargetNsUri, schemaToResolve.getValue());
                     }

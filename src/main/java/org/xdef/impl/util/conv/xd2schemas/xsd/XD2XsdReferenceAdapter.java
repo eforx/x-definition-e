@@ -17,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
 class XD2XsdReferenceAdapter {
 
-    private final int logLevel;
     private final XmlSchema schema;
     private final XsdElementFactory xsdFactory;
     private final XDTree2XsdAdapter treeAdapter;
@@ -32,7 +33,7 @@ class XD2XsdReferenceAdapter {
      * Post-processing for extra schemas
      */
     private Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations;
-    private boolean postProcessing;
+    private boolean isPostProcessingPhase;
 
     private Set<String> simpleTypeReferences;
     private Set<String> namespaceImports;
@@ -42,21 +43,19 @@ class XD2XsdReferenceAdapter {
     private Set<String> namespaceIncludes;
 
     protected XD2XsdReferenceAdapter(
-            int logLevel,
             XmlSchema schema,
             XsdElementFactory xsdFactory,
             XDTree2XsdAdapter treeAdapter,
             Map<String, XmlSchemaImportLocation> schemaLocations) {
-        this.logLevel = logLevel;
         this.schema = schema;
         this.xsdFactory = xsdFactory;
         this.treeAdapter = treeAdapter;
         this.schemaLocations = schemaLocations;
     }
 
-    protected void initPostprocessing(final Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations, boolean postProcessing) {
+    protected void initPostprocessing(final Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations, boolean isPostProcessingPhase) {
         this.postprocessedSchemaLocations = postprocessedSchemaLocations;
-        this.postProcessing = postProcessing;
+        this.isPostProcessingPhase = isPostProcessingPhase;
     }
 
     /**
@@ -74,26 +73,18 @@ class XD2XsdReferenceAdapter {
     }
 
     private void extractRefsAndImports(XDefinition xDef) {
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
-        }
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
 
         final Set<XMNode> processed = new HashSet<XMNode>();
 
         // Extract all simple types and imports
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
-        }
-
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
         for (XElement elem : xDef.getXElements()) {
             extractSimpleRefsAndImports(elem, processed, false);
         }
 
         // Extract all complex types
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, xDef, "Extracting complex references ...");
-        }
-
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
         for (XElement elem : xDef.getXElements()) {
             if (!treeAdapter.getXdRootNames().contains(elem.getName())) {
                 extractElementRefs(elem);
@@ -110,20 +101,14 @@ class XD2XsdReferenceAdapter {
 
         for (XNode n : nodes) {
             // Extract all simple types and imports
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, POSTPROCESSING, n, "Extracting simple references and imports ...");
-            }
-
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, n, "Extracting simple references and imports ...");
             extractSimpleRefsAndImports(n, processed, false);
 
-            // Extract all complex types
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, n, "Extracting complex references ...");
-            }
-
             // TODO: Should be used?
+            // Extract all complex types
             /*
             if (n.getKind() == XNode.XMELEMENT) {
+                XsdLogger.printP(LOG_INFO, PREPROCESSING, n, "Extracting complex references ...");
                 XElement xElem = (XElement)n;
                 for (XNode childNode : xElem._childNodes) {
                     if (childNode.getKind() == XNode.XMELEMENT) {
@@ -136,16 +121,12 @@ class XD2XsdReferenceAdapter {
     }
 
     private void extractElementRefs(final XNode xNode) {
-        if (XsdLogger.isDebug(logLevel)) {
-            XsdLogger.printP(DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
-        }
+        XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
 
         XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
         XmlSchemaType elementType = xsdElem.getSchemaType();
         if (elementType == null) {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
-            }
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
             if (xsdElem.getRef().getTargetQName() != null) {
                 XsdPostProcessor.elementTopLevelRef(xsdElem, (XElement)xNode, xsdFactory);
             }
@@ -153,26 +134,20 @@ class XD2XsdReferenceAdapter {
             elementType.setName(xsdElem.getName());
             XD2XsdUtils.addSchemaType(schema, elementType);
             schema.getItems().remove(xsdElem);
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Element=" + xsdElem.getName());
-            }
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Element=" + xsdElem.getName());
         }
     }
 
     private void extractSimpleRefsAndImports(XNode xn, final Set<XMNode> processed, boolean parentRef) {
 
         if (!processed.add(xn)) {
-            if (XsdLogger.isDebug(logLevel)) {
-                XsdLogger.printP(DEBUG, PREPROCESSING, xn, "Already processed. This node is reference probably");
-            }
+            XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Already processed. This node is reference probably");
             return;
         }
 
         switch (xn.getKind()) {
             case XNode.XMELEMENT: {
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, PREPROCESSING, xn, "Processing XMElement node");
-                }
+                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XMElement node. Node=" + xn.getName());
 
                 XElement xDefEl = (XElement)xn;
                 XMNode[] attrs = xDefEl.getXDAttrs();
@@ -189,12 +164,10 @@ class XD2XsdReferenceAdapter {
                         addSchemaImportFromElem(xDefEl.getNSUri(), refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
                         final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
-                        XmlSchema refSchema = XsdNamespaceUtils.getReferenceSchema(schema.getParent(), refSystemId, PREPROCESSING, logLevel);
-                        if (refSchema != null) {
-                            final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
-                            final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
-                            addSchemaImportFromElem(nsUri, refPos);
-                        }
+                        XmlSchema refSchema = XsdNamespaceUtils.getReferenceSchema(schema.getParent(), refSystemId, true, PREPROCESSING);
+                        final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
+                        final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
+                        addSchemaImportFromElem(nsUri, refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentSystem(refPos, xDefEl.getXDPosition())) {
                         addSchemaInclude(refPos);
                     } // else {} // Reference in same x-definition and same namespace
@@ -202,12 +175,12 @@ class XD2XsdReferenceAdapter {
                     isRef = true;
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema) && postProcessing == false) {
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema) && isPostProcessingPhase == false) {
                         final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                         final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                         if (nsUri == null || nsUri.isEmpty()) {
-                            if (parentRef == false && XsdLogger.isError(logLevel)) {
-                                XsdLogger.printP(ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
+                            if (parentRef == false) {
+                                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
                                         " NamespacePrefix=" + nsPrefix);
                             }
 
@@ -236,9 +209,7 @@ class XD2XsdReferenceAdapter {
                 return;
             }
             case XNode.XMDEFINITION: {
-                if (XsdLogger.isDebug(logLevel)) {
-                    XsdLogger.printP(DEBUG, PREPROCESSING, xn, "Processing XDefinition node");
-                }
+                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XDefinition node. Node=" + xn.getName());
 
                 XDefinition def = (XDefinition)xn;
                 XElement[] elems = def.getXElements();
@@ -257,9 +228,7 @@ class XD2XsdReferenceAdapter {
         // Simple type node
         if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
             xsdFactory.creatSimpleTypeTop(xData, refTypeName);
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type definition from reference. Name=" + refTypeName);
-            }
+            XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition from reference. Name=" + refTypeName);
             return;
         }
 
@@ -267,9 +236,7 @@ class XD2XsdReferenceAdapter {
             refTypeName = XsdNameUtils.createRefNameFromParser(xData);
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
                 xsdFactory.creatSimpleTypeTop(xData, refTypeName);
-                if (XsdLogger.isInfo(logLevel)) {
-                    XsdLogger.printP(INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
-                }
+                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
                 return;
             }
         }
@@ -288,15 +255,10 @@ class XD2XsdReferenceAdapter {
         }
 
         if (schemaLocations.containsKey(refSystemId)) {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Add schema include. SchemaName=" + refSystemId);
-            }
-
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add schema include. SchemaName=" + refSystemId);
             xsdFactory.createSchemaInclude(schema, schemaLocations.get(refSystemId).buildLocalition(refSystemId));
         } else {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(WARN, PREPROCESSING, "Required schema import has not been found! SchemaName=" + refSystemId);
-            }
+            XsdLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! SchemaName=" + refSystemId);
         }
     }
 
@@ -306,15 +268,10 @@ class XD2XsdReferenceAdapter {
         }
 
         if (schemaLocations.containsKey(nsUri)) {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            }
-
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
             xsdFactory.createSchemaImport(schema, nsUri, schemaLocations.get(nsUri).buildLocalition(XsdNamespaceUtils.getReferenceSystemId(refName)));
         } else {
-            if (XsdLogger.isWarn(logLevel)) {
-                XsdLogger.printP(WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
-            }
+            XsdLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
         }
     }
 
@@ -324,15 +281,12 @@ class XD2XsdReferenceAdapter {
         }
 
         if (schemaLocations.containsKey(nsUri)) {
-            if (XsdLogger.isInfo(logLevel)) {
-                XsdLogger.printP(INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            }
-
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
             xsdFactory.createSchemaImport(schema, nsUri, schemaLocations.get(nsUri).buildLocalition(null));
         } else if (postprocessedSchemaLocations != null) {
             if (!postprocessedSchemaLocations.containsKey(nsUri)) {
                 addPostProcessingSchemaImport(nsPrefix, nsUri);
-            } else if (postProcessing) {
+            } else if (isPostProcessingPhase) {
                 xsdFactory.createSchemaImport(schema, nsUri, postprocessedSchemaLocations.get(nsUri).buildLocalition(null));
             }
         }
@@ -354,12 +308,8 @@ class XD2XsdReferenceAdapter {
 
     private void addPostProcessingSchemaImport(final String nsPrefix, final String nsUri) {
         final String schemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add external namespace import. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
         postprocessedSchemaLocations.put(nsUri, new XmlSchemaImportLocation(nsUri, schemaName));
-
-        if (XsdLogger.isInfo(logLevel)) {
-            XsdLogger.printP(INFO, PREPROCESSING, "Add external namespace import. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
-        }
-
         xsdFactory.createSchemaImport(schema, nsUri, postprocessedSchemaLocations.get(nsUri).buildLocalition(null));
     }
 
