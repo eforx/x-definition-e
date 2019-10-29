@@ -245,10 +245,11 @@ public class XsdNamespaceUtils {
     }
 
     public static String createRefLocalName(final String name) {
-        return "loc_" + name;
+        //return "loc_" + name;
+        return name;
     }
 
-    public static XmlSchema getReferenceSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, boolean shouldExists, final AlgPhase phase) {
+    public static XmlSchema getSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, boolean shouldExists, final AlgPhase phase) {
         XmlSchema[] schemas = xmlCollection.getXmlSchema(refSystemId);
         if (schemas == null || schemas.length == 0) {
             if (shouldExists == true) {

@@ -34,7 +34,7 @@ public class XsdElementFactory {
     }
 
     /**
-     * Create named xsd element
+     * Creates xsd element
      * Example: <element>
      */
     public XmlSchemaElement createEmptyElement(final XElement xElement, boolean topLevel) {
@@ -46,7 +46,21 @@ public class XsdElementFactory {
     }
 
     /**
-     * Create complexType element
+     * Creates attribute
+     */
+    public XmlSchemaAttribute createEmptyAttribute(final XData xData, boolean topLevel) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Attribute element. Top=" + topLevel);
+        XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, topLevel);
+        if (xData.isOptional() || xData.getOccurence().isOptional()) {
+            attr.setUse(XmlSchemaUse.OPTIONAL);
+        } else if (xData.isRequired() || xData.getOccurence().isRequired()) {
+            attr.setUse(XmlSchemaUse.REQUIRED);
+        }
+        return attr;
+    }
+
+    /**
+     * Creates complexType element
      * Output: <complexType>
      */
     public XmlSchemaComplexType createEmptyComplexType(boolean topLevel) {
@@ -55,7 +69,7 @@ public class XsdElementFactory {
     }
 
     /**
-     * Create simpleType element
+     * Creates simpleType element
      * Output: <simpleType>
      */
     public XmlSchemaSimpleType createEmptySimpleType(boolean topLevel) {
@@ -174,13 +188,24 @@ public class XsdElementFactory {
         return annotation;
     }
 
-    public XmlSchemaComplexType createComplexContentWithExt(final String name, final QName qName) {
+    public XmlSchemaComplexType createComplexContentWithExtension(final String name, final QName qName) {
         XmlSchemaComplexType complexType = createEmptyComplexType(true);
         XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
         XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();
         complexContentExtension.setBaseTypeName(qName);
         complexContent.setContent(complexContentExtension);
         complexType.setContentModel(complexContent);
+        complexType.setName(name);
+        return complexType;
+    }
+
+    public XmlSchemaComplexType createComplextContentWithSimpleRestriction(final String name, final QName qName) {
+        XmlSchemaComplexType complexType = createEmptyComplexType(true);
+        XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
+        XmlSchemaSimpleContentExtension simpleContentExtension = new XmlSchemaSimpleContentExtension();
+        simpleContentExtension.setBaseTypeName(qName);
+        simpleContent.setContent(simpleContentExtension);
+        complexType.setContentModel(simpleContent);
         complexType.setName(name);
         return complexType;
     }

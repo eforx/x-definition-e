@@ -6,7 +6,6 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
@@ -48,10 +47,10 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
 
         XsdElementFactory xsdBuilder = new XsdElementFactory(schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdBuilder);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdBuilder, adapterCtx.getNodeRefs());
         treeAdapter.initPostprocessing(allNodesToResolve, adapterCtx.getExtraSchemaLocationsCtx());
 
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx());
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx(), adapterCtx.getNodeRefs());
         referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), true);
         referenceAdapter.extractRefsAndImports(nodesInSchemaToResolve);
 
@@ -85,7 +84,7 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      * @return  instance of xml schema
      */
     private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
-        XmlSchema schema = XsdNamespaceUtils.getReferenceSchema(adapterCtx.getXmlSchemaCollection(), schemaName, false, POSTPROCESSING);
+        XmlSchema schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), schemaName, false, POSTPROCESSING);
 
         if (schema == null) {
             adapterCtx.addSchemaName(schemaName);

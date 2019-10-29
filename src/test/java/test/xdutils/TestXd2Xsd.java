@@ -3,6 +3,7 @@ package test.xdutils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.xdef.XDDocument;
 import org.xdef.XDPool;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
@@ -11,6 +12,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
+import org.xdef.util.XValidate;
 import test.utils.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
@@ -19,7 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -66,8 +69,12 @@ public class TestXd2Xsd extends XDTester {
         return xdFile;
     }
 
+    private File getXDefFile(final String fileName) throws FileNotFoundException {
+        return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xdef");
+    }
+
     private XDPool compileXd(final String fileName) throws FileNotFoundException {
-        return compile(getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xdef"), this.getClass());
+        return compile(getXDefFile(fileName), this.getClass());
     }
 
     private FileReader createFileReader(final String filePath, final String fileName, final String fileExt) throws FileNotFoundException {
@@ -267,7 +274,32 @@ public class TestXd2Xsd extends XDTester {
         }
     }
 
-    private void validateXml(final String fileName, List<String> validTestingData, List<String> invalidTestingData, boolean validateRef) throws FileNotFoundException {
+    private void validateXmlAgainstXDef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) throws FileNotFoundException {
+        // Validate valid XML file against XSD schema
+        if (validTestingData != null) {
+            for (String testingFile : validTestingData) {
+                File xmlDataFile = getXmlDataFile(fileName, testingFile);
+                File xDefFile = getXDefFile(fileName);
+                ArrayReporter reporter = new ArrayReporter();
+                XDDocument xdDocument = XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
+                assertTrue(xdDocument != null, "XML is not valid against x-definition. Test=" + fileName + ", File=" + testingFile);
+                assertFalse(reporter.errors(), "Error occurs on x-definition validation. Test=" + fileName + ", File=" + testingFile);
+            }
+        }
+
+        // Validate invalid XML file against XSD schema
+        if (invalidTestingData != null) {
+            for (String testingFile : invalidTestingData) {
+                File xmlDataFile = getXmlDataFile(fileName, testingFile);
+                File xDefFile = getXDefFile(fileName);
+                ArrayReporter reporter = new ArrayReporter();
+                XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
+                assertTrue(reporter.errors(), "Error does not occurs on x-definition validation (but it should). Test=" + fileName + ", File=" + testingFile);
+            }
+        }
+    }
+
+    private void validateXmlAgainstXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, boolean validateRef) throws FileNotFoundException {
         File refXsdFile = null;
         if (validateRef) {
             refXsdFile = getRefSchemaFile(fileName);
@@ -279,10 +311,10 @@ public class TestXd2Xsd extends XDTester {
             for (String testingFile : validTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
                 if (validateRef == true && VALIDATE_XML_AGAINST_REF_XSD == true) {
-                    validateXml(fileName, xmlDataFile, refXsdFile, true, "ref");
+                    validateXmlAgainstXsd(fileName, xmlDataFile, refXsdFile, true, "ref");
                 }
                 if (outputXsdFile != null) {
-                    validateXml(fileName, xmlDataFile, outputXsdFile, true, "out");
+                    validateXmlAgainstXsd(fileName, xmlDataFile, outputXsdFile, true, "out");
                 }
             }
         }
@@ -292,16 +324,16 @@ public class TestXd2Xsd extends XDTester {
             for (String testingFile : invalidTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
                 if (validateRef == true && VALIDATE_XML_AGAINST_REF_XSD == true) {
-                    validateXml(fileName, xmlDataFile, refXsdFile, false, "ref");
+                    validateXmlAgainstXsd(fileName, xmlDataFile, refXsdFile, false, "ref");
                 }
                 if (outputXsdFile != null) {
-                    validateXml(fileName, xmlDataFile, outputXsdFile, false, "out");
+                    validateXmlAgainstXsd(fileName, xmlDataFile, outputXsdFile, false, "out");
                 }
             }
         }
     }
 
-    private void validateXml(final String fileName, final File xmlFile, final File xsdSchemaFile, boolean expectedResult, String type) {
+    private void validateXmlAgainstXsd(final String fileName, final File xmlFile, final File xsdSchemaFile, boolean expectedResult, String type) {
         XmlValidator validator = new XmlValidator(new StreamSource(xmlFile), new StreamSource(xsdSchemaFile));
         assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), expectedResult && VALIDATE_XML_PRINT_ERRORS),
                 "Xml validation failed, testCase: " + fileName + ", type: " + type + ", fileName: " + xmlFile.getName());
@@ -334,8 +366,10 @@ public class TestXd2Xsd extends XDTester {
                 writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
+            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData);
+
             // Validate XML files against output XSD schemas and reference XSD schemas
-            validateXml(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd);
+            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd);
 
             assertNoErrors(reporter);
         } catch (Exception ex) {fail(ex);}
@@ -375,8 +409,10 @@ public class TestXd2Xsd extends XDTester {
                 writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
+            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData);
+
             // Validate XML files against output XSD schemas and reference XSD schemas
-            validateXml(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd);
+            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd);
 
             assertNoErrors(reporter);
         } catch (Exception ex) {fail(ex);}
@@ -387,7 +423,6 @@ public class TestXd2Xsd extends XDTester {
         init();
 
         // ============ XDef ============
-
 
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
         convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
@@ -404,8 +439,6 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}));
-
-
         convertXdDef2XsdNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("ATTR_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_to_ATTR_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("basicTest",
@@ -435,7 +468,9 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("simpleModelTest",
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", "simpleModelTest_valid_3", "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 
+
         // ============ XDPool ============
+
 
         convertXdPool2Xsd("t011", Arrays.asList(new String[] {"t011"}), null);
         convertXdPool2Xsd("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null);
@@ -461,12 +496,9 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2XsdNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 
-        // TODO: Reference transformation
-        //convertXdPool2XsdNoRef ("refTest1", Arrays.asList(new String[] {"refTest1_valid_1"}), null);
-        // TODO: Reference from complex type to no namespace root element
-        //convertXdPool2XsdNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
-        //convertXdPool2XsdNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
-
+        convertXdPool2XsdNoRef ("refTest1", Arrays.asList(new String[] {"refTest1_valid_1"}), null);
+        convertXdPool2XsdNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
+        convertXdPool2XsdNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

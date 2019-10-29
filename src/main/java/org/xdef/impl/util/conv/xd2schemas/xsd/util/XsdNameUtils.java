@@ -29,6 +29,15 @@ public class XsdNameUtils {
         return refPos;
     }
 
+    public static String getReferenceNodePath(final String refPos) {
+        int xdefSystemSeparatorPos = refPos.indexOf('#');
+        if (xdefSystemSeparatorPos != -1) {
+            return refPos.substring(xdefSystemSeparatorPos + 1);
+        }
+
+        return refPos;
+    }
+
     /**
      * Returns name without target namespace
      * @param schema

@@ -40,11 +40,20 @@ public class XsdAdapterCtx {
      */
     private XmlSchemaCollection xmlSchemaCollection = null;
 
+
+    /**
+     *
+     * Key:     schema name
+     * Value:   node path,
+     */
+    private Map<String, Map<String, SchemaRefNode>> nodeRefs = null;
+
     public void init() {
         schemaNames = new HashSet<String>();
         schemaLocationsCtx = new HashMap<String, XmlSchemaImportLocation>();
         extraSchemaLocationsCtx = new HashMap<String, XmlSchemaImportLocation>();
         xmlSchemaCollection = new XmlSchemaCollection();
+        nodeRefs = new HashMap<String, Map<String, SchemaRefNode>>();
     }
 
     /**
@@ -87,5 +96,9 @@ public class XsdAdapterCtx {
 
     public final XmlSchemaCollection getXmlSchemaCollection() {
         return xmlSchemaCollection;
+    }
+
+    public final Map<String, Map<String, SchemaRefNode>> getNodeRefs() {
+        return nodeRefs;
     }
 }

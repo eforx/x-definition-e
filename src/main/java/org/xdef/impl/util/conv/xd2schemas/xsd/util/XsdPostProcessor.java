@@ -4,47 +4,133 @@ import org.apache.ws.commons.schema.*;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaRefNode;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdPostProcessor {
 
-    /**
-     * Transform root element containing reference to local type + complexType
-     *
-     * TODO: chaining transformation of references - transform also definition of reference into complex type
-     */
-    public static void elementTopLevelRef(final XmlSchemaElement xsdElem, final XElement xDefEl, final XsdElementFactory xsdFactory) {
-        final String newRefLocalName = XsdNamespaceUtils.createRefLocalName(xDefEl.getName());
-        final QName qName = xsdElem.getRef().getTargetQName();
-        xsdElem.getRef().setTargetQName(null);
+    private final XmlSchemaCollection schemaCollection;
+    private final Map<String, Map<String, SchemaRefNode>> nodeRefs;
 
-        // Creating complex content with extension to original reference
-        xsdFactory.createComplexContentWithExt(newRefLocalName, qName);
-        xsdElem.setName(xDefEl.getName());
-        xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, newRefLocalName));
+
+    public XsdPostProcessor(XmlSchemaCollection schemaCollection, Map<String, Map<String, SchemaRefNode>> nodeRefs) {
+        this.schemaCollection = schemaCollection;
+        this.nodeRefs = nodeRefs;
     }
 
-    /**
-     * Transform element using reference to different x-definition and different namespace to local complex type
-     *
-     * TODO: chaining transformation of references - transform also definition of reference into complex type
-     * @param xsdElem
-     * @param xDefEl
-     * @param nsUri
-     * @param refLocalName
-     * @param xsdFactory
-     */
-    public static void elementRef2Complex(final XmlSchemaElement xsdElem, final XElement xDefEl, final String nsPrefix, final String nsUri, final String refLocalName, final XsdElementFactory xsdFactory) {
-        final String newRefLocalName = XsdNamespaceUtils.createRefNameDiffSystemAndNs(nsPrefix, refLocalName);
-        xsdFactory.createComplexContentWithExt(newRefLocalName, new QName(nsUri, refLocalName));
-        xsdElem.setName(xDefEl.getName());
-        xsdElem.setSchemaTypeName(new QName(XSD_NAMESPACE_PREFIX_EMPTY, newRefLocalName));
+    public void processRefs() {
+        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "*** Updating references ***");
+
+        for (Map.Entry<String, Map<String, SchemaRefNode>> systemRefEntry : nodeRefs.entrySet()) {
+            XsdLogger.printP(LOG_INFO, POSTPROCESSING, "Updating references. System=" + systemRefEntry.getKey());
+
+            XmlSchema xmlSchema = XsdNamespaceUtils.getSchema(schemaCollection, systemRefEntry.getKey(), true, POSTPROCESSING);
+            XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema);
+
+            for (Map.Entry<String, SchemaRefNode> refEntry : systemRefEntry.getValue().entrySet()) {
+                if (refEntry.getValue().getReference() == null) {
+                    continue;
+                }
+
+                final SchemaRefNode refNode = refEntry.getValue();
+                if (isTopElementRef(refNode)) {
+                    elementTopLevelRef(refNode, xsdFactory);
+                } else if (isTopElementWithPointers(refNode)) {
+                    // TODO: reference to root element
+                }
+
+                refType(refNode);
+            }
+        }
+    }
+
+    private void elementTopLevelRef(final SchemaRefNode node, final XsdElementFactory xsdFactory) {
+        XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Updating top-level element reference ...");
+
+        elementTopToComplex(node, xsdFactory, true);
+
+        SchemaRefNode refNode = node.getReference();
+
+        if (refNode != null) {
+            if (isTopElement(refNode)) {
+                final String systemId = XsdNamespaceUtils.getReferenceSystemId(refNode.getXdNode().getXDPosition());
+                XmlSchema xmlSchema = XsdNamespaceUtils.getSchema(schemaCollection, systemId, true, POSTPROCESSING);
+                XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema);
+                if (refNode.toXsdElem().isRef()) {
+                    elementTopLevelRef(refNode, refXsdFactory);
+                } else {
+                    elementTopToComplex(refNode, refXsdFactory, false);
+                }
+            }
+        }
+    }
+
+    private void elementTopToComplex(final SchemaRefNode node, final XsdElementFactory xsdFactory, boolean ref) {
+        XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting top-level element to complex-type ...");
+
+        final XmlSchemaElement xsdElem = (XmlSchemaElement)node.getXsdNode();
+        final XElement xDefEl = (XElement)node.getXdNode();
+        final String newRefLocalName = XsdNamespaceUtils.createRefLocalName(xDefEl.getName());
+
+        // Creating complex content with extension to original reference
+        XmlSchemaType schemaType;
+        if (ref || xsdElem.getRef().getTargetQName() != null) {
+            schemaType = xsdFactory.createComplexContentWithExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
+        } else {
+            schemaType = xsdFactory.createComplextContentWithSimpleRestriction(newRefLocalName, xsdElem.getSchemaTypeName());
+        }
+
+        node.setXsdNode(schemaType);
+
+        // Remove original element from schema
+        xsdElem.getParent().getItems().remove(xsdElem);
+
+        // Update all pointers to element
+        if (node.getPointers() != null) {
+            for (SchemaRefNode ptrNode : node.getPointers()) {
+                if (ptrNode.isElem()) {
+                    final XmlSchemaElement xsdPtrElem = ptrNode.toXsdElem();
+                    QName ptrQName = xsdPtrElem.getRef().getTargetQName();
+                    if (ptrQName != null) {
+                        XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting reference to type. Elem=" + ptrNode.getXdNode().getName());
+                        xsdPtrElem.getRef().setTargetQName(null);
+                        ptrQName = new QName(ptrQName.getNamespaceURI(), newRefLocalName);
+                        xsdPtrElem.setName(ptrNode.getXdNode().getName());
+                        xsdPtrElem.setSchemaTypeName(ptrQName);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isTopElementRef(final SchemaRefNode node) {
+        return node.isElem() && node.getXsdNode().isTopLevel() && node.getXdNode().getKind() == XNode.XMELEMENT && node.toXsdElem().isRef();
+    }
+
+    private static boolean isTopElement(final SchemaRefNode node) {
+        return node.isElem() && node.getXsdNode().isTopLevel() && node.getXdNode().getKind() == XNode.XMELEMENT;
+    }
+
+    private static boolean isTopElementWithPointers(final SchemaRefNode node) {
+        return node.isElem() && node.getXsdNode().isTopLevel() && node.getXdNode().getKind() == XNode.XMELEMENT && node.hasAnyPointer();
+    }
+
+    private static void refType(final SchemaRefNode node) {
+        if (node.getReference() != null && node.getReference().isElem() && node.isElem() && node.toXsdElem().getRef().getTargetQName() == null) {
+            XmlSchemaElement xsdElem = node.toXsdElem();
+            if (xsdElem.getName() == null) {
+                xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
+                xsdElem.setSchemaTypeName(null);
+            } else {
+                XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Element cannot use QName, because already has a name!");
+            }
+        }
     }
 
     public static void elementComplexContent(final XElement defEl, final XmlSchemaComplexType complexType) {

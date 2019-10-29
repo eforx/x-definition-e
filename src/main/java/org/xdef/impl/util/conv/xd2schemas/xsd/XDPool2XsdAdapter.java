@@ -11,6 +11,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
 
 import java.util.*;
@@ -58,47 +59,8 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
             adapter.createSchema(xDef);
         }
 
-        // TODO: Post-process references
-/*
-        for (XmlSchema schema : adapterCtx.getXmlSchemaCollection().getXmlSchemas()) {
-            System.out.println(schema);
-            List<XmlSchemaObject> items = schema.getItems();
-            for (XmlSchemaObject item : items) {
-                if (item instanceof XmlSchemaElement) {
-                    XmlSchemaElement e = (XmlSchemaElement)item;
-                    boolean top = e.isTopLevel();
-                    if (e.getName() != null) {
-                        System.out.println("Item: " + e.getName());
-                    } else if (e.getRef() != null && e.getRef().getTargetQName() != null) {
-                        System.out.println("Item ref: " + e.getRef().getTargetQName());
-                    }
-                    XmlSchemaRef<XmlSchemaElement> ref = e.getRef();
-                    if (ref != null) {
-                        System.out.println("Item: " + ref);
-                    }
-                }
-            }
-
-            System.out.println("======");
-
-            Map<QName, XmlSchemaElement> elems = schema.getElements();
-            for (Map.Entry<QName, XmlSchemaElement> elem : elems.entrySet()) {
-                XmlSchemaElement e = elem.getValue();
-                boolean top = e.isTopLevel();
-                if (e.getName() != null) {
-                    System.out.println("Elem: " + e.getName());
-                } else if (e.getRef() != null && e.getRef().getTargetQName() != null) {
-                    System.out.println("Elem ref: " + e.getRef().getTargetQName());
-                }
-                XmlSchemaRef<XmlSchemaElement> ref = e.getRef();
-                if (ref != null) {
-                    System.out.println("Elem: " + ref);
-                }
-            }
-
-            System.out.println("======");
-        }
- */
+        XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx.getXmlSchemaCollection(), adapterCtx.getNodeRefs());
+        postProcessor.processRefs();
 
         return adapterCtx.getXmlSchemaCollection();
     }

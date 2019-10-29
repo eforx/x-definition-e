@@ -52,35 +52,43 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         XsdLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "Transforming x-definition. Name=" + xDef.getName());
         XsdLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "====================");
 
+        boolean postProcessRefs = false;
+
         this.xDefinition = (XDefinition)xDef;
         if (adapterCtx == null) {
             adapterCtx = new XsdAdapterCtx();
             adapterCtx.init();
             schema = createXsdSchema();
+            postProcessRefs = true;
         } else {
-            schema = XsdNamespaceUtils.getReferenceSchema(adapterCtx.getXmlSchemaCollection(), xDef.getName(), false, INITIALIZATION);
+            schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), xDef.getName(), false, INITIALIZATION);
         }
 
         XsdElementFactory xsdFactory = new XsdElementFactory(schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdFactory);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdFactory, adapterCtx.getNodeRefs());
         treeAdapter.initPostprocessing(null, adapterCtx.getExtraSchemaLocationsCtx());
         treeAdapter.loadXdefRootNames(xDefinition);
 
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx.getSchemaLocationsCtx());
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx.getSchemaLocationsCtx(), adapterCtx.getNodeRefs());
         referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), false);
         referenceAdapter.createRefsAndImports(xDefinition);
 
-        transformXdef(treeAdapter, xsdFactory);
+        transformXdef(treeAdapter);
 
         // Post-processing
         {
             // Nodes from different namespace
-            if (!treeAdapter.getPostprocessedNodes().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
+            if (!treeAdapter.getNodesToBePostProcessed().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
                 XD2XsdPPAdapterWrapper postProcessingAdapter = new XD2XsdPPAdapterWrapper(xDefinition);
                 postProcessingAdapter.setAdapterCtx(adapterCtx);
                 postProcessingAdapter.setSourceNamespaceCtx((NamespaceMap)schema.getNamespaceContext(), schema.getSchemaNamespacePrefix());
-                postProcessingAdapter.transformNodes(treeAdapter.getPostprocessedNodes());
+                postProcessingAdapter.transformNodes(treeAdapter.getNodesToBePostProcessed());
+            }
+
+            if (postProcessRefs) {
+                XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx.getXmlSchemaCollection(), adapterCtx.getNodeRefs());
+                postProcessor.processRefs();
             }
         }
 
@@ -91,17 +99,12 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Transform x-definition tree to xsd schema via treeAdapter
      * @param treeAdapter   transformation algorithm
      */
-    private void transformXdef(final XDTree2XsdAdapter treeAdapter, final XsdElementFactory xsdFactory) {
+    private void transformXdef(final XDTree2XsdAdapter treeAdapter) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xDefinition, "*** Transformation of x-definition tree ***");
 
         for (XElement elem : xDefinition.getXElements()) {
             if (treeAdapter.getXdRootNames().contains(elem.getName())) {
-                XmlSchemaObject xsdObj = treeAdapter.convertTree(elem);
-                if (xsdObj instanceof XmlSchemaElement) {
-                    if (((XmlSchemaElement) xsdObj).getRef().getTargetQName() != null) {
-                        XsdPostProcessor.elementTopLevelRef((XmlSchemaElement) xsdObj, elem, xsdFactory);
-                    }
-                }
+                treeAdapter.convertTree(elem);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
             }
         }

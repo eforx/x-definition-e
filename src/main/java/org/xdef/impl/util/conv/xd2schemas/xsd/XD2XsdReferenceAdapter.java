@@ -8,6 +8,7 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaRefNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
@@ -28,6 +29,7 @@ class XD2XsdReferenceAdapter {
     private final XsdElementFactory xsdFactory;
     private final XDTree2XsdAdapter treeAdapter;
     private final Map<String, XmlSchemaImportLocation> schemaLocations;
+    final private Map<String, Map<String, SchemaRefNode>> xsdReferences;
 
     /**
      * Post-processing for extra schemas
@@ -46,11 +48,13 @@ class XD2XsdReferenceAdapter {
             XmlSchema schema,
             XsdElementFactory xsdFactory,
             XDTree2XsdAdapter treeAdapter,
-            Map<String, XmlSchemaImportLocation> schemaLocations) {
+            Map<String, XmlSchemaImportLocation> schemaLocations,
+            Map<String, Map<String, SchemaRefNode>> xsdReferences) {
         this.schema = schema;
         this.xsdFactory = xsdFactory;
         this.treeAdapter = treeAdapter;
         this.schemaLocations = schemaLocations;
+        this.xsdReferences = xsdReferences;
     }
 
     protected void initPostprocessing(final Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations, boolean isPostProcessingPhase) {
@@ -127,10 +131,8 @@ class XD2XsdReferenceAdapter {
         XmlSchemaType elementType = xsdElem.getSchemaType();
         if (elementType == null) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
-            if (xsdElem.getRef().getTargetQName() != null) {
-                XsdPostProcessor.elementTopLevelRef(xsdElem, (XElement)xNode, xsdFactory);
-            }
         } else if (elementType instanceof XmlSchemaType) {
+            XsdReferenceUtils.updateNode(xNode, elementType, xsdReferences);
             elementType.setName(xsdElem.getName());
             XD2XsdUtils.addSchemaType(schema, elementType);
             schema.getItems().remove(xsdElem);
@@ -164,7 +166,7 @@ class XD2XsdReferenceAdapter {
                         addSchemaImportFromElem(xDefEl.getNSUri(), refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
                         final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
-                        XmlSchema refSchema = XsdNamespaceUtils.getReferenceSchema(schema.getParent(), refSystemId, true, PREPROCESSING);
+                        XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), refSystemId, true, PREPROCESSING);
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                         addSchemaImportFromElem(nsUri, refPos);
