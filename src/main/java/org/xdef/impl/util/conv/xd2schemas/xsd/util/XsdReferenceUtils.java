@@ -14,10 +14,10 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 public class XsdReferenceUtils {
 
     public static SchemaRefNode createNode(final XmlSchemaElement xsdElem, final XElement xDefEl) {
-        return createNode(xDefEl.getName(), xsdElem, xDefEl);
+        return createNode(XsdNamespaceUtils.getReferenceSystemId(xDefEl.getXDPosition()) + "#" + xDefEl.getName(), xsdElem, xDefEl);
     }
 
-    public static SchemaRefNode createNode(final String localName, final XmlSchemaElement xsdElem, final XElement xDefEl) {
+    private static SchemaRefNode createNode(final String localName, final XmlSchemaElement xsdElem, final XElement xDefEl) {
         return new SchemaRefNode(localName, xsdElem, xDefEl);
     }
 
@@ -27,6 +27,16 @@ public class XsdReferenceUtils {
         SchemaRefNode node = createNode(xsdElem, xDefEl);
         SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refLocalName, refNodePath, xsdRefs);
         XsdReferenceUtils.addNode(node, xsdRefs, true);
+        XsdReferenceUtils.createLink(node, nodeRef);
+    }
+
+    public static void createRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
+                                       final String systemId, String nodePath,
+                                       final String refSystemId, final String refLocalName, final String refNodePath,
+                                       final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
+        SchemaRefNode node = createNode(xsdElem, xDefEl);
+        SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refLocalName, refNodePath, xsdRefs);
+        XsdReferenceUtils.addNode(systemId, nodePath, node, xsdRefs, true);
         XsdReferenceUtils.createLink(node, nodeRef);
     }
 

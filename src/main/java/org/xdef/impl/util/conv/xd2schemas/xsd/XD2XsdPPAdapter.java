@@ -43,11 +43,11 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
         XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
         XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
 
-        createXsdSchema(namespaceCtx, targetNsUri, importLocation);
+        String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
         XsdElementFactory xsdBuilder = new XsdElementFactory(schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdBuilder, adapterCtx.getNodeRefs());
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, schemaName, xsdBuilder, adapterCtx.getNodeRefs());
         treeAdapter.initPostprocessing(allNodesToResolve, adapterCtx.getExtraSchemaLocationsCtx());
 
         XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdBuilder, treeAdapter, adapterCtx.getSchemaLocationsCtx(), adapterCtx.getNodeRefs());
@@ -65,14 +65,14 @@ class XD2XsdPPAdapter extends AbstractXd2XsdAdapter {
      * @param importLocation
      * @return  instance of xml schema
      */
-    private void createXsdSchema(final NamespaceMap namespaceCtx,
+    private String createXsdSchema(final NamespaceMap namespaceCtx,
                                  final String targetNsUri,
                                  final XmlSchemaImportLocation importLocation) {
-
         final String schemaName = importLocation.getFileName();
         schema = createOrGetXsdSchema(targetNsUri, schemaName);
         initSchemaNamespace(schemaName, namespaceCtx, targetNsUri, importLocation);
         initSchemaFormDefault();
+        return schemaName;
     }
 
     /**

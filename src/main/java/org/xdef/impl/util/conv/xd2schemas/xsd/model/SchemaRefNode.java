@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
+import org.xdef.impl.XElement;
 import org.xdef.model.XMNode;
 
 import java.util.LinkedList;
@@ -82,5 +83,9 @@ public class SchemaRefNode {
 
     public boolean hasAnyPointer() {
         return pointers != null && !pointers.isEmpty();
+    }
+
+    public XElement toXdElem() {
+        return (XElement)xdNode;
     }
 }

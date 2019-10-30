@@ -3,6 +3,8 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDConstants;
@@ -249,8 +251,36 @@ public class XsdNamespaceUtils {
         return name;
     }
 
-    public static String createNewRootElemName(final String name) {
-        return "ctRoot_" + name;
+    public static String createNewRootElemName(final String name, XmlSchemaType schemaType) {
+        return newElemenPrefix(schemaType) + "root_" + name;
+    }
+
+    public static String createNewDecomposionElemName(final String name, XmlSchemaType schemaType) {
+        return newElemenPrefix(schemaType) + "mid_" + name;
+    }
+
+    public static String createNewDecomposionElemName(final String name, boolean isComplexType) {
+        return newElemenPrefix(isComplexType) + "mid_" + name;
+    }
+
+    private static String newElemenPrefix(boolean isComplexType) {
+        if (isComplexType) {
+            return "ct_";
+        } else {
+            return "st_";
+        }
+    }
+
+    private static String newElemenPrefix(XmlSchemaType schemaType) {
+        if (schemaType != null) {
+            if (schemaType instanceof XmlSchemaComplexType) {
+                return "ct_";
+            } else {
+                return "st_";
+            }
+        }
+
+        return "";
     }
 
     public static XmlSchema getSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, boolean shouldExists, final AlgPhase phase) {

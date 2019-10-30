@@ -199,8 +199,8 @@ public class XsdElementFactory {
         return complexType;
     }
 
-    public XmlSchemaComplexType createComplextContentWithSimpleRestriction(final String name, final QName qName) {
-        XmlSchemaComplexType complexType = createEmptyComplexType(true);
+    public XmlSchemaComplexType createComplextContentWithSimpleExtension(final String name, final QName qName, boolean topLevel) {
+        XmlSchemaComplexType complexType = createEmptyComplexType(topLevel);
         XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
         XmlSchemaSimpleContentExtension simpleContentExtension = new XmlSchemaSimpleContentExtension();
         simpleContentExtension.setBaseTypeName(qName);

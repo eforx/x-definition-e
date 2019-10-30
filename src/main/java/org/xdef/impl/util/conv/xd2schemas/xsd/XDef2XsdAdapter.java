@@ -66,7 +66,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
 
         XsdElementFactory xsdFactory = new XsdElementFactory(schema);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xsdFactory, adapterCtx.getNodeRefs());
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xDef.getName(), xsdFactory, adapterCtx.getNodeRefs());
         treeAdapter.initPostprocessing(null, adapterCtx.getExtraSchemaLocationsCtx());
         treeAdapter.loadXdefRootNames(xDefinition);
 

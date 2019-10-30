@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd;
 
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -16,13 +17,13 @@ import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 class XDTree2XsdAdapter {
 
     final private XmlSchema schema;
+    final private String schemaName;
     final private XsdElementFactory xsdFactory;
     final private Map<String, Map<String, SchemaRefNode>> xsdReferences;
 
@@ -38,8 +39,9 @@ class XDTree2XsdAdapter {
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
-    protected XDTree2XsdAdapter(XmlSchema schema, XsdElementFactory xsdFactory, Map<String, Map<String, SchemaRefNode>> xsdReferences) {
+    protected XDTree2XsdAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, Map<String, Map<String, SchemaRefNode>> xsdReferences) {
         this.schema = schema;
+        this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
         this.xsdReferences = xsdReferences;
     }
@@ -179,7 +181,20 @@ class XDTree2XsdAdapter {
             final String refLocalName = XsdNameUtils.getReferenceName(refXPos);
 
             if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
-                final QName qName = new QName(xDefEl.getNSUri(), xDefEl.getName());
+                final String nsUri = xDefEl.getNSUri();
+                final String nsPrefix = schema.getNamespaceContext().getPrefix(nsUri);
+                if (nsPrefix == null) {
+                    XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), refSystemId, true, TRANSFORMATION);
+                    final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
+                    final String refNsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
+                    if (refNsUri == null || refNsUri.isEmpty()) {
+                        XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
+                                " NamespacePrefix=" + nsPrefix);
+                    } else {
+                        XsdNamespaceUtils.addNamespaceToCtx((NamespaceMap)schema.getNamespaceContext(), null, refNsPrefix, refNsUri, POSTPROCESSING);
+                    }
+                }
+                final QName qName = new QName(nsUri, xDefEl.getName());
 
                 xsdElem.getRef().setTargetQName(qName);
 
@@ -219,15 +234,31 @@ class XDTree2XsdAdapter {
             // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
             if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema)) {
                 final String localName = XsdNameUtils.getReferenceName(xDefEl.getName());
-                final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
-                final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-                if (nsUri == null || nsUri.isEmpty()) {
-                    XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
-                            " NamespacePrefix=" + nsPrefix);
-                } else {
+                String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
+                String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+
+                // Post-processing
+                if (nsUri != null && !nsUri.isEmpty()) {
                     xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
                     addNodeToPostProcessing(nsUri, xDefEl);
+                } else {
+                    final String xDefPos = xDefEl.getXDPosition();
+                    final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
+                    XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), systemId, true, PREPROCESSING);
+                    nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
+                    nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+                    if (nsUri == null || nsUri.isEmpty()) {
+                        XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
+                                " NamespacePrefix=" + nsPrefix);
+                    } else {
+                        xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
+
+                        final String refLocalName = XsdNameUtils.getReferenceName(xDefPos);
+                        final String refNodePath = XsdNameUtils.getReferenceNodePath(xDefPos);
+                        XsdReferenceUtils.createRefAndDef(xDefEl, xsdElem, schemaName, refNodePath, systemId, refLocalName, refNodePath, xsdReferences);
+                    }
                 }
+
             } else {
                 xsdElem.setName(xDefEl.getName());
 

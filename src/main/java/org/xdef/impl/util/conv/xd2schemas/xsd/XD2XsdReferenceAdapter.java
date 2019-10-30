@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -18,8 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
@@ -178,19 +178,27 @@ class XD2XsdReferenceAdapter {
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
                     if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema) && isPostProcessingPhase == false) {
-                        final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
-                        final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-                        if (nsUri == null || nsUri.isEmpty()) {
-                            if (parentRef == false) {
-                                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
-                                        " NamespacePrefix=" + nsPrefix);
-                            }
+                        String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
+                        String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
-                            if (parentRef == true) {
-                                return;
-                            }
-                        } else {
+                        // Post-processing
+                        if (nsUri != null && !nsUri.isEmpty()) {
                             addPostProcessingSchemaImportFromElem(nsPrefix, nsUri);
+                        } else {
+                            final String xDefPos = xDefEl.getXDPosition();
+                            final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
+                            XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), systemId, true, PREPROCESSING);
+                            nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
+                            nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+
+                            if (nsUri == null || nsUri.isEmpty()) {
+                                if (parentRef == false) {
+                                    XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element refers to unknown namespace!" +
+                                            " NamespacePrefix=" + nsPrefix);
+                                }
+                            } else {
+                                addSchemaImportFromElem(nsUri, xDefPos);
+                            }
                         }
 
                         isRef = true;
