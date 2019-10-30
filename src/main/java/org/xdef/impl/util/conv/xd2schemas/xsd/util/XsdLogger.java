@@ -44,7 +44,9 @@ public class XsdLogger {
             log += "[" + group + "]";
         }
         if (node != null) {
-            if (node.getKind() == XMDEFINITION) {
+            if (node.getXMDefinition() == null) {
+                log += "[" + getXNodeName(node) +  "]";
+            } else if (node.getKind() == XMDEFINITION) {
                 log += "[" + node.getXMDefinition().getName() + "]";
             } else {
                 log += "[" + node.getXMDefinition().getName() + " - " + getXNodeName(node) +  "]";

@@ -121,11 +121,10 @@ public class XsdPostProcessor {
             return;
         }
 
-        xsdElem.getParent().getItems().remove(xsdElem);
         node.setXsdNode(schemaType);
 
         // Remove original element from schema
-        xsdElem.getParent().getItems().remove(xsdElem);
+        XD2XsdUtils.removeItem(xsdElem.getParent(), xsdElem);
 
         updatePointers(node, newRefLocalName);
     }
@@ -182,13 +181,22 @@ public class XsdPostProcessor {
     }
 
     private static void refType(final SchemaRefNode node) {
-        if (node.getReference() != null && node.getReference().isElem() && node.isElem() && node.toXsdElem().getRef().getTargetQName() == null) {
-            XmlSchemaElement xsdElem = node.toXsdElem();
-            if (xsdElem.getName() == null) {
-                xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
-                xsdElem.setSchemaTypeName(null);
-            } else {
-                XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Element cannot use QName, because already has a name!");
+        if (node.getReference() != null) {
+            if (node.getReference().isElem() && node.isElem() && node.toXsdElem().getRef().getTargetQName() == null) {
+                // Reference element to element
+                XmlSchemaElement xsdElem = node.toXsdElem();
+                if (xsdElem.getName() == null) {
+                    xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
+                    xsdElem.setSchemaTypeName(null);
+                } else {
+                    XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode) node.getXdNode(), "Element cannot use QName, because already has a name!");
+                }
+            } else if (node.getReference().isComplexType() && node.isElem() && node.toXsdElem().getTargetQName() != null) {
+                // Reference element to complex type
+                XmlSchemaElement xsdElem = node.toXsdElem();
+                xsdElem.setSchemaTypeName(xsdElem.getTargetQName());
+                xsdElem.getRef().setTargetQName(null);
+                xsdElem.setName(node.toXdElem().getName());
             }
         }
     }
@@ -248,7 +256,7 @@ public class XsdPostProcessor {
                 }
 
                 // TODO: remove by reference handler
-                //schema.getItems().remove(complexType.getContentModel());
+                //XD2XsdUtils.removeItem(schema, complexType.getContentModel());
                 complexType.setContentModel(null);
                 complexType.setMixed(true);
                 complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));
