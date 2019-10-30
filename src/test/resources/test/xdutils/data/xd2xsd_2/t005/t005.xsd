@@ -476,32 +476,34 @@
       use="required"/>
   </xs:complexType>
   <xs:complexType name="ZaznamPDN_UcastnikDN_type_cType">
-    <xs:choice maxOccurs="unbounded">
-      <xs:element name="JinaSkoda"
-        type="ZaznamPDN_Skoda_type_cType"
-        minOccurs="0"/>
-      <xs:element name="Osoba"
-        type="ZaznamPDN_Osoba_type_cType"
-        minOccurs="0"/>
-      <xs:element name="Firma"
-        type="ZaznamPDN_Firma_type_cType"
-        minOccurs="0"/>
-      <xs:element name="Doklad"
-        type="ZaznamPDN_Doklad_type_cType"
-        minOccurs="0"
-        maxOccurs="unbounded"/>
-      <xs:element name="PoruseniZakProvoz" type="xs:string" minOccurs="0"/>
-      <xs:element name="PoruseniZakPrest" type="xs:string" minOccurs="0"/>
-      <xs:element name="PoruseniZakTrest" type="xs:string" minOccurs="0"/>
-      <xs:element name="PoruseniZakOst" type="xs:string" minOccurs="0"/>
-      <xs:element name="Vazba" type="xs:string" minOccurs="0"/>
-      <xs:element name="TrvalyPobyt"
-        type="ZaznamPDN_Adresa_type_cType"
-        minOccurs="0"/>
-      <xs:element name="PrechodnyPobyt"
-        type="ZaznamPDN_Adresa_type_cType"
-        minOccurs="0"/>
-    </xs:choice>
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="JinaSkoda"
+          type="ZaznamPDN_Skoda_type_cType"
+          minOccurs="0"/>
+        <xs:element name="Osoba"
+          type="ZaznamPDN_Osoba_type_cType"
+          minOccurs="0"/>
+        <xs:element name="Firma"
+          type="ZaznamPDN_Firma_type_cType"
+          minOccurs="0"/>
+        <xs:element name="Doklad"
+          type="ZaznamPDN_Doklad_type_cType"
+          minOccurs="0"
+          maxOccurs="unbounded"/>
+        <xs:element name="PoruseniZakProvoz" type="xs:string" minOccurs="0"/>
+        <xs:element name="PoruseniZakPrest" type="xs:string" minOccurs="0"/>
+        <xs:element name="PoruseniZakTrest" type="xs:string" minOccurs="0"/>
+        <xs:element name="PoruseniZakOst" type="xs:string" minOccurs="0"/>
+        <xs:element name="Vazba" type="xs:string" minOccurs="0"/>
+        <xs:element name="TrvalyPobyt"
+          type="ZaznamPDN_Adresa_type_cType"
+          minOccurs="0"/>
+        <xs:element name="PrechodnyPobyt"
+          type="ZaznamPDN_Adresa_type_cType"
+          minOccurs="0"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="OznSegmentu"
       type="xs:string"
       use="required"/>
@@ -655,51 +657,53 @@
   </xs:complexType>
   <xs:element name="ZaznamPDN">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element name="Protokol"
-          type="ZaznamPDN_ProtokolDN_type_cType"/>
-        <xs:element name="Rozhodnuti"
-          type="ZaznamPDN_RozhodnutiDN_type_cType"
-          minOccurs="0"/>
-        <xs:element name="Vyliceni" type="xs:string"/>
-        <xs:element name="ObjStranka"
-          type="ZaznamPDN_ObjStrankaDN_type_cType"/>
-        <xs:element name="Foto"
-          type="ZaznamPDN_FotoDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Vozidlo"
-          type="ZaznamPDN_VozidloDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Tramvaj"
-          type="ZaznamPDN_TramvajDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Trolejbus"
-          type="ZaznamPDN_TrolejbusDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Vlak"
-          type="ZaznamPDN_VlakDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Povoz"
-          type="ZaznamPDN_PovozDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Predmet"
-          type="ZaznamPDN_PredmetDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Zvire"
-          type="ZaznamPDN_ZvireDN_type_cType"
-          minOccurs="0"
-          maxOccurs="unbounded"/>
-        <xs:element name="Ucastnik"
-          type="ZaznamPDN_UcastnikDN_type_cType"
-          maxOccurs="unbounded"/>
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="Protokol"
+            type="ZaznamPDN_ProtokolDN_type_cType"/>
+          <xs:element name="Rozhodnuti"
+            type="ZaznamPDN_RozhodnutiDN_type_cType"
+            minOccurs="0"/>
+          <xs:element name="Vyliceni" type="xs:string"/>
+          <xs:element name="ObjStranka"
+            type="ZaznamPDN_ObjStrankaDN_type_cType"/>
+          <xs:element name="Foto"
+            type="ZaznamPDN_FotoDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Vozidlo"
+            type="ZaznamPDN_VozidloDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Tramvaj"
+            type="ZaznamPDN_TramvajDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Trolejbus"
+            type="ZaznamPDN_TrolejbusDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Vlak"
+            type="ZaznamPDN_VlakDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Povoz"
+            type="ZaznamPDN_PovozDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Predmet"
+            type="ZaznamPDN_PredmetDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Zvire"
+            type="ZaznamPDN_ZvireDN_type_cType"
+            minOccurs="0"
+            maxOccurs="unbounded"/>
+          <xs:element name="Ucastnik"
+            type="ZaznamPDN_UcastnikDN_type_cType"
+            maxOccurs="unbounded"/>
+        </xs:choice>
+      </xs:sequence>
       <xs:attribute name="Verze"
         type="Verze_user_Type"
         use="optional"/>
