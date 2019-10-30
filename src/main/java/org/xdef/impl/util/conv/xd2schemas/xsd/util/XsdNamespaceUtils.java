@@ -110,7 +110,7 @@ public class XsdNamespaceUtils {
         return !nodeSystemId.equals(refSystemId);
     }
 
-    private static boolean hasNamespace(final String name) {
+    public static boolean hasNamespace(final String name) {
         return name.indexOf(':') != -1;
     }
 
@@ -247,6 +247,10 @@ public class XsdNamespaceUtils {
     public static String createRefLocalName(final String name) {
         //return "loc_" + name;
         return name;
+    }
+
+    public static String createNewRootElemName(final String name) {
+        return "ctRoot_" + name;
     }
 
     public static XmlSchema getSchema(final XmlSchemaCollection xmlCollection, final String refSystemId, boolean shouldExists, final AlgPhase phase) {

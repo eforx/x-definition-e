@@ -491,8 +491,7 @@ public class TestXd2Xsd extends XDTester {
         // TODO: Missing information about reference (reference has additional info)
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
 
-        // TODO: Reference transformation
-        //convertXdPool2XsdNoRef ("multiXdefTest2", Arrays.asList(new String[] {"multiXdefTest2_valid_1"}), null);
+        convertXdPool2XsdNoRef ("multiXdefTest2", Arrays.asList(new String[] {"multiXdefTest2_valid_1"}), null);
 
         convertXdPool2XsdNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 

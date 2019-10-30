@@ -11,7 +11,7 @@
         <fh:Position>
             <fh:Name>Analyst</fh:Name>
         </fh:Position>
-        <fh:Salary>35000</fh:Salary>
+        <fh:Salary fh:currency="EUR">35000</fh:Salary>
     </Worker>
     <Worker>
         <hr:Name>Joe</hr:Name>

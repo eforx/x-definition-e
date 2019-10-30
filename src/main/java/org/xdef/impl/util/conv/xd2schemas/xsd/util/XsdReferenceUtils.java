@@ -89,7 +89,7 @@ public class XsdReferenceUtils {
         refOrig.setXsdNode(newXsdNode);
     }
 
-    private static void createLink(SchemaRefNode ref, SchemaRefNode def) {
+    public static void createLink(SchemaRefNode ref, SchemaRefNode def) {
         ref.setReference(def);
         def.addRef(ref);
     }
