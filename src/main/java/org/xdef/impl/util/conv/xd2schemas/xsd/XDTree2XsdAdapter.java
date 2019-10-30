@@ -293,23 +293,24 @@ class XDTree2XsdAdapter {
 
         XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
 
-        XmlSchemaGroupParticle group = null;
+        Stack<XmlSchemaGroupParticle> groups = new Stack<XmlSchemaGroupParticle>();
+        XmlSchemaGroupParticle currGroup = null;
+
         boolean hasSimpleContent = false;
         XData[] attrs = defEl.getXDAttrs();
 
         // Convert all children nodes
-        for (int i = 0; i < defEl._childNodes.length; i++) {
-            XNode xnChild = defEl._childNodes[i];
+        for (XNode xnChild : defEl._childNodes) {
             short childrenKind = xnChild.getKind();
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                if (complexType.getParticle() != null) {
-                    // TODO: XD->XSD Solve?
-                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Contains multiple particle group inside element!");
-                }
-
                 XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
-                group = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
+                XmlSchemaGroupParticle newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
+                if (currGroup != null) {
+                    addNodeToParticleGroup(currGroup, newGroup);
+                }
+                groups.push(newGroup);
+                currGroup = newGroup;
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
                 if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
@@ -326,30 +327,30 @@ class XDTree2XsdAdapter {
                 } else {
                     XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Content of XText is not simple!");
                 }
+            } else if (childrenKind == XNode.XMSELECTOR_END) {
+                currGroup = groups.pop();
+                if (!groups.empty()) {
+                    currGroup = groups.peek();
+                }
             } else {
                 XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
                 if (xsdChild != null) {
                     XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add child to particle of element.");
 
-                    // x-definition has no required group
-                    if (group == null) {
-                        group = new XmlSchemaSequence();
-                        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Particle is undefined. Creating sequence particle.");
+                    // x-definition has no particle group yet
+                    if (currGroup == null) {
+                        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Particle group is undefined. Creating sequence particle by default.");
+                        currGroup = new XmlSchemaSequence();
+                        groups.push(currGroup);
                     }
 
-                    if (group instanceof XmlSchemaSequence) {
-                        ((XmlSchemaSequence) group).getItems().add((XmlSchemaSequenceMember) xsdChild);
-                    } else if (group instanceof XmlSchemaChoice) {
-                        ((XmlSchemaChoice) group).getItems().add((XmlSchemaChoiceMember) xsdChild);
-                    } else if (group instanceof XmlSchemaAll) {
-                        ((XmlSchemaAll) group).getItems().add((XmlSchemaAllMember) xsdChild);
-                    }
+                    addNodeToParticleGroup(currGroup, xsdChild);
                 }
             }
         }
 
-        if (group != null) {
-            complexType.setParticle(group);
+        if (currGroup != null) {
+            complexType.setParticle(currGroup);
         }
 
         XsdPostProcessor.elementComplexContent(defEl, complexType);
@@ -370,6 +371,16 @@ class XDTree2XsdAdapter {
             nodesToBePostProcessed.get(nsUri).add(xNode);
         } else {
             nodesToBePostProcessed.put(nsUri, new ArrayList<XNode>(Arrays.asList(xNode)));
+        }
+    }
+
+    private void addNodeToParticleGroup(final XmlSchemaGroupParticle currGroup, final XmlSchemaObject xsdNode) {
+        if (currGroup instanceof XmlSchemaSequence) {
+            ((XmlSchemaSequence) currGroup).getItems().add((XmlSchemaSequenceMember) xsdNode);
+        } else if (currGroup instanceof XmlSchemaChoice) {
+            ((XmlSchemaChoice) currGroup).getItems().add((XmlSchemaChoiceMember) xsdNode);
+        } else if (currGroup instanceof XmlSchemaAll) {
+            ((XmlSchemaAll) currGroup).getItems().add((XmlSchemaAllMember) xsdNode);
         }
     }
 
