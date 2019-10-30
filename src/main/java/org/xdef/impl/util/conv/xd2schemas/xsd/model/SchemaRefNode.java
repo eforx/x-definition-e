@@ -36,6 +36,10 @@ public class SchemaRefNode {
         this.xdNode = xdNode;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public XmlSchemaNamed getXsdNode() {
         return xsdNode;
     }

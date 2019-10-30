@@ -14,7 +14,7 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 public class XsdReferenceUtils {
 
     public static SchemaRefNode createNode(final XmlSchemaElement xsdElem, final XElement xDefEl) {
-        return createNode(XsdNamespaceUtils.getReferenceSystemId(xDefEl.getXDPosition()) + "#" + xDefEl.getName(), xsdElem, xDefEl);
+        return createNode(xDefEl.getXDPosition(), xsdElem, xDefEl);
     }
 
     private static SchemaRefNode createNode(final String localName, final XmlSchemaElement xsdElem, final XElement xDefEl) {
@@ -22,60 +22,64 @@ public class XsdReferenceUtils {
     }
 
     public static void createRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
-                                       final String refSystemId, final String refLocalName, final String refNodePath,
+                                       final String refSystemId, final String refNodePos, final String refNodePath,
                                        final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
         SchemaRefNode node = createNode(xsdElem, xDefEl);
-        SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refLocalName, refNodePath, xsdRefs);
-        XsdReferenceUtils.addNode(node, xsdRefs, true);
+        SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refNodePos, refNodePath, xsdRefs);
+        node = XsdReferenceUtils.addNode(node, xsdRefs, true);
         XsdReferenceUtils.createLink(node, nodeRef);
     }
 
     public static void createRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
                                        final String systemId, String nodePath,
-                                       final String refSystemId, final String refLocalName, final String refNodePath,
+                                       final String refSystemId, final String refNodePos, final String refNodePath,
                                        final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
         SchemaRefNode node = createNode(xsdElem, xDefEl);
-        SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refLocalName, refNodePath, xsdRefs);
-        XsdReferenceUtils.addNode(systemId, nodePath, node, xsdRefs, true);
+        SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refNodePos, refNodePath, xsdRefs);
+        node = XsdReferenceUtils.addNode(systemId, nodePath, node, xsdRefs, true);
         XsdReferenceUtils.createLink(node, nodeRef);
     }
 
-    public static SchemaRefNode createDef(final String systemId, String localName, final String nodePath, final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
+    public static SchemaRefNode createDef(final String systemId, final String nodePos, final String nodePath, final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
         Map<String, SchemaRefNode> xsdSystemRefs = getSystemRefs(systemId, xsdRefs);
-
+        final String localName = XsdNameUtils.getReferenceName(nodePos);
         SchemaRefNode ref = xsdSystemRefs.get(nodePath);
         if (ref == null) {
-            ref = new SchemaRefNode(localName);
+            ref = new SchemaRefNode(nodePos);
             xsdSystemRefs.put(nodePath, ref);
             XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating reference definition node. System=" + systemId + ", RefName=" + localName);
+        } else {
+            XsdLogger.printG(LOG_DEBUG, XSD_REFERENCE, "Reference definition of node already exists. System=" + systemId + ", RefName=" + localName);
         }
 
         return ref;
     }
 
-    public static void addNode(SchemaRefNode node, final Map<String, Map<String, SchemaRefNode>> xsdRefs, boolean hasRef) {
+    public static SchemaRefNode addNode(SchemaRefNode node, final Map<String, Map<String, SchemaRefNode>> xsdRefs, boolean hasRef) {
         final String xPos = node.getXdNode().getXDPosition();
         final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
         final String nodePath = XsdNameUtils.getReferenceNodePath(xPos);
-        addNode(systemId, nodePath, node, xsdRefs, hasRef);
+        return addNode(systemId, nodePath, node, xsdRefs, hasRef);
     }
 
-    public static void addNode(final String systemId, String nodePath, SchemaRefNode node, final Map<String, Map<String, SchemaRefNode>> xsdRefs, boolean hasRef) {
+    public static SchemaRefNode addNode(final String systemId, String nodePath, SchemaRefNode node, final Map<String, Map<String, SchemaRefNode>> xsdRefs, boolean hasRef) {
         Map<String, SchemaRefNode> xsdSystemRefs = getSystemRefs(systemId, xsdRefs);
 
         final SchemaRefNode refOrig = xsdSystemRefs.get(nodePath);
         if (refOrig != null && refOrig.getXsdNode() != null) {
-            XsdLogger.printG(LOG_DEBUG, XSD_REFERENCE, "Node with this name is already defined. System=" + systemId + ", Path=" + nodePath);
-            return;
+            XsdLogger.printG(LOG_DEBUG, XSD_REFERENCE, "Node with this name is already defined. System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getName());
+            return node;
         }
 
-        final String msg = hasRef ? " with reference" : "";
+        final String msg = hasRef ? " (with reference)" : "";
         if (refOrig != null) {
             refOrig.copy(node);
-            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating node" + msg + ". System=" + systemId + ", Path=" + nodePath);
+            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getName());
+            return refOrig;
         } else {
             xsdSystemRefs.put(nodePath, node);
-            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating node" + msg + ". System=" + systemId + ", Path=" + nodePath);
+            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getName());
+            return node;
         }
     }
 
@@ -100,6 +104,8 @@ public class XsdReferenceUtils {
     }
 
     public static void createLink(SchemaRefNode ref, SchemaRefNode def) {
+        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating link between nodes. From=" + ref.getName() + ", To=" + def.getName());
+
         ref.setReference(def);
         def.addRef(ref);
     }
