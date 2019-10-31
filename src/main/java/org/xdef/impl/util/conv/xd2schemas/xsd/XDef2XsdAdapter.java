@@ -3,9 +3,6 @@ package org.xdef.impl.util.conv.xd2schemas.xsd;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaObject;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -15,12 +12,12 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.XSD_XDEF_ADAPTER;
 
 public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> {
 
@@ -52,44 +49,31 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         XsdLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "Transforming x-definition. Name=" + xDef.getName());
         XsdLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "====================");
 
-        boolean postProcessRefs = false;
+        boolean poolPostProcessing = true;
 
         this.xDefinition = (XDefinition)xDef;
         if (adapterCtx == null) {
             adapterCtx = new XsdAdapterCtx();
             adapterCtx.init();
             schema = createXsdSchema();
-            postProcessRefs = true;
+            poolPostProcessing = false;
         } else {
             schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), xDef.getName(), false, INITIALIZATION);
         }
 
         XsdElementFactory xsdFactory = new XsdElementFactory(schema);
+        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
+        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
 
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xDef.getName(), xsdFactory, adapterCtx.getNodeRefs());
-        treeAdapter.initPostprocessing(null, adapterCtx.getExtraSchemaLocationsCtx());
         treeAdapter.loadXdefRootNames(xDefinition);
-
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx.getSchemaLocationsCtx(), adapterCtx.getNodeRefs());
-        referenceAdapter.initPostprocessing(adapterCtx.getExtraSchemaLocationsCtx(), false);
         referenceAdapter.createRefsAndImports(xDefinition);
-
         transformXdef(treeAdapter);
 
         // Post-processing
-        {
-            // Nodes from different namespace
-            if (!treeAdapter.getNodesToBePostProcessed().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
-                XD2XsdPPAdapterWrapper postProcessingAdapter = new XD2XsdPPAdapterWrapper(xDefinition);
-                postProcessingAdapter.setAdapterCtx(adapterCtx);
-                postProcessingAdapter.setSourceNamespaceCtx((NamespaceMap)schema.getNamespaceContext(), schema.getSchemaNamespacePrefix());
-                postProcessingAdapter.transformNodes(treeAdapter.getNodesToBePostProcessed());
-            }
-
-            if (postProcessRefs) {
-                XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx.getXmlSchemaCollection(), adapterCtx.getNodeRefs());
-                postProcessor.processRefs();
-            }
+        if (!poolPostProcessing) {
+            XD2XsdPostProcessingAdapter postProcessingAdapter = new XD2XsdPostProcessingAdapter();
+            postProcessingAdapter.setAdapterCtx(adapterCtx);
+            postProcessingAdapter.process(xDefinition);
         }
 
         return adapterCtx.getXmlSchemaCollection();
@@ -114,8 +98,6 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Creates and initialize XSD schema
      */
     private XmlSchema createXsdSchema() {
-        XsdLogger.printP(LOG_INFO, INITIALIZATION, xDefinition, "Initialize XSD schema");
-
         // Target namespace
         Boolean targetNamespaceError = false;
         Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);

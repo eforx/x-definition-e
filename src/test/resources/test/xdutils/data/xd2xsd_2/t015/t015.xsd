@@ -13,9 +13,6 @@
              schemaLocation="t015_2.xsd"/>
   <xs:import namespace="http://d"
     schemaLocation="t015_3.xsd"/>
-  <!-- TODO: Where is generated? -->
-  <xs:attribute name="atr2"
-    type="xs:string"/>
   <xs:element name="elem">
     <xs:complexType>
       <xs:sequence>
@@ -41,4 +38,6 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:attribute name="atr2"
+                type="xs:string"/>
 </xs:schema>

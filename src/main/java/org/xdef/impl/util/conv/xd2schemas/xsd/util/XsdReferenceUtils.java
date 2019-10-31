@@ -1,7 +1,9 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
+import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaRefNode;
@@ -13,28 +15,36 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdReferenceUtils {
 
-    public static SchemaRefNode createNode(final XmlSchemaElement xsdElem, final XElement xDefEl) {
-        return createNode(xDefEl.getXDPosition(), xsdElem, xDefEl);
+    public static SchemaRefNode createElementNode(final XmlSchemaElement xsdElem, final XElement xDefEl) {
+        return createElementNode(xDefEl.getXDPosition(), xsdElem, xDefEl);
     }
 
-    private static SchemaRefNode createNode(final String localName, final XmlSchemaElement xsdElem, final XElement xDefEl) {
+    private static SchemaRefNode createElementNode(final String localName, final XmlSchemaElement xsdElem, final XElement xDefEl) {
         return new SchemaRefNode(localName, xsdElem, xDefEl);
     }
 
-    public static void createRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
-                                       final String refSystemId, final String refNodePos, final String refNodePath,
-                                       final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
-        SchemaRefNode node = createNode(xsdElem, xDefEl);
+    public static SchemaRefNode createAttributeNode(final XmlSchemaAttribute xsdAttr, final XData xData) {
+        return createAttributeNode(xData.getXDPosition(), xsdAttr, xData);
+    }
+
+    private static SchemaRefNode createAttributeNode(final String localName, final XmlSchemaAttribute xsdAttr, final XData xData) {
+        return new SchemaRefNode(localName, xsdAttr, xData);
+    }
+
+    public static void createElemRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
+                                           final String refSystemId, final String refNodePos, final String refNodePath,
+                                           final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
+        SchemaRefNode node = createElementNode(xsdElem, xDefEl);
         SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refNodePos, refNodePath, xsdRefs);
         node = XsdReferenceUtils.addNode(node, xsdRefs, true);
         XsdReferenceUtils.createLink(node, nodeRef);
     }
 
-    public static void createRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
-                                       final String systemId, String nodePath,
-                                       final String refSystemId, final String refNodePos, final String refNodePath,
-                                       final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
-        SchemaRefNode node = createNode(xsdElem, xDefEl);
+    public static void createElemRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
+                                           final String systemId, String nodePath,
+                                           final String refSystemId, final String refNodePos, final String refNodePath,
+                                           final Map<String, Map<String, SchemaRefNode>> xsdRefs) {
+        SchemaRefNode node = createElementNode(xsdElem, xDefEl);
         SchemaRefNode nodeRef = XsdReferenceUtils.createDef(refSystemId, refNodePos, refNodePath, xsdRefs);
         node = XsdReferenceUtils.addNode(systemId, nodePath, node, xsdRefs, true);
         XsdReferenceUtils.createLink(node, nodeRef);

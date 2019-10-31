@@ -54,6 +54,15 @@ public class XsdNameUtils {
     }
 
     public static void resolveAttributeQName(final XmlSchema schema, final XmlSchemaAttribute attr, final String xName) {
+        if (attr.isRef()) {
+            return;
+        }
+
+        if (attr.isTopLevel()) {
+            attr.setName(XsdNamespaceUtils.getNoneNameWithoutPrefix(xName));
+            return;
+        }
+
         String newName = resolveName(schema, xName);
         if (!xName.equals(newName)) {
             attr.setName(newName);
@@ -63,6 +72,15 @@ public class XsdNameUtils {
     }
 
     public static void resolveElementQName(final XmlSchema schema, final XmlSchemaElement elem) {
+        if (elem.isRef()) {
+            return;
+        }
+
+        if (elem.isTopLevel()) {
+            elem.setName(XsdNamespaceUtils.getNoneNameWithoutPrefix(elem.getName()));
+            return;
+        }
+
         final String name = elem.getName();
         final String newName = resolveName(schema, name);
 

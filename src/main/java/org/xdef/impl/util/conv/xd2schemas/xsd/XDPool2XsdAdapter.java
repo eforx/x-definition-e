@@ -8,13 +8,14 @@ import org.xdef.impl.util.conv.xd2schemas.XDPool2SchemaAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
@@ -59,8 +60,9 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
             adapter.createSchema(xDef);
         }
 
-        XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx.getXmlSchemaCollection(), adapterCtx.getNodeRefs());
-        postProcessor.processRefs();
+        XD2XsdPostProcessingAdapter postProcessingAdapter = new XD2XsdPostProcessingAdapter();
+        postProcessingAdapter.setAdapterCtx(adapterCtx);
+        postProcessingAdapter.process(xdPool);
 
         return adapterCtx.getXmlSchemaCollection();
     }

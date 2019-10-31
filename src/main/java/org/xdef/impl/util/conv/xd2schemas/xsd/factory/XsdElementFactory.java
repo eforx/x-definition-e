@@ -40,8 +40,10 @@ public class XsdElementFactory {
     public XmlSchemaElement createEmptyElement(final XElement xElement, boolean topLevel) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Empty element. Top=" + topLevel);
         XmlSchemaElement elem = new XmlSchemaElement(schema, topLevel);
-        elem.setMinOccurs(xElement.getOccurence().minOccurs());
-        elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
+        if (topLevel == false) {
+            elem.setMinOccurs(xElement.getOccurence().minOccurs());
+            elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
+        }
         return elem;
     }
 
@@ -51,11 +53,15 @@ public class XsdElementFactory {
     public XmlSchemaAttribute createEmptyAttribute(final XData xData, boolean topLevel) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Attribute element. Top=" + topLevel);
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, topLevel);
-        if (xData.isOptional() || xData.getOccurence().isOptional()) {
-            attr.setUse(XmlSchemaUse.OPTIONAL);
-        } else if (xData.isRequired() || xData.getOccurence().isRequired()) {
-            attr.setUse(XmlSchemaUse.REQUIRED);
+
+        if (topLevel == false) {
+            if (xData.isOptional() || xData.getOccurence().isOptional()) {
+                attr.setUse(XmlSchemaUse.OPTIONAL);
+            } else if (xData.isRequired() || xData.getOccurence().isRequired()) {
+                attr.setUse(XmlSchemaUse.REQUIRED);
+            }
         }
+
         return attr;
     }
 

@@ -21,8 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -477,8 +476,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2Xsd("t013", Arrays.asList(new String[] {"t013"}), null);
         convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null);
 
-        // TODO: unknown attr2
-//        convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
+        convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
 
         // TODO: Local and global declaration scope
         // TODO: root element as reference

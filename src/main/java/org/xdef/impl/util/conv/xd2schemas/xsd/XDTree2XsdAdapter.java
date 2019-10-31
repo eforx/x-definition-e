@@ -8,7 +8,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaRefNode;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
 
@@ -25,38 +25,20 @@ class XDTree2XsdAdapter {
     final private XmlSchema schema;
     final private String schemaName;
     final private XsdElementFactory xsdFactory;
-    final private Map<String, Map<String, SchemaRefNode>> xsdReferences;
-
-    private Map<String, XmlSchemaImportLocation> postProcessedSchemaLocations;
-
-    /**
-     * Nodes which will be created in post-procession
-     * Key:     namespace URI
-     * Value:   nodes
-     */
-    private Map<String, List<XNode>> nodesToBePostProcessed;
+    final private XsdAdapterCtx adapterCtx;
 
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
-    protected XDTree2XsdAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, Map<String, Map<String, SchemaRefNode>> xsdReferences) {
+    protected XDTree2XsdAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
-        this.xsdReferences = xsdReferences;
-    }
-
-    protected void initPostprocessing(final Map<String, List<XNode>> postprocessedNodes, final Map<String, XmlSchemaImportLocation> postprocessedSchemaLocations) {
-        this.nodesToBePostProcessed = postprocessedNodes != null ? postprocessedNodes : new HashMap<String, List<XNode>>();
-        this.postProcessedSchemaLocations = postprocessedSchemaLocations;
+        this.adapterCtx = adapterCtx;
     }
 
     protected List<String> getXdRootNames() {
         return xdRootNames;
-    }
-
-    public final Map<String, List<XNode>> getNodesToBePostProcessed() {
-        return nodesToBePostProcessed;
     }
 
     protected void loadXdefRootNames(final XDefinition def) {
@@ -86,7 +68,7 @@ class XDTree2XsdAdapter {
         short xdElemKind = xn.getKind();
         switch (xdElemKind) {
             case XNode.XMATTRIBUTE: {
-                return createAttribute((XData) xn);
+                return createAttribute((XData) xn, topLevel);
             }
             case XNode.XMTEXT: {
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xn, "Creating simple content ...");
@@ -114,10 +96,10 @@ class XDTree2XsdAdapter {
         return null;
     }
 
-    private XmlSchemaAttribute createAttribute(final XData xData) {
+    private XmlSchemaAttribute createAttribute(final XData xData, boolean topLevel) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute ...");
 
-        XmlSchemaAttribute attr = xsdFactory.createEmptyAttribute(xData, false);
+        XmlSchemaAttribute attr = xsdFactory.createEmptyAttribute(xData, topLevel);
         final String refNsUri = xData.getNSUri();
         final String nodeName = xData.getName();
         if (refNsUri != null && XsdNamespaceUtils.isNodeInDifferentNamespace(nodeName, refNsUri, schema)) {
@@ -125,14 +107,18 @@ class XDTree2XsdAdapter {
             final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
-            // Attribute is referencing to new namespace, which will be created in post-processing
-            if (postProcessedSchemaLocations.get(nsUri) != null) {
-                addNodeToPostProcessing(nsUri, xData);
-            }
-
             attr.getRef().setTargetQName(new QName(refNsUri, localName));
+
             XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference from different namespace." +
                     "Name=" + xData.getName() + ", Namespace=" + xData.getNSUri());
+
+            // Attribute is referencing to new namespace, which will be created in post-processing
+            if (adapterCtx.isPostProcessingNamespace(nsUri)) {
+                adapterCtx.addNodeToPostProcessing(nsUri, xData);
+            } else {
+                SchemaRefNode node = XsdReferenceUtils.createAttributeNode(attr, xData);
+                XsdReferenceUtils.addNode(node, adapterCtx.getNodeRefs(), true);
+            }
         } else {
             attr.setName(xData.getName());
             QName qName;
@@ -158,6 +144,9 @@ class XDTree2XsdAdapter {
             }
 
             XsdNameUtils.resolveAttributeQName(schema, attr, xData.getName());
+
+            SchemaRefNode node = XsdReferenceUtils.createAttributeNode(attr, xData);
+            XsdReferenceUtils.addNode(node, adapterCtx.getNodeRefs(), true);
         }
 
         return attr;
@@ -226,7 +215,7 @@ class XDTree2XsdAdapter {
             }
 
             final String refNodePath = XsdNameUtils.getReferenceNodePath(refXPos);
-            XsdReferenceUtils.createRefAndDef(xDefEl, xsdElem, refSystemId, refXPos, refNodePath, xsdReferences);
+            XsdReferenceUtils.createElemRefAndDef(xDefEl, xsdElem, refSystemId, refXPos, refNodePath, adapterCtx.getNodeRefs());
         } else {
             // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
             if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema)) {
@@ -237,20 +226,22 @@ class XDTree2XsdAdapter {
                 // Post-processing
                 if (nsUri != null && !nsUri.isEmpty()) {
                     xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-                    addNodeToPostProcessing(nsUri, xDefEl);
+                    if (adapterCtx.isPostProcessingNamespace(nsUri)) {
+                        adapterCtx.addNodeToPostProcessing(nsUri, xDefEl);
+                    }
                 } else {
                     final String xDefPos = xDefEl.getXDPosition();
-                    final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
-                    XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), systemId, true, PREPROCESSING);
-                    nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
-                    nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+                    nsUri = XsdNamespaceUtils.getNsUriInSystem(xDefEl, schema);
+
                     if (nsUri == null || nsUri.isEmpty()) {
+                        nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
                         XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                     } else {
+                        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
                         xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
 
                         final String refNodePath = XsdNameUtils.getReferenceNodePath(xDefPos);
-                        XsdReferenceUtils.createRefAndDef(xDefEl, xsdElem, schemaName, refNodePath, systemId, xDefPos, refNodePath, xsdReferences);
+                        XsdReferenceUtils.createElemRefAndDef(xDefEl, xsdElem, schemaName, refNodePath, systemId, xDefPos, refNodePath, adapterCtx.getNodeRefs());
                     }
                 }
 
@@ -266,8 +257,8 @@ class XDTree2XsdAdapter {
 
                 XsdNameUtils.resolveElementQName(schema, xsdElem);
 
-                SchemaRefNode node = XsdReferenceUtils.createNode(xsdElem, xDefEl);
-                XsdReferenceUtils.addNode(node, xsdReferences, false);
+                SchemaRefNode node = XsdReferenceUtils.createElementNode(xsdElem, xDefEl);
+                XsdReferenceUtils.addNode(node, adapterCtx.getNodeRefs(), false);
             }
         }
 
@@ -364,14 +355,6 @@ class XDTree2XsdAdapter {
         }
 
         xsdElem.setType(complexType);
-    }
-
-    private void addNodeToPostProcessing(final String nsUri, final XNode xNode) {
-        if (nodesToBePostProcessed.containsKey(nsUri)) {
-            nodesToBePostProcessed.get(nsUri).add(xNode);
-        } else {
-            nodesToBePostProcessed.put(nsUri, new ArrayList<XNode>(Arrays.asList(xNode)));
-        }
     }
 
     private void addNodeToParticleGroup(final XmlSchemaGroupParticle currGroup, final XmlSchemaObject xsdNode) {

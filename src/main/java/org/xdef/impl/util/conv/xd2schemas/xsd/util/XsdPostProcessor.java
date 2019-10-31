@@ -67,7 +67,7 @@ public class XsdPostProcessor {
 
             xsdElem.setSchemaType(null);
             xsdElem.setSchemaTypeName(new QName(elemNsUri, newLocalName));
-            SchemaRefNode newXsdNode = XsdReferenceUtils.createNode(xsdElem, xDefEl);
+            SchemaRefNode newXsdNode = XsdReferenceUtils.createElementNode(xsdElem, xDefEl);
             XsdReferenceUtils.createLink(newXsdNode, node);
             XsdReferenceUtils.addNode(newXsdNode, nodeRefs, true);
         }

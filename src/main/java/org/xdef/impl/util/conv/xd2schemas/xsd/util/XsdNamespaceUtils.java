@@ -11,13 +11,15 @@ import org.xdef.XDConstants;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.model.XMNode;
 
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 public class XsdNamespaceUtils {
@@ -164,6 +166,15 @@ public class XsdNamespaceUtils {
         return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
     }
 
+    public static String getNoneNameWithoutPrefix(final String nodeName) {
+        int nsPos = nodeName.indexOf(':');
+        if (nsPos != -1) {
+            return nodeName.substring(nsPos + 1);
+        }
+
+        return nodeName;
+    }
+
     public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
@@ -299,6 +310,50 @@ public class XsdNamespaceUtils {
         }
 
         return schemas[0];
+    }
+
+    public static XmlSchema getSchemaByNamespace(final XsdAdapterCtx adapterCtx, final String nsUri, boolean shouldExists, final AlgPhase phase) {
+        String schemaName = getSchemaNameByNamespace(adapterCtx, nsUri, shouldExists, phase);
+        XmlSchema schema = null;
+        if (schemaName != null) {
+            schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), schemaName, false, phase);
+        }
+
+        if (schema == null && shouldExists) {
+            XsdLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
+            throw new RuntimeException("Referenced schema does not exist! Namespace=" + nsUri);
+        }
+
+        return schema;
+    }
+
+    public static String getSchemaNameByNamespace(final XsdAdapterCtx adapterCtx, final String nsUri, boolean shouldExists, final AlgPhase phase) {
+        XmlSchemaImportLocation schemaLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
+        String schemaName = null;
+        if (schemaLocation != null) {
+            schemaName = schemaLocation.getFileName();
+        } else {
+            schemaLocation = adapterCtx.getExtraSchemaLocationsCtx().get(nsUri);
+            if (schemaLocation != null) {
+                schemaName = schemaLocation.getFileName();
+            }
+        }
+
+        if (schemaName == null && shouldExists) {
+            XsdLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
+            throw new RuntimeException("Referenced schema does not exist! Namespace=" + nsUri);
+        }
+
+        return schemaName;
+    }
+
+    public static String getNsUriInSystem(final XNode xData, final XmlSchema schema) {
+        final String xDefPos = xData.getXDPosition();
+        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
+        XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), systemId, true, PREPROCESSING);
+        final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
+        final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+        return nsUri;
     }
 
 }

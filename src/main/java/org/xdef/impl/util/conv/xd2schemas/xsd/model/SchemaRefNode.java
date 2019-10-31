@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
@@ -81,12 +82,20 @@ public class SchemaRefNode {
         return (xsdNode instanceof XmlSchemaElement);
     }
 
+    public boolean isAttr() {
+        return (xsdNode instanceof XmlSchemaAttribute);
+    }
+
     public boolean isComplexType() {
         return (xsdNode instanceof XmlSchemaComplexType);
     }
 
     public XmlSchemaElement toXsdElem() {
         return (XmlSchemaElement)xsdNode;
+    }
+
+    public XmlSchemaAttribute toXsdAttr() {
+        return (XmlSchemaAttribute)xsdNode;
     }
 
     public XmlSchemaComplexType toXsdComplex() {

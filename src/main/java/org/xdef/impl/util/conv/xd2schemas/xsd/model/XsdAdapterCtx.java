@@ -1,14 +1,13 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
 
 /**
@@ -40,13 +39,19 @@ public class XsdAdapterCtx {
      */
     private XmlSchemaCollection xmlSchemaCollection = null;
 
-
     /**
      *
      * Key:     schema name
-     * Value:   node path,
+     * Value:   node path, schema node
      */
     private Map<String, Map<String, SchemaRefNode>> nodeRefs = null;
+
+    /**
+     * Nodes which will be created in post-procession
+     * Key:     namespace URI
+     * Value:   node name, x-definition node
+     */
+    private Map<String, Map<String, XNode>> nodesToBePostProcessed;
 
     public void init() {
         schemaNames = new HashSet<String>();
@@ -54,6 +59,7 @@ public class XsdAdapterCtx {
         extraSchemaLocationsCtx = new HashMap<String, XmlSchemaImportLocation>();
         xmlSchemaCollection = new XmlSchemaCollection();
         nodeRefs = new HashMap<String, Map<String, SchemaRefNode>>();
+        nodesToBePostProcessed = new HashMap<String, Map<String, XNode>>();
     }
 
     /**
@@ -82,6 +88,33 @@ public class XsdAdapterCtx {
         schemaLocationsCtx.put(nsUri, importLocation);
     }
 
+    public boolean existsSchemaLocation(final String nsUri) {
+        return schemaLocationsCtx.containsKey(nsUri);
+    }
+
+    public boolean isPostProcessingNamespace(final String nsUri) {
+        return extraSchemaLocationsCtx.containsKey(nsUri);
+    }
+
+    public void addNodeToPostProcessing(final String nsUri, final XNode xNode) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xNode, "Add attribute to post-processing.");
+
+        final String nodeName = xNode.getName();
+        Map<String, XNode> ppNsNodes = nodesToBePostProcessed.get(nsUri);
+
+        if (ppNsNodes == null) {
+            ppNsNodes = new HashMap<String, XNode>();
+            ppNsNodes.put(nodeName, xNode);
+            nodesToBePostProcessed.put(nsUri, ppNsNodes);
+        } else {
+            if (ppNsNodes.containsKey(nodeName)) {
+                XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xNode, "Node is already marked for post-processing");
+            } else {
+                ppNsNodes.put(nodeName, xNode);
+            }
+        }
+    }
+
     public final Set<String> getSchemaNames() {
         return schemaNames;
     }
@@ -100,5 +133,9 @@ public class XsdAdapterCtx {
 
     public final Map<String, Map<String, SchemaRefNode>> getNodeRefs() {
         return nodeRefs;
+    }
+
+    public Map<String, Map<String, XNode>> getNodesToBePostProcessed() {
+        return nodesToBePostProcessed;
     }
 }
