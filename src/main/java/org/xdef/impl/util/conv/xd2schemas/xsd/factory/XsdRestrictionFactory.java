@@ -13,8 +13,8 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdRestrictionFactory {
 

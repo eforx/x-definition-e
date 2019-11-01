@@ -1,9 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaAttribute;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
@@ -11,7 +8,7 @@ import org.xdef.impl.XData;
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 
 public class XsdNameUtils {
 
@@ -59,7 +56,7 @@ public class XsdNameUtils {
         }
 
         if (attr.isTopLevel()) {
-            attr.setName(XsdNamespaceUtils.getNoneNameWithoutPrefix(xName));
+            attr.setName(getNodeNameWithoutPrefix(xName));
             return;
         }
 
@@ -77,7 +74,7 @@ public class XsdNameUtils {
         }
 
         if (elem.isTopLevel()) {
-            elem.setName(XsdNamespaceUtils.getNoneNameWithoutPrefix(elem.getName()));
+            elem.setName(getNodeNameWithoutPrefix(elem.getName()));
             return;
         }
 
@@ -94,6 +91,39 @@ public class XsdNameUtils {
     public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
         // Element's name without namespace prefix, while xml is using target namespace
         return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
+    }
+
+    public static String getNodeNameWithoutPrefix(final String nodeName) {
+        int nsPos = nodeName.indexOf(':');
+        if (nsPos != -1) {
+            return nodeName.substring(nsPos + 1);
+        }
+
+        return nodeName;
+    }
+
+    public static String createRefLocalName(final String name) {
+        return name;
+    }
+
+    public static String createNewRootElemName(final String name, XmlSchemaType schemaType) {
+        return newElemenPrefix(schemaType) + "root_" + name;
+    }
+
+    private static String newElemenPrefix(XmlSchemaType schemaType) {
+        if (schemaType != null) {
+            return newElemenPrefix(schemaType instanceof XmlSchemaComplexType);
+        }
+
+        return "";
+    }
+
+    private static String newElemenPrefix(boolean isComplexType) {
+        if (isComplexType) {
+            return "ct_";
+        } else {
+            return "st_";
+        }
     }
 
     public static String createRefNameFromParser(final XData xData) {

@@ -2,7 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
 import java.util.Arrays;
 
-public class XmlSchemaImportLocation {
+public class XsdSchemaImportLocation {
     private String namespaceUri;
     private String path;
     /**
@@ -11,11 +11,11 @@ public class XmlSchemaImportLocation {
     private String fileName;
     private String fileExt = ".xsd";
 
-    public XmlSchemaImportLocation(String namespaceUri) {
+    public XsdSchemaImportLocation(String namespaceUri) {
         this.namespaceUri = namespaceUri;
     }
 
-    public XmlSchemaImportLocation(String namespaceUri, String fileName) {
+    public XsdSchemaImportLocation(String namespaceUri, String fileName) {
         this.namespaceUri = namespaceUri;
         this.fileName = fileName;
     }
@@ -75,7 +75,7 @@ public class XmlSchemaImportLocation {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        XmlSchemaImportLocation that = (XmlSchemaImportLocation) o;
+        XsdSchemaImportLocation that = (XsdSchemaImportLocation) o;
         return equals(namespaceUri, that.namespaceUri) &&
                 equals(path, that.path) &&
                 equals(fileName, that.fileName) &&

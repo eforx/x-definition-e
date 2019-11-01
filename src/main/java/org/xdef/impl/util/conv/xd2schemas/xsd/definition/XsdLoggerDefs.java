@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.util;
+package org.xdef.impl.util.conv.xd2schemas.xsd.definition;
 
 public interface XsdLoggerDefs {
 
@@ -15,5 +15,5 @@ public interface XsdLoggerDefs {
     String XSD_DPOOL_ADAPTER = "XsdXPoolAdapter";
     String XSD_UTILS = "XsdUtils";
     String XSD_ADAPTER_CTX = "XsdAdapterCtx";
-    String XSD_REFERENCE = "SchemaRefNode";
+    String XSD_REFERENCE = "SchemaNode";
 }

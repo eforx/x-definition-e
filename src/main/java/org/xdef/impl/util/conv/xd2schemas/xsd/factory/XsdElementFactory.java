@@ -22,8 +22,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdElementFactory {
 

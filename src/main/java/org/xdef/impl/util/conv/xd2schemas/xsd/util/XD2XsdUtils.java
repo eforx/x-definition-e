@@ -17,7 +17,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.NumFacetFactory
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.XD2XsdDefinitions.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.model.XMNode.*;
 
 public class XD2XsdUtils {

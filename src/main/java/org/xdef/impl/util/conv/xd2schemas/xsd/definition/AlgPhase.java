@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.util;
+package org.xdef.impl.util.conv.xd2schemas.xsd.definition;
 
 public enum AlgPhase {
     INITIALIZATION("Initialization"),       // Used for preparation process of transformation x-defintion to xsd

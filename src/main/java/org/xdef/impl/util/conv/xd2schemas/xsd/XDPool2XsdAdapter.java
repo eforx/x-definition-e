@@ -5,8 +5,10 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.util.conv.xd2schemas.XDPool2SchemaAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.AbstractXd2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.XD2XsdPostProcessingAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdSchemaFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
@@ -17,9 +19,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 /**
  * Tra
@@ -122,12 +124,12 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         for (Map.Entry<String, Pair<String, String>> entry : xDefTargetNs.entrySet()) {
             final String nsUri = entry.getValue().getValue();
             final String xDefName = entry.getKey();
-            adapterCtx.addSchemaLocation(nsUri, new XmlSchemaImportLocation(nsUri, xDefName));
+            adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
         }
 
         for (String xDefName: xDefsWithoutNs) {
             final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
-            adapterCtx.addSchemaLocation(nsUri, new XmlSchemaImportLocation(nsUri, xDefName));
+            adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
             XsdLogger.printP(LOG_DEBUG, PREPROCESSING, "Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
         }
     }

@@ -1,27 +1,27 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd;
+package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 
 import java.util.*;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.POSTPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
 
 /**
  * Transforms x-definition nodes into xsd nodes
  *
  * Creates new schemas based on post-processing via {@link #transformNodes}
  */
-class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
+public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
 
     /**
      * Input x-definition used for transformation
@@ -54,15 +54,15 @@ class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     protected Set<String> transformNodes(final Map<String, Map<String, XNode>> allNodesToResolve) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, sourceXDefinition, "Transforming gathered nodes into extra schemas ...");
 
-        Map<String, XmlSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
+        Map<String, XsdSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
         int lastSizeMap = schemasToResolve.size();
         final String sourceSystemId = XsdNamespaceUtils.getReferenceSystemId(sourceXDefinition.getXDPosition());
         Set<String> updatedNamespaces = new HashSet<String>();
 
         while (!schemasToResolve.isEmpty()) {
-            Iterator<Map.Entry<String, XmlSchemaImportLocation>> itr = schemasToResolve.entrySet().iterator();
+            Iterator<Map.Entry<String, XsdSchemaImportLocation>> itr = schemasToResolve.entrySet().iterator();
             while (itr.hasNext()) {
-                Map.Entry<String, XmlSchemaImportLocation> schemaToResolve = itr.next();
+                Map.Entry<String, XsdSchemaImportLocation> schemaToResolve = itr.next();
                 final String schemaTargetNsUri = schemaToResolve.getKey();
                 Map<String, XNode> nodesInSchemaToResolve = allNodesToResolve.get(schemaTargetNsUri);
 
@@ -119,7 +119,7 @@ class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         protected void createOrUpdateSchema(final NamespaceMap namespaceCtx,
                                             final ArrayList<XNode> nodesInSchemaToResolve,
                                             final String targetNsUri,
-                                            final XmlSchemaImportLocation importLocation) {
+                                            final XsdSchemaImportLocation importLocation) {
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
@@ -146,16 +146,16 @@ class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
          */
         private String createXsdSchema(final NamespaceMap namespaceCtx,
                                        final String targetNsUri,
-                                       final XmlSchemaImportLocation importLocation) {
+                                       final XsdSchemaImportLocation importLocation) {
             final String schemaName = importLocation.getFileName();
             if (adapterCtx.existsSchemaLocation(targetNsUri)) {
-                schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), schemaName, true, POSTPROCESSING);
+                schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
             } else {
                 schema = createOrGetXsdSchema(targetNsUri, schemaName);
                 initSchemaNamespace(schemaName, namespaceCtx, targetNsUri, importLocation);
             }
 
-            // TODO: based on top attributes/elements if attr -> then only attr?
+            // TODO: based on top attributes/elements ... if attr -> then only attr qualified?
             initSchemaFormDefault();
 
             return schemaName;
@@ -170,7 +170,7 @@ class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
          * @return  instance of xml schema
          */
         private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
-            XmlSchema schema = XsdNamespaceUtils.getSchema(adapterCtx.getXmlSchemaCollection(), schemaName, false, POSTPROCESSING);
+            XmlSchema schema = adapterCtx.getSchema(schemaName, false, POSTPROCESSING);
 
             if (schema == null) {
                 adapterCtx.addSchemaName(schemaName);
@@ -197,7 +197,7 @@ class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         private void initSchemaNamespace(final String schemaName,
                                          final NamespaceMap namespaceCtx,
                                          final String targetNsUri,
-                                         final XmlSchemaImportLocation importLocation) {
+                                         final XsdSchemaImportLocation importLocation) {
             XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, sourceXDefinition, "Initializing namespace context ...");
 
             // Namespace initialization

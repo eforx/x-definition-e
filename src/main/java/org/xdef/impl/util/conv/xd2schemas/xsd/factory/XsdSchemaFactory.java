@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -12,9 +13,11 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.INITIALIZATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.LOG_INFO;
+import java.util.Map;
+
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.INITIALIZATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdSchemaFactory {
 
@@ -50,12 +53,35 @@ public class XsdSchemaFactory {
     private void initSchemaNamespace(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
         XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Initializing namespace context ...");
 
+        final String targetNsPrefix = targetNamespace.getKey();
+        final String targetNsUri = targetNamespace.getValue();
+
         if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
             xmlSchema.setSchemaNamespacePrefix(targetNamespace.getKey());
         }
 
-        NamespaceMap namespaceCtx = XsdNamespaceUtils.createCtx();
-        XsdNamespaceUtils.initCtx(namespaceCtx, xDef, targetNamespace.getKey(), targetNamespace.getValue());
+        NamespaceMap namespaceCtx = new NamespaceMap();
+        // Default XSD namespace with prefix xs
+        namespaceCtx.add(XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX, Constants.URI_2001_SCHEMA_XSD);
+
+        if (targetNsPrefix != null && targetNsUri != null) {
+            XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, xDef.getName(), targetNsPrefix, targetNsUri, INITIALIZATION);
+        }
+
+        for (Map.Entry<String, String> entry : xDef._namespaces.entrySet()) {
+            final String nsPrefix = entry.getKey();
+            final String nsUri = entry.getValue();
+
+            if (XsdNamespaceUtils.isDefaultNamespacePrefix(nsPrefix) || (targetNsPrefix != null && nsPrefix.equals(targetNsPrefix))) {
+                continue;
+            }
+
+            if (!namespaceCtx.containsKey(nsPrefix)) {
+                XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, xDef.getName(), nsPrefix, nsUri, INITIALIZATION);
+            } else {
+                XsdLogger.printP(LOG_WARN, INITIALIZATION, xDef, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
+            }
+        }
 
         xmlSchema.setNamespaceContext(namespaceCtx);
     }

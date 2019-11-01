@@ -1,8 +1,9 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
 import static org.xdef.model.XMNode.XMTEXT;
 

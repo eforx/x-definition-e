@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd;
+package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -8,7 +8,7 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XmlSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
-class XD2XsdReferenceAdapter {
+public class XD2XsdReferenceAdapter {
 
     private final XmlSchema schema;
     private final XsdElementFactory xsdFactory;
@@ -45,7 +45,7 @@ class XD2XsdReferenceAdapter {
         this.adapterCtx = adapterCtx;
     }
 
-    protected void setPostProcessing() {
+    public void setPostProcessing() {
         this.isPostProcessingPhase = true;
     }
 
@@ -56,34 +56,14 @@ class XD2XsdReferenceAdapter {
      *      import          - used namespaces in reference of attributes and elements
      * @param xDef
      */
-    protected void createRefsAndImports(XDefinition xDef) {
+    public void createRefsAndImports(XDefinition xDef) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
         namespaceIncludes = new HashSet<String>();
         extractRefsAndImports(xDef);
     }
 
-    private void extractRefsAndImports(XDefinition xDef) {
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
-
-        final Set<XMNode> processed = new HashSet<XMNode>();
-
-        // Extract all simple types and imports
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
-        for (XElement elem : xDef.getXElements()) {
-            extractSimpleRefsAndImports(elem, processed, false);
-        }
-
-        // Extract all complex types
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
-        for (XElement elem : xDef.getXElements()) {
-            if (!treeAdapter.getXdRootNames().contains(elem.getName())) {
-                extractTopLevelElementRefs(elem);
-            }
-        }
-    }
-
-    protected void extractRefsAndImports(ArrayList<XNode> nodes) {
+    public void extractRefsAndImports(ArrayList<XNode> nodes) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
         namespaceIncludes = new HashSet<String>();
@@ -111,6 +91,26 @@ class XD2XsdReferenceAdapter {
         }
     }
 
+    private void extractRefsAndImports(XDefinition xDef) {
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
+
+        final Set<XMNode> processed = new HashSet<XMNode>();
+
+        // Extract all simple types and imports
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
+        for (XElement elem : xDef.getXElements()) {
+            extractSimpleRefsAndImports(elem, processed, false);
+        }
+
+        // Extract all complex types
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
+        for (XElement elem : xDef.getXElements()) {
+            if (!treeAdapter.getXdRootNames().contains(elem.getName())) {
+                extractTopLevelElementRefs(elem);
+            }
+        }
+    }
+
     private void extractTopLevelElementRefs(final XNode xNode) {
         XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
 
@@ -119,10 +119,10 @@ class XD2XsdReferenceAdapter {
         if (elementType == null) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
         } else if (elementType instanceof XmlSchemaType) {
-            XsdReferenceUtils.updateNode(xNode, elementType, adapterCtx.getNodeRefs());
             elementType.setName(xsdElem.getName());
+            adapterCtx.updateNode(xNode, elementType);
             XD2XsdUtils.addSchemaType(schema, elementType);
-            schema.getItems().remove(xsdElem);
+            XD2XsdUtils.removeItem(schema, xsdElem);
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Element=" + xsdElem.getName());
         }
     }
@@ -149,14 +149,19 @@ class XD2XsdReferenceAdapter {
 
                 if (xDefEl.isReference()) {
                     final String refPos = xDefEl.getReferencePos();
-                    if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), xDefEl.getNSUri(), schema)) {
-                        addSchemaImportFromElem(xDefEl.getNSUri(), refPos);
+                    final String nodeNsUri = xDefEl.getNSUri();
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), nodeNsUri, schema)) {
+                        addSchemaImportFromElem(nodeNsUri, refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
                         final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
-                        XmlSchema refSchema = XsdNamespaceUtils.getSchema(schema.getParent(), refSystemId, true, PREPROCESSING);
+                        XmlSchema refSchema = adapterCtx.getSchema(refSystemId, true, PREPROCESSING);
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
-                        addSchemaImportFromElem(nsUri, refPos);
+                        if (!XsdNamespaceUtils.isValidNsUri(nsUri)) {
+                            XsdLogger.printP(LOG_ERROR, PREPROCESSING, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + refNsPrefix);
+                        } else {
+                            addSchemaImportFromElem(nsUri, refPos);
+                        }
                     } else if (XsdNamespaceUtils.isRefInDifferentSystem(refPos, xDefEl.getXDPosition())) {
                         addSchemaInclude(refPos);
                     } // else {} // Reference in same x-definition and same namespace
@@ -169,8 +174,8 @@ class XD2XsdReferenceAdapter {
                         String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
                         // Post-processing
-                        if (nsUri != null && !nsUri.isEmpty()) {
-                            XmlSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
+                        if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
+                            XsdSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
                             if (importLocation != null) {
                                 addPostProcessingSchema(nsUri, importLocation);
                             } else {
@@ -178,15 +183,15 @@ class XD2XsdReferenceAdapter {
                             }
                         } else {
                             final String xDefPos = xDefEl.getXDPosition();
-                            nsUri = XsdNamespaceUtils.getNsUriInSystem(xDefEl, schema);
+                            nsUri = XsdNamespaceUtils.getNodeNamespaceUri(xDefEl, adapterCtx, PREPROCESSING);
 
-                            if (nsUri == null || nsUri.isEmpty()) {
+                            if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
+                                addSchemaImportFromElem(nsUri, xDefPos);
+                            } else {
                                 if (parentRef == false) {
                                     nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
-                                    XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
+                                    XsdLogger.printP(LOG_ERROR, PREPROCESSING, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                                 }
-                            } else {
-                                addSchemaImportFromElem(nsUri, xDefPos);
                             }
                         }
 
@@ -247,21 +252,21 @@ class XD2XsdReferenceAdapter {
 
             // Post-processing
             if (nsUri != null && !nsUri.isEmpty()) {
-                XmlSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
+                XsdSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
                 if (importLocation != null) {
                     addPostProcessingSchema(nsUri, importLocation);
                 }
             }
         }
 
-        final String importNamespace = xData.getNSUri();
-        if (importNamespace != null && XsdNamespaceUtils.isNodeInDifferentNamespace(xData.getName(), importNamespace, schema)) {
-            addSchemaImportFromSimpleType(XsdNamespaceUtils.getNamespacePrefix(xData.getName()), importNamespace);
+        final String nodeNsUri = xData.getNSUri();
+        if (nodeNsUri != null && XsdNamespaceUtils.isNodeInDifferentNamespace(xData.getName(), nodeNsUri, schema)) {
+            addSchemaImportFromSimpleType(XsdNamespaceUtils.getNamespacePrefix(xData.getName()), nodeNsUri);
         }
     }
 
-    private void addSchemaInclude(final String refName) {
-        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refName);
+    private void addSchemaInclude(final String refPos) {
+        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
 
         if (refSystemId == null || !namespaceIncludes.add(refSystemId)) {
             return;
@@ -275,14 +280,14 @@ class XD2XsdReferenceAdapter {
         }
     }
 
-    private void addSchemaImportFromElem(final String nsUri, final String refName) {
+    private void addSchemaImportFromElem(final String nsUri, final String refPos) {
         if (nsUri == null || !namespaceImports.add(nsUri)) {
             return;
         }
 
         if (adapterCtx.getSchemaLocationsCtx().containsKey(nsUri)) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.getSchemaLocationsCtx().get(nsUri).buildLocalition(XsdNamespaceUtils.getReferenceSystemId(refName)));
+            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.getSchemaLocationsCtx().get(nsUri).buildLocalition(XsdNamespaceUtils.getReferenceSystemId(refPos)));
         } else {
             XsdLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
         }
@@ -319,7 +324,7 @@ class XD2XsdReferenceAdapter {
             if (!adapterCtx.getExtraSchemaLocationsCtx().containsKey(nsUri)) {
                 final String schemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
                 XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add external namespace import. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
-                adapterCtx.getExtraSchemaLocationsCtx().put(nsUri, new XmlSchemaImportLocation(nsUri, schemaName));
+                adapterCtx.getExtraSchemaLocationsCtx().put(nsUri, new XsdSchemaImportLocation(nsUri, schemaName));
                 XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add external schema to post-process queue. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
                 xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.getExtraSchemaLocationsCtx().get(nsUri).buildLocalition(null));
             } else {
@@ -328,7 +333,7 @@ class XD2XsdReferenceAdapter {
         }
     }
 
-    private void addPostProcessingSchema(final String nsUri, final XmlSchemaImportLocation schemaImportLocation) {
+    private void addPostProcessingSchema(final String nsUri, final XsdSchemaImportLocation schemaImportLocation) {
         if (adapterCtx.getExtraSchemaLocationsCtx().containsKey(nsUri)) {
             return;
         }
