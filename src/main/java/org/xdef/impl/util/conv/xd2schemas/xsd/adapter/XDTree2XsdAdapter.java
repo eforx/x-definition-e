@@ -72,7 +72,7 @@ public class XDTree2XsdAdapter {
                 return createAttribute((XData) xn, topLevel);
             }
             case XNode.XMTEXT: {
-                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xn, "Creating simple content ...");
+                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xn, "Creating simple (text) content ...");
                 return xsdFactory.createSimpleContent((XData)xn);
             }
             case XNode.XMELEMENT: {
@@ -86,11 +86,11 @@ public class XDTree2XsdAdapter {
                 XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xn, "Processing Particle node. Particle=" + XD2XsdUtils.particleXKindToString(xdElemKind));
                 return xsdFactory.createGroupParticle(xdElemKind, xn.getOccurence());
             case XNode.XMDEFINITION: {
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xn, "XDefinition node has to be only pre-processed!");
+                XsdLogger.printP(LOG_WARN, TRANSFORMATION, xn, "XDefinition node has to be only pre-processed!");
                 return null;
             }
             default: {
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xn, "Unknown type of node. NodeType=" + xdElemKind);
+                XsdLogger.printP(LOG_WARN, TRANSFORMATION, xn, "Unknown type of node. NodeType=" + xdElemKind);
             }
         }
 
@@ -125,9 +125,10 @@ public class XDTree2XsdAdapter {
             QName qName;
 
             if (xData.getRefTypeName() != null) {
-                final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xData.getRefTypeName());
+                final String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+                final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-                attr.setSchemaTypeName(new QName(nsUri, xData.getRefTypeName()));
+                attr.setSchemaTypeName(new QName(nsUri, refTypeName));
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition." +
                         " Name=" + xData.getName() + ", Type=" + attr.getSchemaTypeName());
             } else if ((qName = XD2XsdUtils.getDefaultSimpleParserQName(xData)) != null) {
@@ -251,9 +252,9 @@ public class XDTree2XsdAdapter {
 
                 // If element contains only data, we dont have to create complexType
                 if (xDefEl.getXDAttrs().length == 0 && xDefEl._childNodes.length == 1 && xDefEl._childNodes[0].getKind() == XNode.XMTEXT) {
-                    addSimpleContentToElem(xsdElem, (XData) xDefEl._childNodes[0]);
+                    addSimpleTypeToElem(xsdElem, (XData) xDefEl._childNodes[0]);
                 } else {
-                    addComplexContentToElem(xsdElem, xDefEl);
+                    addComplexTypeToElem(xsdElem, xDefEl);
                 }
 
                 XsdNameUtils.resolveElementQName(schema, xsdElem);
@@ -266,9 +267,8 @@ public class XDTree2XsdAdapter {
         return xsdElem;
     }
 
-    private void addSimpleContentToElem(final XmlSchemaElement xsdElem, final XData xd) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xd, "Creating simple content of element. " +
-                "Element=" + xsdElem.getName());
+    private void addSimpleTypeToElem(final XmlSchemaElement xsdElem, final XData xd) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xd, "Creating simple type of element. Element=" + xsdElem.getName());
 
         final QName qName = XD2XsdUtils.getDefaultSimpleParserQName(xd);
         if (qName != null) {
@@ -280,8 +280,8 @@ public class XDTree2XsdAdapter {
         }
     }
 
-    private void addComplexContentToElem(final XmlSchemaElement xsdElem, final XElement defEl) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex content of element...");
+    private void addComplexTypeToElem(final XmlSchemaElement xsdElem, final XElement defEl) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex type of element ...");
 
         XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
 

@@ -102,12 +102,16 @@ public class XsdNameUtils {
         return nodeName;
     }
 
-    public static String createRefLocalName(final String name) {
+    public static String newTopLocalRefName(final String name) {
         return name;
     }
 
-    public static String createNewRootElemName(final String name, XmlSchemaType schemaType) {
+    public static String newRootElemName(final String name, final XmlSchemaType schemaType) {
         return newElemenPrefix(schemaType) + "root_" + name;
+    }
+
+    public static String newLocalScopeRefTypeName(final XData xData) {
+        return xData.isLocalType() ? "refLoc_" + xData.getRefTypeName() : xData.getRefTypeName();
     }
 
     private static String newElemenPrefix(XmlSchemaType schemaType) {

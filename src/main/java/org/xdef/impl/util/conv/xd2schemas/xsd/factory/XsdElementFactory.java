@@ -94,7 +94,7 @@ public class XsdElementFactory {
     public XmlSchemaSimpleType creatSimpleType(final XData xData) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
         XmlSchemaSimpleType itemType = createEmptySimpleType(false);
-        itemType.setName(xData.getRefTypeName());
+        itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
         itemType.setContent(createSimpleTypeRestriction(xData));
         return itemType;
     }
@@ -106,10 +106,11 @@ public class XsdElementFactory {
 
         QName qName;
         if (xData.getRefTypeName() != null) {
-            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xData.getRefTypeName());
+            final String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            qName = new QName(nsUri, xData.getRefTypeName());
-            XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + xData.getRefTypeName());
+            qName = new QName(nsUri, refTypeName);
+            XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
         } else {
             qName = XD2XsdUtils.getDefaultSimpleParserQName(xData);
         }
@@ -128,7 +129,7 @@ public class XsdElementFactory {
             XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
             contentExtension.setBaseTypeName(qName);
             content.setContent(contentExtension);
-            XsdLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xData, "Simple-content extending type. nsUri=" + qName.getNamespaceURI() + ", localName=" + xData.getRefTypeName());
+            XsdLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xData, "Simple-content extending type. QName=" + qName);
             return content;
         }
 
@@ -194,7 +195,7 @@ public class XsdElementFactory {
         return annotation;
     }
 
-    public XmlSchemaComplexType createComplexContentWithExtension(final String name, final QName qName) {
+    public XmlSchemaComplexType createComplexContentWithComplexExtension(final String name, final QName qName) {
         XmlSchemaComplexType complexType = createEmptyComplexType(true);
         XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
         XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();

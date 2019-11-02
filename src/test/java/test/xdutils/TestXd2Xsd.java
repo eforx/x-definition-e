@@ -1,5 +1,6 @@
 package test.xdutils;
 
+import builtools.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -13,7 +14,6 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.sys.ArrayReporter;
 import org.xdef.util.XValidate;
-import test.utils.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;

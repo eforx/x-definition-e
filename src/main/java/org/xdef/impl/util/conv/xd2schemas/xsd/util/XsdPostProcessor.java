@@ -53,7 +53,7 @@ public class XsdPostProcessor {
         final XmlSchemaElement xsdElem = (XmlSchemaElement)node.getXsdNode();
         final XElement xDefEl = node.toXdElem();
         final String localName = xsdElem.getName();
-        final String newLocalName = XsdNameUtils.createNewRootElemName(localName, xsdElem.getSchemaType());
+        final String newLocalName = XsdNameUtils.newRootElemName(localName, xsdElem.getSchemaType());
         final String elemNsUri = xsdElem.getParent().getNamespaceContext().getNamespaceURI(XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName()));
 
         // Move element's schema type to top
@@ -105,12 +105,12 @@ public class XsdPostProcessor {
 
         final XmlSchemaElement xsdElem = (XmlSchemaElement)node.getXsdNode();
         final XElement xDefEl = node.toXdElem();
-        String newRefLocalName = XsdNameUtils.createRefLocalName(xDefEl.getName());
+        String newRefLocalName = XsdNameUtils.newTopLocalRefName(xDefEl.getName());
 
         // Creating complex content with extension to original reference
         XmlSchemaType schemaType = null;
         if (xsdElem.getRef().getTargetQName() != null) {
-            schemaType = xsdFactory.createComplexContentWithExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
+            schemaType = xsdFactory.createComplexContentWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
         } else if (xsdElem.getSchemaTypeName() != null) {
             schemaType = xsdFactory.createComplextContentWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName(), true);
         }

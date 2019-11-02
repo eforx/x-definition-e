@@ -214,14 +214,22 @@ public class XsdAdapterCtx {
             return node;
         }
 
-        final String msg = node.hasReference() ? " (with reference)" : "";
+        String msg = node.hasReference() ? " (with reference)" : "";
         if (refOrig != null) {
             refOrig.copy(node);
-            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getXdPosition());
+            msg = "Updating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getXdPosition();
+            if (node.getXsdNode() != null) {
+                msg += ", Xsd=" + node.getXsdNode().getClass().getSimpleName();
+            }
+            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, msg);
             return refOrig;
         } else {
             xsdSystemRefs.put(nodePath, node);
-            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getXdPosition());
+            msg = "Creating node" + msg + ". System=" + systemId + ", Path=" + nodePath + ", Node=" + node.getXdPosition();
+            if (node.getXsdNode() != null) {
+                msg += ", Xsd=" + node.getXsdNode().getClass().getSimpleName();
+            }
+            XsdLogger.printG(LOG_INFO, XSD_REFERENCE, msg);
             return node;
         }
     }
@@ -233,7 +241,7 @@ public class XsdAdapterCtx {
     }
 
     public void updateNode(final String systemId, String nodePath, final XmlSchemaNamed newXsdNode) {
-        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating xsd content of node. System=" + systemId + ", Path=" + nodePath);
+        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating xsd content of node. System=" + systemId + ", Path=" + nodePath + ", NewXsd=" + newXsdNode.getClass().getSimpleName());
 
         Map<String, SchemaNode> xsdSystemRefs = getSystemRefs(systemId);
 

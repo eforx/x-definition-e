@@ -136,15 +136,15 @@
   <xs:simpleType name="DatumNarozeni_user_Type">
     <xs:restriction base="xs:string"/>
   </xs:simpleType>
+  <xs:simpleType name="Okres_user_Type">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
   <xs:simpleType name="IC_Xdnum_Type">
     <xs:restriction base="xs:string">
       <xs:pattern value="\d{1,12}"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="DatumVydani_user_Type">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>
-  <xs:simpleType name="Okres_user_Type">
     <xs:restriction base="xs:string"/>
   </xs:simpleType>
   <xs:simpleType name="Verze_user_Type">

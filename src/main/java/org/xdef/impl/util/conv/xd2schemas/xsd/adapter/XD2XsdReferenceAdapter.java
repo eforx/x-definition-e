@@ -225,7 +225,7 @@ public class XD2XsdReferenceAdapter {
     }
 
     private void addSimpleTypeReference(final XData xData) {
-        String refTypeName = xData.getRefTypeName();
+        String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
         final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
 
         // Simple type node
