@@ -139,12 +139,6 @@ public class XD2XsdReferenceAdapter {
                 XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XMElement node. Node=" + xn.getName());
 
                 XElement xDefEl = (XElement)xn;
-                XMNode[] attrs = xDefEl.getXDAttrs();
-
-                for (int i = 0; i < attrs.length; i++) {
-                    addSimpleTypeReference((XData)attrs[i]);
-                }
-
                 boolean isRef = false;
 
                 if (xDefEl.isReference()) {
@@ -200,6 +194,11 @@ public class XD2XsdReferenceAdapter {
                 }
 
                 if (isRef == false) {
+                    XMNode[] attrs = xDefEl.getXDAttrs();
+                    for (int i = 0; i < attrs.length; i++) {
+                        addSimpleTypeReference((XData)attrs[i]);
+                    }
+
                     int childrenCount = xDefEl._childNodes.length;
                     for (XNode xChild : xDefEl._childNodes) {
                         if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
