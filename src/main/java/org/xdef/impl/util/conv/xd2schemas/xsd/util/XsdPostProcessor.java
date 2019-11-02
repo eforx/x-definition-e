@@ -34,13 +34,13 @@ public class XsdPostProcessor {
 
             for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
                 final SchemaNode refNode = refEntry.getValue();
-                if (refNode.getReference() != null) {
-                    if (isTopElementRef(refNode)) {
-                        elementTopLevelRef(refNode, xsdFactory);
-                    }
+                if (isTopElementRef(refNode)) {
+                    elementTopLevelRef(refNode, xsdFactory);
+                }
 
-                    refType(refNode);
-                } else if (isQualifiedTopElementWithUnqualifiedPtr(refNode)) {
+                updateRefType(refNode, xsdFactory);
+
+                if (refNode.getReference() == null && isQualifiedTopElementWithUnqualifiedPtr(refNode)) {
                     elementRootDecomposition(refNode);
                 }
             }
@@ -80,22 +80,23 @@ public class XsdPostProcessor {
     }
 
     private void elementTopLevelRef(final SchemaNode node, final XsdElementFactory xsdFactory) {
+        SchemaNode refNode = node.getReference();
+        if (refNode == null || (refNode.isXsdComplexType() && !node.hasAnyPointer())) {
+            return;
+        }
+
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Updating top-level element reference ...");
 
         elementTopToComplex(node, xsdFactory);
 
-        SchemaNode refNode = node.getReference();
-
-        if (refNode != null) {
-            if (isTopElement(refNode)) {
-                final String systemId = XsdNamespaceUtils.getReferenceSystemId(refNode.getXdNode().getXDPosition());
-                XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
-                XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema);
-                if (refNode.toXsdElem().isRef()) {
-                    elementTopLevelRef(refNode, refXsdFactory);
-                } else {
-                    elementTopToComplex(refNode, refXsdFactory);
-                }
+        if (isTopElement(refNode)) {
+            final String systemId = XsdNamespaceUtils.getReferenceSystemId(refNode.getXdNode().getXDPosition());
+            XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
+            XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema);
+            if (refNode.toXsdElem().isRef()) {
+                elementTopLevelRef(refNode, refXsdFactory);
+            } else {
+                elementTopToComplex(refNode, refXsdFactory);
             }
         }
     }
@@ -181,17 +182,14 @@ public class XsdPostProcessor {
         return false;
     }
 
-    private static void refType(final SchemaNode node) {
+    private static void updateRefType(final SchemaNode node, final XsdElementFactory xsdFactory) {
         if (node.getReference() != null) {
             if (node.getReference().isXsdElem() && node.isXsdElem() && node.toXsdElem().getRef().getTargetQName() == null) {
                 // Reference element to element
                 XmlSchemaElement xsdElem = node.toXsdElem();
-                if (xsdElem.getName() == null) {
-                    xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
-                    xsdElem.setSchemaTypeName(null);
-                } else {
-                    XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode) node.getXdNode(), "Element cannot use QName, because already has a name!");
-                }
+                xsdElem.getRef().setNamedObject(null);
+                xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
+                xsdElem.setSchemaTypeName(null);
             } else if (node.getReference().isXsdComplexType() && node.isXsdElem() && node.toXsdElem().getTargetQName() != null) {
                 // Reference element to complex type
                 XmlSchemaElement xsdElem = node.toXsdElem();

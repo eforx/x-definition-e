@@ -478,13 +478,10 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
 
-        // TODO: Local and global declaration scope
-        // TODO: root element as reference
-        //      Top level reference
-//        convertXdPool2XsdNoRef ("globalAndLocalTest",
-//                Arrays.asList(new String[] {"globalAndLocalTest_X", "globalAndLocalTest_Y", "globalAndLocalTest_Z"}),
-//                Arrays.asList(new String[] {"globalAndLocalTest_X_invalid", "globalAndLocalTest_Y_invalid", "globalAndLocalTest_Z_invalid"})
-//        );
+        convertXdPool2XsdNoRef ("globalAndLocalTest",
+                Arrays.asList(new String[] {"globalAndLocalTest_X", "globalAndLocalTest_Y", "globalAndLocalTest_Z"}),
+                Arrays.asList(new String[] {"globalAndLocalTest_X_invalid", "globalAndLocalTest_Y_invalid", "globalAndLocalTest_Z_invalid"})
+        );
 
         // TODO: Missing information about reference (reference has additional info)
 //        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
