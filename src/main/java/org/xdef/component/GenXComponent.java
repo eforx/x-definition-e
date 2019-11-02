@@ -964,10 +964,11 @@ public final class GenXComponent {
 		} else {
 			final String s = xe.getXDPosition();
 			if (s == null) {// model still may be reference
-				//if not null model is a reference
-				return _components.get(xe.getReferencePos());
+				//if null model is a reference
+				return _components.get(
+					xe.isReference() ? xe.getReferencePos() : null);
 			} else {
-				final String t = xe.getReferencePos();
+				final String t = xe.isReference() ? xe.getReferencePos() : null;
 				if (t == null) { // if no reference exists
 					return _components.get(s); // we return model class
 				}
@@ -1009,7 +1010,8 @@ public final class GenXComponent {
 		if (ndx < 0) {
 			return null;
 		}
-		if (s == null && (s = xe.getReferencePos()) != null) {
+		if (s == null 
+			&& (s = xe.isReference() ? xe.getReferencePos() : null) != null) {
 			s = _binds.get(xe.getXDPosition() + xdPos.substring(ndx));
 		}
 		return s;
@@ -1659,9 +1661,8 @@ public final class GenXComponent {
 (groupMax > 1 ? "new StringBuilder()" : "(char) -1") + ";"+LN);
 				vars.append(s);
 				genTextNodeCreator(xdata, name, groupMax, genNodeList);
-				txttab.put(node.getXDPosition(),
-					(groupMax == 1 ? "1" : "2") + "," +
-						getParsedResultGetter(xdata) + ";" + name);
+				txttab.put(node.getXDPosition(), (groupMax == 1 ? "1" : "2")
+					+ "," + getParsedResultGetter(xdata) + ";" + name);
 if (isRoot && xe._json == 2 && nodes.length == 1) {
 	genJsonDirectGetterSetter(xe, xdata, name, setters, getters, sbi);
 }
