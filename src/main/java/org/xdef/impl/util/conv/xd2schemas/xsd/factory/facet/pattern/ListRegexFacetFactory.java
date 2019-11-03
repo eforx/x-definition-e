@@ -1,10 +1,10 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array;
+package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern;
 
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.EnumerationRegexFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.types.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
@@ -15,7 +15,7 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFO
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
-public class ListFacetFactory extends AbstractArrayFacetFactory {
+public class ListRegexFacetFactory extends AbstractArrayFacetFactory {
 
     static public final String XD_PARSER_NAME = "list";
     static public final String XD_PARSER_CI_NAME = "listi";
@@ -26,7 +26,7 @@ public class ListFacetFactory extends AbstractArrayFacetFactory {
     private Integer maxItems = null;
     private String regex = null;
 
-    public ListFacetFactory(boolean isCaseSensitive) {
+    public ListRegexFacetFactory(boolean isCaseSensitive) {
         this.isCaseSensitive = isCaseSensitive;
     }
 

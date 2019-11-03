@@ -145,7 +145,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         } else if (XSD_FACET_WHITESPACE.equals(param.getName())) {
             facet = whitespace(param);
         } else if (!customFacet(facets, param)) {
-            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported parameter type. Parameter=" + param.getName());
+            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported restriction parameter. Parameter=" + param.getName());
         }
 
         if (facet != null) {

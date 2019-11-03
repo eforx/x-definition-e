@@ -2,22 +2,27 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.ListFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.ListRegexFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.TokensFacetFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.UnionFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.UnionRegexFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.*;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.xdef.XDValueID.XD_CONTAINER;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
 
 public class XD2XsdParserMapping {
 
@@ -78,8 +83,8 @@ public class XD2XsdParserMapping {
         customFacetMap.put(EndsFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new EndsFacetFactory(false)));
         customFacetMap.put(EqFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new EqFacetFactory(true)));
         customFacetMap.put(EqFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new EqFacetFactory(false)));
-        customFacetMap.put(NumFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new NumFacetFactory()));
         customFacetMap.put(MD5FacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new MD5FacetFactory()));
+        customFacetMap.put(NumFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new NumFacetFactory()));
         customFacetMap.put(RegexFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new RegexFacetFactory()));
         customFacetMap.put(StartsFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new StartsFacetFactory(true)));
         customFacetMap.put(StartsFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new StartsFacetFactory(false)));
@@ -107,11 +112,16 @@ public class XD2XsdParserMapping {
         Pair<QName, IXsdFacetFactory> res = customFacetMap.get(parserName);
         // Custom dynamic facets
         if (res == null) {
-            if (ListFacetFactory.XD_PARSER_NAME.equals(parserName) || ListFacetFactory.XD_PARSER_CI_NAME.equals(parserName)) {
-                ListFacetFactory facetBuilder = new ListFacetFactory(ListFacetFactory.XD_PARSER_NAME.equals(parserName));
-                res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
-            } else if (UnionFacetFactory.XD_PARSER_NAME.equals(parserName)) {
-                UnionFacetFactory facetBuilder = new UnionFacetFactory();
+            if (ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName) || ListRegexFacetFactory.XD_PARSER_CI_NAME.equals(parserName)) {
+                final QName qName = determineBaseType(parameters);
+                if (qName != null && ListFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+                    res = new Pair(qName, new ListFacetFactory());
+                } else {
+                    ListRegexFacetFactory facetBuilder = new ListRegexFacetFactory(ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName));
+                    res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
+                }
+            } else if (UnionRegexFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+                UnionRegexFacetFactory facetBuilder = new UnionRegexFacetFactory();
                 res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
             }
         }
@@ -143,5 +153,47 @@ public class XD2XsdParserMapping {
         }
 
         return null;
+    }
+
+    private static QName determineBaseType(final XDNamedValue[] parameters) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Determination of QName...");
+
+        QName res = null;
+        String parserName = null;
+        boolean allParsersSame = true;
+
+        for (int i = 0; i < parameters.length; i++) {
+            XDValue xVal = parameters[i].getValue();
+            if (xVal.getItemId() == XD_CONTAINER) {
+                allParsersSame = false;
+            } else if (xVal instanceof XDParser) {
+                if (parserName == null) {
+                    parserName = ((XDParser) xVal).parserName();
+                } else {
+                    allParsersSame = checkParser((XDParser) xVal, parserName);
+                }
+            }
+        }
+
+        if (parserName == null || allParsersSame == false) {
+            return res;
+        }
+
+        res = getDefaultParserQName(parserName);
+        if (res == null) {
+            XsdLogger.printP(LOG_WARN, TRANSFORMATION, "Unsupported simple content parser! Parser=" + parserName);
+            res = Constants.XSD_STRING;
+        }
+
+        return res;
+    }
+
+    private static boolean checkParser(final XDParser parser, final String parserName) {
+        if (!parserName.equals(parser.parserName())) {
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "List/Union - parsers are not same!");
+            return false;
+        }
+
+        return true;
     }
 }

@@ -433,6 +433,8 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2Xsd("t009", Arrays.asList(new String[] {"t009"}), null);
         convertXdDef2Xsd("t010", Arrays.asList(new String[] {"t010"}), null);
         convertXdDef2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}));
+        convertXdDef2Xsd("t019", Arrays.asList(new String[] {"t019"}), null);
+        convertXdDef2Xsd("t020", Arrays.asList(new String[] {"t020"}), null);
 
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null);
         convertXdDef2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
@@ -461,7 +463,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2XsdNoRef("namespaceTest3", Arrays.asList(new String[] {"namespaceTest3_valid_1"}), null);
         convertXdPool2XsdNoRef("namespaceTest4", Arrays.asList(new String[] {"namespaceTest4_valid_1"}), null);
 
-        convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), null);
+        convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
         convertXdDef2XsdNoRef ("simpleModelTest",
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", "simpleModelTest_valid_3", "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 

@@ -84,14 +84,14 @@ public class XsdElementFactory {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type. Name=" + name);
         XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
-        itemType.setContent(createSimpleTypeRestriction(xData));
+        itemType.setContent(createSimpleTypeContent(xData));
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
         XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
-        itemType.setContent(createSimpleTypeRestriction(xData));
+        itemType.setContent(createSimpleTypeContent(xData));
         return itemType;
     }
 
@@ -214,19 +214,19 @@ public class XsdElementFactory {
         return complexType;
     }
 
-    private XmlSchemaSimpleTypeRestriction createSimpleTypeRestriction(final XData xData) {
-        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type restrictions");
+    private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type content");
 
         XDValue parseMethod = xData.getParseMethod();
-        XsdRestrictionFactory restrictionBuilder = new XsdRestrictionFactory(xData);
+        XsdSimpleContentFactory simpleContentFactory = new XsdSimpleContentFactory(this, xData);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
-            restrictionBuilder.setParameters(parser.getNamedParams().getXDNamedItems());
-            return restrictionBuilder.createRestriction();
+            simpleContentFactory.setParameters(parser.getNamedParams().getXDNamedItems());
+            return simpleContentFactory.createSimpleContent();
         }
 
-        return restrictionBuilder.buildDefaultRestriction(Constants.XSD_STRING);
+        return simpleContentFactory.createDefaultRestriction(Constants.XSD_STRING);
     }
 
     private static XmlSchemaDocumentation createAnnotationItem(final String annotation) {
