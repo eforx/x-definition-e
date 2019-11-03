@@ -8,6 +8,7 @@
              <Test2 xd:script="occurs *">list(%item=int(%minInclusive='1', %maxInclusive='10'))</Test2>
              <Test3 xd:script="occurs *">list(%item=int(%minInclusive='1', %maxInclusive='10'), %length='3')</Test3>
              <Test4 xd:script="occurs *">union(%item=[int(%minInclusive='1', %maxInclusive='10'), string(%enumeration=['A', 'B', 'C'])])</Test4>
+             <Test5 xd:script="occurs *">list(%item=string(%enumeration=['A', 'B', 'C']), %length='3')</Test5>
          </xd:mixed>
      </Root>
 

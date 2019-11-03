@@ -2,7 +2,6 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
@@ -21,8 +20,7 @@ import java.util.Map;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XD2XsdParserMapping {
 
@@ -110,20 +108,20 @@ public class XD2XsdParserMapping {
      */
     public static Pair<QName, IXsdFacetFactory> getCustomFacetFactory(final String parserName, final XDNamedValue[] parameters) {
         Pair<QName, IXsdFacetFactory> res = customFacetMap.get(parserName);
-        // Custom dynamic facets
+        // Custom dynamic facet factories
         if (res == null) {
-            if (ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName) || ListRegexFacetFactory.XD_PARSER_CI_NAME.equals(parserName)) {
-                final QName qName = determineBaseType(parameters);
-                if (qName != null && ListFacetFactory.XD_PARSER_NAME.equals(parserName)) {
-                    res = new Pair(qName, new ListFacetFactory());
-                } else {
-                    ListRegexFacetFactory facetBuilder = new ListRegexFacetFactory(ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName));
-                    res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
-                }
-            } else if (UnionRegexFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+            if (ListFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+                final QName qName = determineListBaseType(parameters);
+                res = new Pair(qName, new ListFacetFactory());
+            } else if (UnionFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+                res = new Pair(null, new UnionFacetFactory());
+            } else if (/*ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName) || */ListRegexFacetFactory.XD_PARSER_CI_NAME.equals(parserName)) {
+                ListRegexFacetFactory facetBuilder = new ListRegexFacetFactory(ListRegexFacetFactory.XD_PARSER_NAME.equals(parserName));
+                res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
+            }/* else if (UnionRegexFacetFactory.XD_PARSER_NAME.equals(parserName)) {
                 UnionRegexFacetFactory facetBuilder = new UnionRegexFacetFactory();
                 res = new Pair(facetBuilder.determineBaseType(parameters), facetBuilder);
-            }
+            }*/
         }
 
         return res;
@@ -155,10 +153,9 @@ public class XD2XsdParserMapping {
         return null;
     }
 
-    private static QName determineBaseType(final XDNamedValue[] parameters) {
-        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Determination of QName...");
+    private static QName determineListBaseType(final XDNamedValue[] parameters) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Determination of list QName ...");
 
-        QName res = null;
         String parserName = null;
         boolean allParsersSame = true;
 
@@ -176,10 +173,11 @@ public class XD2XsdParserMapping {
         }
 
         if (parserName == null || allParsersSame == false) {
-            return res;
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, "Expected parser type or multiple parsers used!");
+            throw new RuntimeException("Expected parser type or multiple parsers used!");
         }
 
-        res = getDefaultParserQName(parserName);
+        QName res = getDefaultParserQName(parserName);
         if (res == null) {
             XsdLogger.printP(LOG_WARN, TRANSFORMATION, "Unsupported simple content parser! Parser=" + parserName);
             res = Constants.XSD_STRING;

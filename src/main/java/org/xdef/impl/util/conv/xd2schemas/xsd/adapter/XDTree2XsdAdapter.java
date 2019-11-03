@@ -151,7 +151,7 @@ public class XDTree2XsdAdapter {
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains datatype with fixed value" +
                         "Element=" + xData.getName() + ", Type=" + qName);
             } else {
-                attr.setSchemaType(xsdFactory.creatSimpleType(xData));
+                attr.setSchemaType(xsdFactory.creatSimpleType(xData, attr.getName()));
             }
 
             XsdNameUtils.resolveAttributeQName(schema, attr, xData.getName());
@@ -285,7 +285,7 @@ public class XDTree2XsdAdapter {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xd, "Content of element contains only XSD datatype" +
                     "Element=" + xsdElem.getName() + ", DataType=" + qName.getLocalPart());
         } else {
-            xsdElem.setType(xsdFactory.creatSimpleType(xd));
+            xsdElem.setType(xsdFactory.creatSimpleType(xd, xsdElem.getName()));
         }
     }
 

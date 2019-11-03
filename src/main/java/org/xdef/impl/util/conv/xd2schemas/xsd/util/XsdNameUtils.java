@@ -134,6 +134,10 @@ public class XsdNameUtils {
         return xData.isLocalType() ? "refLoc_" + xData.getRefTypeName() : xData.getRefTypeName();
     }
 
+    public static String newUnionRefTypeName(final String nodeName, final String localPartName) {
+        return nodeName + "_union_" + localPartName;
+    }
+
     private static String newElemenPrefix(XmlSchemaType schemaType) {
         if (schemaType != null) {
             return newElemenPrefix(schemaType instanceof XmlSchemaComplexType);

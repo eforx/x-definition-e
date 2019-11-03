@@ -84,14 +84,14 @@ public class XsdElementFactory {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type. Name=" + name);
         XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
-        itemType.setContent(createSimpleTypeContent(xData));
+        itemType.setContent(createSimpleTypeContent(xData, name));
     }
 
-    public XmlSchemaSimpleType creatSimpleType(final XData xData) {
+    public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
         XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
-        itemType.setContent(createSimpleTypeContent(xData));
+        itemType.setContent(createSimpleTypeContent(xData, nodeName));
         return itemType;
     }
 
@@ -214,7 +214,7 @@ public class XsdElementFactory {
         return complexType;
     }
 
-    private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData) {
+    private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData, final String nodeName) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type content");
 
         XDValue parseMethod = xData.getParseMethod();
@@ -223,7 +223,7 @@ public class XsdElementFactory {
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             simpleContentFactory.setParameters(parser.getNamedParams().getXDNamedItems());
-            return simpleContentFactory.createSimpleContent();
+            return simpleContentFactory.createSimpleContent(nodeName);
         }
 
         return simpleContentFactory.createDefaultRestriction(Constants.XSD_STRING);
