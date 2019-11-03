@@ -70,7 +70,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
     }
 
     private void init() {
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "*** Initialize ***");
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER, "*** Initialize ***");
 
         initTargetNamespaces();
         initXsdSchemas();
@@ -81,7 +81,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
      * Find target namespaces for all x-definitions from XPool
      */
     private void initTargetNamespaces() {
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Initialize target namespaces ...");
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER, "Initialize target namespaces ...");
 
         xDefsWithoutNs = new HashSet<String>();
         xDefTargetNs = new HashMap<String, Pair<String, String>>();
@@ -93,21 +93,21 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
             Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef, targetNamespaceError);
             if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
                 if (xDefTargetNs.containsKey(xDefName)) {
-                    XsdLogger.printP(LOG_WARN, PREPROCESSING, "Target namespace of x-definition is already defined. XDefinition=" + xDefName);
+                    XsdLogger.print(LOG_WARN, PREPROCESSING, XSD_DPOOL_ADAPTER,"Target namespace of x-definition is already defined. XDefinition=" + xDefName);
                 } else {
                     xDefTargetNs.put(xDefName, new Pair(targetNamespace.getKey(), targetNamespace.getValue()));
-                    XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add target namespace to x-definition. " +
+                    XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER,"Add target namespace to x-definition. " +
                             "XDefinition=" + xDefName + ", naPrefix=" + targetNamespace.getKey() + ", nsUri=" + targetNamespace.getValue());
                 }
             } else {
                 xDefsWithoutNs.add(xDefName);
-                XsdLogger.printP(LOG_INFO, PREPROCESSING, "X-definition has no target namespace. XDefinition=" + xDefName);
+                XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER,"X-definition has no target namespace. XDefinition=" + xDefName);
             }
         }
     }
 
     private void initXsdSchemas() {
-        XsdLogger.printP(LOG_INFO, INITIALIZATION, "Initialize xsd schemas ...");
+        XsdLogger.print(LOG_INFO, INITIALIZATION, XSD_DPOOL_ADAPTER,"Initialize xsd schemas ...");
 
         XsdSchemaFactory schemaFactory = new XsdSchemaFactory(adapterCtx);
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {
@@ -119,7 +119,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
      * Creates schema location context based on x-definition target namespace and x-definition name
      */
     private void initSchemaLocations() {
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Initialize schema locations ...");
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER,"Initialize schema locations ...");
 
         for (Map.Entry<String, Pair<String, String>> entry : xDefTargetNs.entrySet()) {
             final String nsUri = entry.getValue().getValue();
@@ -130,7 +130,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         for (String xDefName: xDefsWithoutNs) {
             final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
             adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
-            XsdLogger.printP(LOG_DEBUG, PREPROCESSING, "Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
+            XsdLogger.print(LOG_DEBUG, PREPROCESSING, XSD_DPOOL_ADAPTER,"Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
         }
     }
 

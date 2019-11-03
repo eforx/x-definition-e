@@ -475,6 +475,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null);
 
         convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
+        convertXdPool2Xsd("t018", Arrays.asList(new String[] {"t018"}), null);
 
         convertXdPool2XsdNoRef ("globalAndLocalTest",
                 Arrays.asList(new String[] {"globalAndLocalTest_X", "globalAndLocalTest_Y", "globalAndLocalTest_Z"}),

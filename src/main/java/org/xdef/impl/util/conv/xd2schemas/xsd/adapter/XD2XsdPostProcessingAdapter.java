@@ -16,11 +16,12 @@ import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XSD_PP_ADAPTER;
 
 public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 
     public void process(final XDPool xdPool) {
-        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "*** Post-processing XDPool ***");
+        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"*** Post-processing XDPool ***");
 
         final Set<String> updatedNamespaces = new HashSet<String>();
         processNodes(xdPool, updatedNamespaces);
@@ -29,7 +30,7 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
     }
 
     public void process(final XDefinition xDef) {
-        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "*** Post-processing XDefinition ***");
+        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"*** Post-processing XDefinition ***");
         final Set<String> updatedNamespaces = new HashSet<String>();
         if (!adapterCtx.getNodesToBePostProcessed().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
             processNodes(xDef, updatedNamespaces);
@@ -56,13 +57,13 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
     }
 
     private void processReferences() {
-        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "Processing reference nodes ...");
+        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing reference nodes ...");
         XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx);
         postProcessor.processRefs();
     }
 
     private void processQNames(final Set<String> updatedNamespaces) {
-        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "Processing qualified names ...");
+        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing qualified names ...");
         for (String schemaNs : updatedNamespaces) {
             String schemaName = adapterCtx.getSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
             XmlSchema schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
@@ -71,8 +72,10 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
                 for (SchemaNode n : nodes.values()) {
                     if (n.isXsdAttr()) {
                         XsdNameUtils.resolveAttributeQName(schema, n.toXsdAttr(), n.getXdName());
+                        XsdNameUtils.resolveAttributeSchemaTypeQName(schema, n);
                     } else if (n.isXsdElem()) {
                         XsdNameUtils.resolveElementQName(schema, n.toXsdElem());
+                        XsdNameUtils.resolveElementSchemaTypeQName(schema, n);
                     }
                 }
             }

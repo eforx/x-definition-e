@@ -130,6 +130,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, schemaName, xsdFactory, adapterCtx);
             XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
 
+            treeAdapter.setPostProcessing();
             referenceAdapter.setPostProcessing();
             referenceAdapter.extractRefsAndImports(nodesInSchemaToResolve);
 
@@ -234,9 +235,9 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             for (XNode n : nodes) {
                 XmlSchemaObject xsdNode = treeAdapter.convertTree(n);
                 if (xsdNode instanceof XmlSchemaElement) {
-                    XsdLogger.printP(LOG_INFO, POSTPROCESSING, n, "Add top-level attribute.");
-                } else if (xsdNode instanceof XmlSchemaAttribute) {
                     XsdLogger.printP(LOG_INFO, POSTPROCESSING, n, "Add top-level element.");
+                } else if (xsdNode instanceof XmlSchemaAttribute) {
+                    XsdLogger.printP(LOG_INFO, POSTPROCESSING, n, "Add top-level attribute.");
                 }
             }
         }

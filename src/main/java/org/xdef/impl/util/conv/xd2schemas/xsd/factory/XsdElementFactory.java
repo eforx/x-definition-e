@@ -80,12 +80,11 @@ public class XsdElementFactory {
         return new XmlSchemaSimpleType(schema, topLevel);
     }
 
-    public XmlSchemaSimpleType creatSimpleTypeTop(final XData xData, final String name) {
+    public void creatSimpleTypeTop(final XData xData, final String name) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type. Name=" + name);
         XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
         itemType.setContent(createSimpleTypeRestriction(xData));
-        return itemType;
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData) {

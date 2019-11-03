@@ -45,12 +45,12 @@ public class XsdNamespaceUtils {
 
     /**
      * Returns true if node name is using different namespace prefix than schema target namespace
-     * @param nodeName
+     * @param xNode
      * @param schema
      * @return
      */
-    public static boolean isNodeInDifferentNamespacePrefix(final String nodeName, final XmlSchema schema) {
-        String nodeNsPrefix = getNamespacePrefix(nodeName);
+    public static boolean isNodeInDifferentNamespacePrefix(final XMNode xNode, final XmlSchema schema) {
+        String nodeNsPrefix = getNamespacePrefix(xNode.getName());
         return nodeNsPrefix != null && !nodeNsPrefix.equals(schema.getSchemaNamespacePrefix());
     }
 

@@ -135,6 +135,10 @@ public class XD2XsdReferenceAdapter {
         }
 
         switch (xn.getKind()) {
+            case XMATTRIBUTE: {
+                addSimpleTypeReference((XData)xn);
+                break;
+            }
             case XNode.XMELEMENT: {
                 XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XMElement node. Node=" + xn.getName());
 
@@ -163,7 +167,7 @@ public class XD2XsdReferenceAdapter {
                     isRef = true;
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema) && isPostProcessingPhase == false) {
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl, schema) && isPostProcessingPhase == false) {
                         String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                         String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
@@ -204,12 +208,12 @@ public class XD2XsdReferenceAdapter {
                         if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
                             addSimpleTypeReference((XData) xChild);
                         } else {
-                            extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema));
+                            extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl, schema));
                         }
                     }
                 }
 
-                return;
+                break;
             }
             case XNode.XMDEFINITION: {
                 XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XDefinition node. Node=" + xn.getName());
@@ -219,33 +223,14 @@ public class XD2XsdReferenceAdapter {
                 for (int i = 0; i < elems.length; i++){
                     extractSimpleRefsAndImports(elems[i], processed, false);
                 }
-                return;
+                break;
             }
         }
     }
 
     private void addSimpleTypeReference(final XData xData) {
-        String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
-        final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
-
-        // Simple type node
-        if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-            xsdFactory.creatSimpleTypeTop(xData, refTypeName);
-            XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition from reference. Name=" + refTypeName);
-            return;
-        }
-
-        if (isAttrRef == false && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
-            refTypeName = XsdNameUtils.createRefNameFromParser(xData);
-            if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                xsdFactory.creatSimpleTypeTop(xData, refTypeName);
-                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
-                return;
-            }
-        }
-
         // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-        if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xData.getName(), schema) && isPostProcessingPhase == false) {
+        if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xData, schema) && isPostProcessingPhase == false) {
             String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
             String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
@@ -254,6 +239,24 @@ public class XD2XsdReferenceAdapter {
                 XsdSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
                 if (importLocation != null) {
                     addPostProcessingSchema(nsUri, importLocation);
+                }
+            }
+        } else {
+            String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+            final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
+
+            if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
+                xsdFactory.creatSimpleTypeTop(xData, refTypeName);
+                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition of reference. Name=" + refTypeName);
+                return;
+            }
+
+            if (isAttrRef == false && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
+                refTypeName = XsdNameUtils.createRefNameFromParser(xData);
+                if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
+                    xsdFactory.creatSimpleTypeTop(xData, refTypeName);
+                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
+                    return;
                 }
             }
         }

@@ -13,6 +13,8 @@ public interface XsdLoggerDefs {
     String XSD_XDEF_EXTRA_ADAPTER = "XsdXDefinitionExtraAdapter";
     String XSD_ELEM_FACTORY = "XsdElementFactory";
     String XSD_DPOOL_ADAPTER = "XsdXPoolAdapter";
+    String XSD_PP_ADAPTER = "XsdPPAdapter";
+    String XSD_PP_PROCESOR = "XsdPPProcesor";
     String XSD_UTILS = "XsdUtils";
     String XSD_ADAPTER_CTX = "XsdAdapterCtx";
     String XSD_REFERENCE = "SchemaNode";

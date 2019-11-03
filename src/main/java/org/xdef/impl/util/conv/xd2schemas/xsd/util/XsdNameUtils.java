@@ -6,6 +6,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 
 import javax.xml.namespace.QName;
 
@@ -89,9 +90,27 @@ public class XsdNameUtils {
         }
     }
 
+    public static void resolveAttributeSchemaTypeQName(final XmlSchema schema, final SchemaNode schemaNode) {
+        if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault())) {
+            final QName schemaTypeName = schemaNode.toXsdAttr().getSchemaTypeName();
+            if (schemaTypeName != null && !Constants.URI_2001_SCHEMA_XSD.equals(schemaTypeName.getNamespaceURI())) {
+                schemaNode.toXsdAttr().setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
+            }
+        }
+    }
+
+    public static void resolveElementSchemaTypeQName(final XmlSchema schema, final SchemaNode schemaNode) {
+        if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault())) {
+            final QName schemaTypeName = schemaNode.toXsdElem().getSchemaTypeName();
+            if (schemaTypeName != null && !Constants.URI_2001_SCHEMA_XSD.equals(schemaTypeName.getNamespaceURI())) {
+                schemaNode.toXsdElem().setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
+            }
+        }
+    }
+
     public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
         // Element's name without namespace prefix, while xml is using target namespace
-        return name.indexOf(':') == -1 && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
+        return !XsdNamespaceUtils.containsNsPrefix(name) && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
     }
 
     public static String getNodeNameWithoutPrefix(final String nodeName) {

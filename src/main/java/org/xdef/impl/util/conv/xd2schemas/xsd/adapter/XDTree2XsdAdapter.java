@@ -28,6 +28,7 @@ public class XDTree2XsdAdapter {
     final private XsdElementFactory xsdFactory;
     final private XsdAdapterCtx adapterCtx;
 
+    private boolean isPostProcessingPhase = false;
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
@@ -36,6 +37,10 @@ public class XDTree2XsdAdapter {
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
         this.adapterCtx = adapterCtx;
+    }
+
+    public void setPostProcessing() {
+        this.isPostProcessingPhase = true;
     }
 
     public List<String> getXdRootNames() {
@@ -110,7 +115,7 @@ public class XDTree2XsdAdapter {
 
             attr.getRef().setTargetQName(new QName(refNsUri, localName));
 
-            XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference from different namespace." +
+            XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference from different namespace. " +
                     "Name=" + xData.getName() + ", Namespace=" + refNsUri);
 
             // Attribute is referencing to new namespace, which will be created in post-processing
@@ -126,7 +131,11 @@ public class XDTree2XsdAdapter {
 
             if (xData.getRefTypeName() != null) {
                 final String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
-                final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
+                String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
+                if (topLevel && isPostProcessingPhase && XSD_NAMESPACE_PREFIX_EMPTY.equals(nsPrefix) && XsdNamespaceUtils.containsNsPrefix(xData.getName())) {
+                    nsPrefix = schema.getSchemaNamespacePrefix();
+                }
+
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                 attr.setSchemaTypeName(new QName(nsUri, refTypeName));
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition." +
@@ -220,7 +229,7 @@ public class XDTree2XsdAdapter {
             SchemaNodeFactory.createElemRefAndDef(xDefEl, xsdElem, refSystemId, refXPos, refNodePath, adapterCtx);
         } else {
             // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
-            if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl.getName(), schema)) {
+            if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl, schema)) {
                 final String localName = XsdNameUtils.getReferenceName(xDefEl.getName());
                 String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
                 String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);

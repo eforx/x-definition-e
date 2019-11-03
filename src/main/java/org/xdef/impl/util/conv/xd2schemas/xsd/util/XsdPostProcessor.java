@@ -24,10 +24,10 @@ public class XsdPostProcessor {
     }
 
     public void processRefs() {
-        XsdLogger.printP(LOG_INFO, POSTPROCESSING, "*** Updating references ***");
+        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"*** Updating references ***");
 
         for (Map.Entry<String, Map<String, SchemaNode>> systemRefEntry : adapterCtx.getNodes().entrySet()) {
-            XsdLogger.printP(LOG_INFO, POSTPROCESSING, "Updating references. System=" + systemRefEntry.getKey());
+            XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
 
             XmlSchema xmlSchema = adapterCtx.getSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
             XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema);
