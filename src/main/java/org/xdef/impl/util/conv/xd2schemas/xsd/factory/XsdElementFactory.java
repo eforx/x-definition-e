@@ -37,10 +37,16 @@ public class XsdElementFactory {
     public XmlSchemaElement createEmptyElement(final XElement xElement, boolean topLevel) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Empty element. Top=" + topLevel);
         XmlSchemaElement elem = new XmlSchemaElement(schema, topLevel);
+
         if (topLevel == false) {
             elem.setMinOccurs(xElement.getOccurence().minOccurs());
             elem.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
         }
+
+        if (xElement._nillable == 'T') {
+            elem.setNillable(true);
+        }
+
         return elem;
     }
 
