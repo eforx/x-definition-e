@@ -1,23 +1,45 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array;
 
 import org.apache.ws.commons.schema.XmlSchemaFacet;
+import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
+import org.xdef.XDValue;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.EnumerationRegexFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class ListFacetFactory extends AbstractArrayFacetFactory {
+
+    static public final String XD_PARSER_NAME = "list";
+    static public final String XD_PARSER_CI_NAME = "listi";
+
+    private final boolean isCaseSensitive;
 
     private Integer minItems = null;
     private Integer maxItems = null;
     private String regex = null;
 
+    public ListFacetFactory(boolean isCaseSensitive) {
+        this.isCaseSensitive = isCaseSensitive;
+    }
+
     @Override
     public boolean customFacet(List<XmlSchemaFacet> facets, XDNamedValue param) {
+        if (param.getValue().getItemId() == XDValue.XD_CONTAINER) {
+            regex = EnumerationRegexFactory.containerValuesToPattern((XDContainer) param.getValue());
+            if (!isCaseSensitive) {
+                regex = XD2XsdUtils.caseSensitiveValue2CIPattern(regex);
+            }
+            return true;
+        }
+
         return createPatternFromValue(param.getValue());
     }
 
@@ -25,6 +47,9 @@ public class ListFacetFactory extends AbstractArrayFacetFactory {
     protected void createPatterns(final String parserName, final XDNamedValue[] params) {
         XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating patterns ...");
         regex = parserParamsToRegex(parserName, params);
+        if (!isCaseSensitive) {
+            regex = XD2XsdUtils.caseSensitiveValue2CIPattern(regex);
+        }
     }
 
     @Override
@@ -67,14 +92,14 @@ public class ListFacetFactory extends AbstractArrayFacetFactory {
 
     @Override
     protected boolean handleIgnoredParam(XDNamedValue param) {
-        if ("length".equals(param.getName())) {
+        if (XSD_FACET_LENGTH.equals(param.getName())) {
             minItems = param.getValue().intValue();
             maxItems = param.getValue().intValue();
             return true;
-        } else if ("maxLength".equals(param.getName())) {
+        } else if (XSD_FACET_MAX_LENGTH.equals(param.getName())) {
             maxItems = param.getValue().intValue();
             return true;
-        } else if ("minLength".equals(param.getName())) {
+        } else if (XSD_FACET_MIN_LENGTH.equals(param.getName())) {
             minItems = param.getValue().intValue();
             return true;
         }

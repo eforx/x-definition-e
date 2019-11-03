@@ -495,6 +495,7 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2XsdNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
 
         convertXdPool2XsdNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
+        convertXdPool2XsdNoRef ("typeTest", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

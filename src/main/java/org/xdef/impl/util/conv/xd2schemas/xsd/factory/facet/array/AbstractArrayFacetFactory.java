@@ -9,7 +9,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex.IntegerRegexFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdParserMapping;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import javax.xml.namespace.QName;
@@ -100,9 +100,9 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
     }
 
     protected String parserParamsToRegex(final String parserName, final XDNamedValue[] params) {
-        QName parserQName = XD2XsdUtils.getDefaultQName(parserName);
+        QName parserQName = XD2XsdParserMapping.getDefaultParserQName(parserName);
 
-        String regex = null;
+        String regex = "";
 
         if (Constants.XSD_INT.equals(parserQName)) {
             regex = new IntegerRegexFactory().regex(params);
@@ -129,8 +129,8 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
         XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern from value");
 
         if (xVal instanceof XDParser) {
-            XDParser parser = ((XDParser) xVal);
-            createPatterns(parser.parserName(),  parser.getNamedParams().getXDNamedItems());
+            final XDParser parser = ((XDParser) xVal);
+            createPatterns(parser.parserName(), parser.getNamedParams().getXDNamedItems());
             return true;
         } else {
             XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported type of value. ValueId=" + xVal.getItemId());

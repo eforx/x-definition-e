@@ -3,11 +3,12 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdParserMapping;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import javax.xml.namespace.QName;
@@ -34,32 +35,27 @@ public class XsdRestrictionFactory {
     public XmlSchemaSimpleTypeRestriction createRestriction() {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating restrictions of simple content ...");
 
-        XmlSchemaSimpleTypeRestriction restriction = null;
-
         boolean customParser = true;
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
+        boolean unknownParser = false;
+
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getCustomFacetFactory(parserName, parameters);
         if (parserInfo == null) {
-            parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
+            parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(parserName);
             if (parserInfo != null) {
                 customParser = false;
-                XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xData, "Default facet factory will be used." +
-                        " QName=" + parserInfo.getKey() + ", Factory=" + parserInfo.getValue().getClass().getSimpleName());
             }
-        } else {
-            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xData, "Custom facet factory will be used." +
-                    " QName=" + parserInfo.getKey() + ", Factory=" + parserInfo.getValue().getClass().getSimpleName());
         }
 
         if (parserInfo == null) {
-            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xData, "Unknown restriction parser! Parser=" + parserName);
-            throw new RuntimeException("Unknown reference type parser: " + parserName);
+            XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported restriction parser! Parser=" + parserName);
+            parserInfo = new Pair(Constants.XSD_STRING, new DefaultFacetFactory());
+            unknownParser = true;
         }
 
-        if (parserInfo != null) {
-            restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue());
-        }
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Following factory will be used. Factory=" + parserInfo.getValue().getClass().getSimpleName() + ", Parser=" + parserName);
 
-        if (customParser) {
+        final XmlSchemaSimpleTypeRestriction restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue());
+        if (customParser || unknownParser) {
             restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + parserName));
         }
 
@@ -95,9 +91,9 @@ public class XsdRestrictionFactory {
     public static List<XmlSchemaFacet> buildFacets(final String parserName, final XDNamedValue[] parameters) {
         List<XmlSchemaFacet> facets = null;
 
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetBuilder(parserName, parameters);
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetFactory(parserName, parameters);
         if (parserInfo == null) {
-            parserInfo = XD2XsdUtils.getDefaultFacetBuilder(parserName);
+            parserInfo = XD2XsdUtils.getDefaultFacetFactory(parserName);
         }
 
         if (parserInfo != null) {

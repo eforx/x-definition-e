@@ -40,24 +40,24 @@ public class XsdLogger {
             return;
         }
 
-        String log = "[" + levelToString(level) + "]";
+        final StringBuilder sb = new StringBuilder("[" + levelToString(level) + "]");
         if (group != null) {
-            log += "[" + group + "]";
+            sb.append("[" + group + "]");
         }
         if (node != null) {
             if (node.getXMDefinition() == null) {
-                log += "[" + getXNodeName(node) +  "]";
+                sb.append("[" + getXNodeName(node) +  "]");
             } else if (node.getKind() == XMDEFINITION) {
-                log += "[" + node.getXMDefinition().getName() + "]";
+                sb.append("[" + node.getXMDefinition().getName() + "]");
             } else {
-                log += "[" + node.getXMDefinition().getName() + " - " + getXNodeName(node) +  "]";
+                sb.append("[" + node.getXMDefinition().getName() + " - " + getXNodeName(node) +  "]");
             }
         }
         if (phase != null) {
-            log += " " + phase.getVal() + ":";
+            sb.append(" " + phase.getVal() + ":");
         }
-        log += " " + msg;
-        System.out.println(log);
+        sb.append(" " + msg);
+        System.out.println(sb.toString());
     }
 
     private static String levelToString(int level) {

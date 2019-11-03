@@ -80,6 +80,9 @@
   </xs:simpleType>
   <xs:simpleType name="tokens_Type">
     <xs:restriction base="xs:string">
+      <xs:annotation>
+        <xs:documentation>Original x-definition parser: enum</xs:documentation>
+      </xs:annotation>
       <xs:enumeration value="cd"/>
       <xs:enumeration value="ab"/>
     </xs:restriction>
@@ -216,6 +219,9 @@
         <xs:element maxOccurs="unbounded" name="list">
           <xs:simpleType>
             <xs:restriction base="xs:string">
+              <xs:annotation>
+                <xs:documentation>Original x-definition parser: enum</xs:documentation>
+              </xs:annotation>
               <xs:enumeration value="cd"/>
               <xs:enumeration value="ab"/>
             </xs:restriction>
@@ -224,6 +230,9 @@
         <xs:element maxOccurs="unbounded" name="tokens">
           <xs:simpleType>
             <xs:restriction base="xs:string">
+              <xs:annotation>
+                <xs:documentation>Original x-definition parser: enum</xs:documentation>
+              </xs:annotation>
               <xs:enumeration value="cd"/>
               <xs:enumeration value="ab"/>
             </xs:restriction>

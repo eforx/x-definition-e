@@ -7,6 +7,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
@@ -14,6 +15,8 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFO
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
 
 public class UnionFacetFactory extends AbstractArrayFacetFactory {
+
+    static public final String XD_PARSER_NAME = "union";
 
     private List<String> facetPatterns = new ArrayList<String>();
 
@@ -49,51 +52,52 @@ public class UnionFacetFactory extends AbstractArrayFacetFactory {
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (!facetPatterns.isEmpty()) {
-            // Enumeration with list
+            // Enumeration with list inside
             if (false) {
-                String pattern = "";
+                final StringBuilder sb = new StringBuilder();
+                final StringBuilder sb2 = new StringBuilder();
 
                 for (String p : facetPatterns) {
                     if (p != null) {
-                        if (pattern.isEmpty()) {
-                            pattern = "(((" + p + ")\\s)*)";
+                        if (sb.length() == 0) {
+                            sb.append("(((" + p + ")\\s)*)");
                         } else {
-                            pattern += "|(((" + p + ")\\s)*)";
+                            sb.append("|(((" + p + ")\\s)*)");
                         }
                     }
                 }
 
-                String patternFinal = "";
-
                 for (String p : facetPatterns) {
                     if (p != null) {
-                        if (patternFinal.isEmpty()) {
-                            patternFinal = "((" + p + "){0,1})";
+                        if (sb2.length() == 0) {
+                            sb2.append("((" + p + "){0,1})");
                         } else {
-                            patternFinal += "|((" + p + "){0,1})";
+                            sb2.append("|((" + p + "){0,1})");
                         }
                     }
                 }
 
-                if (!pattern.isEmpty()) {
-                    pattern = "(" + pattern + ")*" + "(" + patternFinal + ")";
+                if (sb.length() != 0) {
+                    final String patternBegin = sb.toString();
+                    final String patternEnd = sb2.toString();
+                    final String pattern = "(" + patternBegin + ")*" + "(" + patternEnd + ")";
                     facets.add(super.pattern(pattern));
                 }
             } else {
-                String pattern = "";
+                final StringBuilder sb = new StringBuilder();
                 for (String p : facetPatterns) {
                     if (p != null) {
-                        if (pattern.isEmpty()) {
-                            pattern = "(" + p + ")";
+                        if (sb.length() == 0) {
+                            sb.append("(" + p + ")");
                         } else {
-                            pattern += "|(" + p + ")";
+                            sb.append("|(" + p + ")");
                         }
                     }
                 }
 
-                if (!pattern.isEmpty()) {
-                    pattern = "(" + pattern + ")";
-                    facets.add(super.pattern(pattern));
+                if (sb.length() != 0) {
+                    final String pattern = sb.toString();
+                    facets.add(super.pattern("(" + pattern + ")"));
                 }
             }
 

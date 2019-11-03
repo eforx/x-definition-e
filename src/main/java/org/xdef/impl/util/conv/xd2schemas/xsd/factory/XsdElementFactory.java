@@ -9,10 +9,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -112,7 +109,7 @@ public class XsdElementFactory {
             qName = new QName(nsUri, refTypeName);
             XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
         } else {
-            qName = XD2XsdUtils.getDefaultSimpleParserQName(xData);
+            qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData);
         }
 
         if (qName == null) {
@@ -160,6 +157,7 @@ public class XsdElementFactory {
                 break;
             }
             default: {
+                XsdLogger.printG(LOG_ERROR, XSD_ELEM_FACTORY, "Unknown group particle!. Particle=" + XD2XsdUtils.particleXKindToString(groupType));
                 throw new InvalidParameterException("Unknown groupType");
             }
         }

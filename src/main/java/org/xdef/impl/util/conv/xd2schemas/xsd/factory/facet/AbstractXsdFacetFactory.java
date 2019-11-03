@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
@@ -16,16 +17,18 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
-        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets...");
+        XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets ...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
-        if (params != null) {
+        if (params != null && params.length > 0) {
             for (XDNamedValue param : params) {
                 build(facets, param);
             }
+        } else {
+            XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"No facets will be built - no input params");
         }
 
-        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Adding extra facets...");
+        XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building extra facets ...");
         extraFacets(facets, params);
         return facets;
     }
@@ -72,6 +75,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
     @Override
     public XmlSchemaPatternFacet pattern(String value) {
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(), "Patter. Value=" + value);
         XmlSchemaPatternFacet facet = new XmlSchemaPatternFacet();
         facet.setValue(value);
         return facet;
@@ -112,32 +116,40 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
     }
 
     protected void build(final List<XmlSchemaFacet> facets, final XDNamedValue param) {
-        if ("maxLength".equals(param.getName())) {
-            facets.add(maxLength(param));
-        } else if ("minLength".equals(param.getName())) {
-            facets.add(minLength(param));
-        } else if ("whiteSpace".equals(param.getName())) {
-            facets.add(whitespace(param));
-        } else if ("pattern".equals(param.getName()) || "format".equals(param.getName())) {
-            facets.addAll(pattern(param));
-        } else if ("minInclusive".equals(param.getName())) {
-            facets.add(minInclusive(param));
-        } else if ("minExclusive".equals(param.getName())) {
-            facets.add(minExclusive(param));
-        } else if ("maxInclusive".equals(param.getName())) {
-            facets.add(maxInclusive(param));
-        } else if ("maxExclusive".equals(param.getName())) {
-            facets.add(maxExclusive(param));
-        } else if ("argument".equals(param.getName()) || "enumeration".equals(param.getName())) {
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(), "Creating Facet. Type=" + param.getName());
+
+        XmlSchemaFacet facet = null;
+
+        if (XSD_FACET_ENUMERATION.equals(param.getName())) {
             facets.addAll(enumeration(param));
-        } else if ("length".equals(param.getName())) {
-            facets.add(length(param));
-        } else if ("fractionDigits".equals(param.getName())) {
-            facets.add(fractionDigits(param));
-        } else if ("totalDigits".equals(param.getName())) {
-            facets.add(totalDigits(param));
+        } else if (XSD_FACET_MAX_EXCLUSIVE.equals(param.getName())) {
+            facet = maxExclusive(param);
+        } else if (XSD_FACET_MAX_INCLUSIVE.equals(param.getName())) {
+            facet = maxInclusive(param);
+        } else if (XSD_FACET_MIN_EXCLUSIVE.equals(param.getName())) {
+            facet = minExclusive(param);
+        } else if (XSD_FACET_MIN_INCLUSIVE.equals(param.getName())) {
+            facet = minInclusive(param);
+        } else if (XSD_FACET_LENGTH.equals(param.getName())) {
+            facet = length(param);
+        } else if (XSD_FACET_MAX_LENGTH.equals(param.getName())) {
+            facet = maxLength(param);
+        } else if (XSD_FACET_MIN_LENGTH.equals(param.getName())) {
+            facet = minLength(param);
+        } else if (XSD_FACET_FRACTION_DIGITS.equals(param.getName())) {
+            facet = fractionDigits(param);
+        } else if (XSD_FACET_PATTERN.equals(param.getName()) || XD_FACET_FORMAT.equals(param.getName())) {
+            facets.addAll(pattern(param));
+        } else if (XSD_FACET_TOTAL_DIGITS.equals(param.getName())) {
+            facet = totalDigits(param);
+        } else if (XSD_FACET_WHITESPACE.equals(param.getName())) {
+            facet = whitespace(param);
         } else if (!customFacet(facets, param)) {
-            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unknown reference type parameter. Parameter=" + param.getName());
+            XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported parameter type. Parameter=" + param.getName());
+        }
+
+        if (facet != null) {
+            facets.add(facet);
         }
     }
 }

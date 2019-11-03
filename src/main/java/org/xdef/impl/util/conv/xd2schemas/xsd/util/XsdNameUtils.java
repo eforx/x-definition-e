@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
@@ -8,7 +9,7 @@ import org.xdef.impl.XData;
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 
 public class XsdNameUtils {
 
@@ -135,44 +136,49 @@ public class XsdNameUtils {
         final String parserName = xData.getParserName();
 
         String name;
-        QName defaultQName = XD2XsdUtils.getDefaultQName(parserName);
+        QName defaultQName = XD2XsdParserMapping.getDefaultParserQName(parserName);
         if (defaultQName != null) {
             name = defaultQName.getLocalPart();
         } else {
             name = parserName;
         }
 
-        if (!"string".equals(name) && !"CDATA".equals(name) && !"int".equals(name) && !"long".equals(name)) {
+        if (!Constants.XSD_STRING.getLocalPart().equals(name)
+                && !XD_PARSER_CDATA.equals(name)
+                && !Constants.XSD_INT.getLocalPart().equals(name)
+                && !Constants.XSD_LONG.getLocalPart().equals(name)) {
             return null;
         }
+
+        final StringBuilder sb = new StringBuilder(name);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             for (XDNamedValue p : parser.getNamedParams().getXDNamedItems()) {
-                if ("maxLength".equals(p.getName())) {
-                    name += "_maxl" + p.getValue().intValue();
-                } else if ("minLength".equals(p.getName())) {
-                    name += "_minl" + p.getValue().intValue();
-                } else if ("whiteSpace".equals(p.getName())) {
-                    name += "_w";
-                } else if ("pattern".equals(p.getName()) || "format".equals(p.getName())) {
-                    name += "_p";
-                } else if ("minInclusive".equals(p.getName())) {
-                    name += "_minI" + p.getValue().intValue();
-                } else if ("minExclusive".equals(p.getName())) {
-                    name += "_minE" + p.getValue().intValue();
-                } else if ("maxInclusive".equals(p.getName())) {
-                    name += "_maxI" + p.getValue().intValue();
-                } else if ("maxExclusive".equals(p.getName())) {
-                    name += "_maxE" + p.getValue().intValue();
-                } else if ("argument".equals(p.getName()) || "enumeration".equals(p.getName())) {
-                    name += "_e";
-                } else if ("length".equals(p.getName())) {
-                    name += "_l" + p.getValue().intValue();
-                } else if ("fractionDigits".equals(p.getName())) {
-                    name += "_fd";
-                } else if ("totalDigits".equals(p.getName())) {
-                    name += "_td";
+                if (XSD_FACET_MAX_LENGTH.equals(p.getName())) {
+                    sb.append("_maxl" + p.getValue().intValue());
+                } else if (XSD_FACET_MIN_LENGTH.equals(p.getName())) {
+                    sb.append("_minl" + p.getValue().intValue());
+                } else if (XSD_FACET_WHITESPACE.equals(p.getName())) {
+                    sb.append("_w");
+                } else if (XSD_FACET_PATTERN.equals(p.getName()) || XD_FACET_FORMAT.equals(p.getName())) {
+                    sb.append("_p");
+                } else if (XSD_FACET_MIN_INCLUSIVE.equals(p.getName())) {
+                    sb.append("_minI" + p.getValue().intValue());
+                } else if (XSD_FACET_MIN_EXCLUSIVE.equals(p.getName())) {
+                    sb.append("_minE" + p.getValue().intValue());
+                } else if (XSD_FACET_MAX_INCLUSIVE.equals(p.getName())) {
+                    sb.append("_maxI" + p.getValue().intValue());
+                } else if (XSD_FACET_MAX_EXCLUSIVE.equals(p.getName())) {
+                    sb.append("_maxE" + p.getValue().intValue());
+                } else if (XD_FACET_ARGUMENT.equals(p.getName()) || XSD_FACET_ENUMERATION.equals(p.getName())) {
+                    sb.append("_e");
+                } else if (XSD_FACET_LENGTH.equals(p.getName())) {
+                    sb.append("_l" + p.getValue().intValue());
+                } else if (XSD_FACET_FRACTION_DIGITS.equals(p.getName())) {
+                    sb.append("_fd");
+                } else if (XSD_FACET_TOTAL_DIGITS.equals(p.getName())) {
+                    sb.append("_td");
                 }
             }
         }
