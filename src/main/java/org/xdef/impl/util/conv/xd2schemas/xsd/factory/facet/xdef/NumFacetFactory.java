@@ -11,7 +11,7 @@ public class NumFacetFactory extends DefaultFacetFactory {
     static public final String XD_PARSER_NAME = "num";
 
     @Override
-    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public void extraFacets(final List<XmlSchemaFacet> facets) {
         facets.add(pattern("([0-9])*"));
     }
 }

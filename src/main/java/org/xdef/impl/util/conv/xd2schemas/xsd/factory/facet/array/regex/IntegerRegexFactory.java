@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.array.regex;
 
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.RangeRegexGenerator;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
 import java.util.List;
@@ -38,23 +39,17 @@ public class IntegerRegexFactory implements RegexFactory {
             rangeMax = 1000;
         }
 
-        final StringBuilder sb = new StringBuilder();
+        String pattern = "";
 
         try {
             // Build regular expression for list of integers
             RangeRegexGenerator rangeRegexGenerator = new RangeRegexGenerator();
-            List<String> regexes = rangeRegexGenerator.getRegex(rangeMin, rangeMax);
-            if (regexes.isEmpty() == false) {
-                sb.append(regexes.get(0));
-                for (int i = 1; i < regexes.size(); i++) {
-                    sb.append("|" + regexes.get(i));
-                }
-            }
+            List<String> regex = rangeRegexGenerator.getRegex(rangeMin, rangeMax);
+            pattern = XD2XsdUtils.regexCollectionToSingleRegex(regex);
         } catch (NumberFormatException ex) {
             XsdLogger.print(LOG_ERROR, TRANSFORMATION, this.getClass().getSimpleName(),"Exception occurs while converting range to regex. Error=" + ex.getMessage());
         }
 
-        final String pattern = sb.toString();
         XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Pattern created=\"" + pattern + "\"");
         return pattern;
     }

@@ -2,6 +2,8 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.apache.ws.commons.schema.*;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +47,19 @@ public class XD2XsdUtils {
             stringBuilder.append(value.substring(lastMatchPos, matcher.start()));
             stringBuilder.append("[" + matcher.group(0).toLowerCase() + matcher.group(0).toUpperCase() + "]");
             lastMatchPos = matcher.end();
+        }
+
+        return stringBuilder.toString();
+    }
+
+    public static String regexCollectionToSingleRegex(Collection<String> regex) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        if (!regex.isEmpty()) {
+            Iterator<String> itr = regex.iterator();
+            stringBuilder.append(itr.next());
+            while (itr.hasNext()) {
+                stringBuilder.append("|" + itr.next());
+            }
         }
 
         return stringBuilder.toString();

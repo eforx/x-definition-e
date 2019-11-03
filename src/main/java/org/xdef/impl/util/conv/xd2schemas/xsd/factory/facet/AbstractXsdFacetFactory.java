@@ -17,7 +17,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
     @Override
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
-        XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets ...");
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets ...");
 
         List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
         if (params != null && params.length > 0) {
@@ -25,11 +25,11 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
                 build(facets, param);
             }
         } else {
-            XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"No facets will be built - no input params");
+            XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"No basic facets will be built - no input params");
         }
 
-        XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building extra facets ...");
-        extraFacets(facets, params);
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Building extra facets ...");
+        extraFacets(facets);
         return facets;
     }
 
@@ -75,7 +75,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
     @Override
     public XmlSchemaPatternFacet pattern(String value) {
-        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(), "Patter. Value=" + value);
+        XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(), "Pattern. Value=" + value);
         XmlSchemaPatternFacet facet = new XmlSchemaPatternFacet();
         facet.setValue(value);
         return facet;
@@ -107,7 +107,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
     }
 
     @Override
-    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public void extraFacets(final List<XmlSchemaFacet> facets) {
     }
 
     @Override

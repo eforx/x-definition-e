@@ -1,51 +1,16 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef;
 
+import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.XmlSchemaPatternFacet;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.AbstractXsdFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.DateTimeFormatAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-/*
-    XDParser y = (XDParser) p;
-        if ("xdatetime".equals(y.parserName())) {
-        XDContainer c = y.getNamedParams();
-        for (XDNamedValue item: c.getXDNamedItems()) {
-        if ("format".equals(item.getName())) {
-        return '"' + item.getValue().toString() + '"';
-        }
-        }
-        return "\"yyyy-MM-ddTHH:mm:ss[.S][Z]\"";
-        } else if ("dateTime".equals(y.parserName())) {
-        return "\"y-MM-ddTHH:mm:ss[.S][Z]\"";
-        } else if ("date".equals(y.parserName())) {
-        return "\"y-MM-dd[Z]\"";
-        } else if ("gDay".equals(y.parserName())) {
-        return "\"---dd[Z]\"";
-        } else if ("gMonth".equals(y.parserName())) {
-        return "\"--MM[Z]\"";
-        } else if ("gMonthDay".equals(y.parserName())) {
-        return "\"--MM-dd[Z]\"";
-        } else if ("\"gYear".equals(y.parserName())) {
-        return "\"y[Z]\"";
-        } else if ("ISOyear".equals(y.parserName())) {
-        return "\"y[Z]\"";
-        } else if ("gYearMonth".equals(y.parserName())) {
-        return "\"y-MM[Z]\"";
-        } else if ("ISOyearMonth".equals(y.parserName())) {
-        return "\"y-MM[Z]\"";
-        } else if ("dateYMDhms".equals(y.parserName())) {
-        return "\"yyyyMMddHHmmss\"";
-        } else if ("ISOdate".equals(y.parserName())) {
-        return "\"y-MM-dd[Z]\"";
-        } else if ("time".equals(y.parserName())) {
-        return "\"HH:mm:ss[.S][Z]\"";
-        } else if ("emailDate".equals(y.parserName())) {
-        return "\"EEE, d MMM y HH:mm:ss[ ZZZZZ][ (z)]\"";
-        }
-        */
+import java.util.Set;
 
 public class DateTimeFormatFacetFactory extends AbstractXsdFacetFactory {
 
@@ -53,18 +18,39 @@ public class DateTimeFormatFacetFactory extends AbstractXsdFacetFactory {
     public static final String XD_PARSER_DATETIME_NAME = "dateYMDhms";
     public static final String XD_PARSER_EMAILDATE_NAME = "emailDate";
 
+    private final String pattern;
+
+    public DateTimeFormatFacetFactory() {
+        this.pattern = null;
+    }
+
+    public DateTimeFormatFacetFactory(String pattern) {
+        this.pattern = pattern;
+    }
+
     @Override
     public List<XmlSchemaPatternFacet> pattern(final XDNamedValue param) {
         List<XmlSchemaPatternFacet> facets = new ArrayList<XmlSchemaPatternFacet>();
-        String[] patterns = param.getValue().stringValue().split("\n");
-        for (String p : patterns) {
-            XmlSchemaPatternFacet facet = super.pattern(p);
-            facet.setAnnotation(XsdElementFactory.createAnnotation("Original pattern value: '" + p + "'"));
-            //String pattern = param.getValue().stringValue().replaceAll("\\[", "(").replaceAll("]", ")?");
-
-            //facets.add(super.pattern(p));
+        final String[] values = param.getValue().stringValue().split("\n");
+        for (String v : values) {
+            addPattern(facets, v);
         }
 
         return facets;
+    }
+
+    @Override
+    public void extraFacets(final List<XmlSchemaFacet> facets) {
+        if (pattern != null) {
+            addPattern(facets, pattern);
+        }
+    }
+
+    private void addPattern(final List facets, final String value) {
+        final Set<String> patterns = DateTimeFormatAdapter.getRegexes(value);
+        final String pattern = XD2XsdUtils.regexCollectionToSingleRegex(patterns);
+        XmlSchemaPatternFacet facet = super.pattern(pattern);
+        facet.setAnnotation(XsdElementFactory.createAnnotation("Original pattern value: '" + value + "'"));
+        facets.add(facet);
     }
 }

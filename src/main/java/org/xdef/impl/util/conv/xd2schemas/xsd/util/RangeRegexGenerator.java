@@ -28,8 +28,8 @@ public class RangeRegexGenerator
         int end   = Integer.parseInt(endStr);
         int stringLength = begStr.length();
         List<Integer> pairs = getRegexPairs(start, end);
-        List<String> regexes = toRegex(pairs, stringLength);
-        return regexes;
+        List<String> regex = toRegex(pairs, stringLength);
+        return regex;
     }
 
     /**
@@ -42,8 +42,8 @@ public class RangeRegexGenerator
     public List<String> getRegex(int beg, int end)
     {
         List<Integer> pairs = getRegexPairs(beg, end);
-        List<String> regexes = toRegex(pairs);
-        return regexes;
+        List<String> regex = toRegex(pairs);
+        return regex;
     }
 
     /**

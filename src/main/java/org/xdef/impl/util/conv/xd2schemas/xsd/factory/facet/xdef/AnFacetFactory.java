@@ -11,7 +11,7 @@ public class AnFacetFactory extends DefaultFacetFactory {
     static public final String XD_PARSER_NAME = "an";
 
     @Override
-    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public void extraFacets(final List<XmlSchemaFacet> facets) {
         facets.add(pattern("[a-zA-Z0-9]*"));
     }
 

@@ -72,8 +72,8 @@ public class XD2XsdParserMapping {
         customFacetMap.put(ContainsFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new ContainsFacetFactory(false)));
         customFacetMap.put(EnumFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new EnumFacetFactory()));
         customFacetMap.put(DateTimeFormatFacetFactory.XD_PARSER_XDATETIME_NAME, new Pair(Constants.XSD_STRING, new DateTimeFormatFacetFactory()));
-        customFacetMap.put(DateTimeFormatFacetFactory.XD_PARSER_DATETIME_NAME, new Pair(Constants.XSD_STRING, new DateTimeFormatFacetFactory()));
-        customFacetMap.put(DateTimeFormatFacetFactory.XD_PARSER_EMAILDATE_NAME, new Pair(Constants.XSD_STRING, new DateTimeFormatFacetFactory()));
+        customFacetMap.put(DateTimeFormatFacetFactory.XD_PARSER_DATETIME_NAME, new Pair(Constants.XSD_STRING, new DateTimeFormatFacetFactory("yyyyMMddHHmmss")));
+        customFacetMap.put(DateTimeFormatFacetFactory.XD_PARSER_EMAILDATE_NAME, new Pair(Constants.XSD_STRING, new DateTimeFormatFacetFactory("EEE, d MMM y HH:mm:ss[ ZZZZZ][ (z)]")));
         customFacetMap.put(EndsFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new EndsFacetFactory(true)));
         customFacetMap.put(EndsFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new EndsFacetFactory(false)));
         customFacetMap.put(EqFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new EqFacetFactory(true)));

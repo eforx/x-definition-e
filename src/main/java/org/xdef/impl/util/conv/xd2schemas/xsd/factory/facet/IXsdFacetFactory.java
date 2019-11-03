@@ -123,10 +123,9 @@ public interface IXsdFacetFactory {
 
     /**
      * Creates extra facets
-     * @param params
-     * @return
+     * @param facets
      */
-    void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params);
+    void extraFacets(final List<XmlSchemaFacet> facets);
 
     void setValueType(final ValueType valueType);
 }

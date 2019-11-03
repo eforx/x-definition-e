@@ -12,7 +12,7 @@ public class MD5FacetFactory extends DefaultFacetFactory {
     static public final String XD_PARSER_NAME = "MD5";
 
     @Override
-    public void extraFacets(final List<XmlSchemaFacet> facets, final XDNamedValue[] params) {
+    public void extraFacets(final List<XmlSchemaFacet> facets) {
         facets.add(pattern("[a-fA-F0-9]{32}"));
     }
 
