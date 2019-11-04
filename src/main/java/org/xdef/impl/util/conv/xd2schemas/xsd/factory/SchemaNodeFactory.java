@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.factory;
 
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
@@ -16,19 +17,11 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 public class SchemaNodeFactory {
 
     public static SchemaNode createElementNode(final XmlSchemaElement xsdElem, final XElement xDefEl) {
-        return createElementNode(xDefEl.getXDPosition(), xsdElem, xDefEl);
-    }
-
-    private static SchemaNode createElementNode(final String nodePos, final XmlSchemaElement xsdElem, final XElement xDefEl) {
-        return new SchemaNode(nodePos, xsdElem, xDefEl);
+        return new SchemaNode(xDefEl.getXDPosition(), xsdElem, xDefEl);
     }
 
     public static SchemaNode createAttributeNode(final XmlSchemaAttribute xsdAttr, final XData xData) {
-        return createAttributeNode(xData.getXDPosition(), xsdAttr, xData);
-    }
-
-    private static SchemaNode createAttributeNode(final String nodePos, final XmlSchemaAttribute xsdAttr, final XData xData) {
-        return new SchemaNode(nodePos, xsdAttr, xData);
+        return new SchemaNode(xData.getXDPosition(), xsdAttr, xData);
     }
 
     public static void createElemRefAndDef(final XElement xDefEl, final XmlSchemaElement xsdElem,
@@ -63,6 +56,19 @@ public class SchemaNodeFactory {
         }
 
         return ref;
+    }
+
+    public static void createComplexExtRefAndDef(final XElement xDefEl, final XmlSchemaComplexContentExtension xsdComplexExt,
+                                           final String refSystemId, final String refNodePos, final String refNodePath,
+                                           final XsdAdapterCtx adapterCtx) {
+        SchemaNode node = createComplexExtNode(xsdComplexExt, xDefEl);
+        SchemaNode nodeRef = createDef(refSystemId, refNodePos, refNodePath, adapterCtx);
+        node = adapterCtx.addOrUpdateNode(node);
+        SchemaNode.createBinding(node, nodeRef);
+    }
+
+    private static SchemaNode createComplexExtNode(final XmlSchemaComplexContentExtension xsdComplexExt, final XElement xDefEl) {
+        return new SchemaNode(xDefEl.getXDPosition(), xsdComplexExt, xDefEl);
     }
 
 

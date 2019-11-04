@@ -423,7 +423,7 @@ public class TestXd2Xsd extends XDTester {
 
         // ============ XDef ============
 
-        convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_invalid_blank_char"}));
+        convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), null);
         convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
         convertXdDef2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
         convertXdDef2Xsd("t003", Arrays.asList(new String[] {"t003"}), null);
@@ -468,6 +468,7 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", "simpleModelTest_valid_3", "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 
         convertXdDef2XsdNoRef ("t990", Arrays.asList(new String[] {"t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
+        convertXdDef2XsdNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
 
         // ============ XDPool ============
 
@@ -476,7 +477,6 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2Xsd("t012", Arrays.asList(new String[] {"t012", "t012_1", "t012_2"}), null);
         convertXdPool2Xsd("t013", Arrays.asList(new String[] {"t013"}), null);
         convertXdPool2Xsd("t014", Arrays.asList(new String[] {"t014"}), null);
-
         convertXdPool2Xsd("t015", Arrays.asList(new String[] {"t015", "t015_1"}), null);
         convertXdPool2Xsd("t018", Arrays.asList(new String[] {"t018"}), null);
 
@@ -485,10 +485,9 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"globalAndLocalTest_X_invalid", "globalAndLocalTest_Y_invalid", "globalAndLocalTest_Z_invalid"})
         );
 
-        // TODO: Missing information about reference (reference has additional info)
-//        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
-
+        convertXdPool2XsdNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
         convertXdPool2XsdNoRef ("multiXdefTest2", Arrays.asList(new String[] {"multiXdefTest2_valid_1"}), null);
+        convertXdPool2XsdNoRef ("multiXdefTest3", Arrays.asList(new String[] {"multiXdefTest3_valid_1"}), null);
 
         convertXdPool2XsdNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 

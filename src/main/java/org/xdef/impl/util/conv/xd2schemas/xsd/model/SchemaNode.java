@@ -1,14 +1,14 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
-import org.apache.ws.commons.schema.XmlSchemaAttribute;
-import org.apache.ws.commons.schema.XmlSchemaComplexType;
-import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.model.XMNode;
 
+import javax.xml.namespace.QName;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,13 +27,14 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XS
  *      element ({@link XmlSchemaElement})
  *      attribute ({@link XmlSchemaAttribute})
  *      complex-type ({@link XmlSchemaComplexType})
+ *      complex-content-extension ({@link XmlSchemaComplexContentExtension})
  */
 public class SchemaNode {
 
     /**
      * X-definition position of node
      */
-    private final String xdPosition;
+    private String xdPosition;
 
     /**
      * X-definition node
@@ -41,9 +42,9 @@ public class SchemaNode {
     private XMNode xdNode;
 
     /**
-     * XSD schema element
+     * XSD schema node
      */
-    private XmlSchemaNamed xsdNode;
+    private XmlSchemaObjectBase xsdNode;
 
     /**
      * Referenced node
@@ -59,7 +60,7 @@ public class SchemaNode {
         this.xdPosition = name;
     }
 
-    public SchemaNode(String name, XmlSchemaNamed xsdNode, XMNode xdNode) {
+    public SchemaNode(String name, XmlSchemaObject xsdNode, XMNode xdNode) {
         this.xdPosition = name;
         this.xsdNode = xsdNode;
         this.xdNode = xdNode;
@@ -69,12 +70,27 @@ public class SchemaNode {
         return xdPosition;
     }
 
-    public XmlSchemaNamed getXsdNode() {
+    public XmlSchemaObjectBase getXsdNode() {
         return xsdNode;
     }
 
     public void setXsdNode(XmlSchemaNamed xsdNode) {
         this.xsdNode = xsdNode;
+
+        if (xsdNode instanceof XmlSchemaNamed) {
+            final XmlSchemaNamed xsdNamedNode = xsdNode;
+            final QName qName = xsdNamedNode.getQName();
+            if (qName != null) {
+                final String nsPrefix = xsdNamedNode.getParent().getNamespaceContext().getPrefix(qName.getNamespaceURI());
+
+                int systemDelPos = xdPosition.indexOf('#');
+                if (systemDelPos != -1) {
+                    xdPosition = xdPosition.substring(0, systemDelPos + 1).concat(nsPrefix + ":" + xsdNamedNode.getName());
+                } else {
+                    xdPosition = nsPrefix + ":" + xsdNamedNode.getName();
+                }
+            }
+        }
     }
 
     public XMNode getXdNode() {
@@ -118,6 +134,10 @@ public class SchemaNode {
         return (xsdNode instanceof XmlSchemaComplexType);
     }
 
+    public boolean isXsdComplexExt() {
+        return (xsdNode instanceof XmlSchemaComplexContentExtension);
+    }
+
     public XmlSchemaElement toXsdElem() {
         return (XmlSchemaElement)xsdNode;
     }
@@ -126,8 +146,12 @@ public class SchemaNode {
         return (XmlSchemaAttribute)xsdNode;
     }
 
-    public XmlSchemaComplexType toXsdComplex() {
+    public XmlSchemaComplexType toXsdComplexType() {
         return (XmlSchemaComplexType)xsdNode;
+    }
+
+    public XmlSchemaComplexContentExtension toXsdComplexExt() {
+        return (XmlSchemaComplexContentExtension)xsdNode;
     }
 
     public boolean isXdElem() {

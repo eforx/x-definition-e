@@ -198,7 +198,7 @@ public class XsdElementFactory {
         return annotation;
     }
 
-    public XmlSchemaComplexType createComplexContentWithComplexExtension(final String name, final QName qName) {
+    public XmlSchemaComplexType createComplexTypeWithComplexExtension(final String name, final QName qName) {
         XmlSchemaComplexType complexType = createEmptyComplexType(true);
         XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
         XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();
@@ -209,7 +209,7 @@ public class XsdElementFactory {
         return complexType;
     }
 
-    public XmlSchemaComplexType createComplextContentWithSimpleExtension(final String name, final QName qName, boolean topLevel) {
+    public XmlSchemaComplexType createComplextTypeWithSimpleExtension(final String name, final QName qName, boolean topLevel) {
         XmlSchemaComplexType complexType = createEmptyComplexType(topLevel);
         XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
         XmlSchemaSimpleContentExtension simpleContentExtension = new XmlSchemaSimpleContentExtension();

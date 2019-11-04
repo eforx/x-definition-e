@@ -50,7 +50,7 @@ public class XsdPostProcessor {
     private void elementRootDecomposition(final SchemaNode node) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
 
-        final XmlSchemaElement xsdElem = (XmlSchemaElement)node.getXsdNode();
+        final XmlSchemaElement xsdElem = node.toXsdElem();
         final XElement xDefEl = node.toXdElem();
         final String localName = xsdElem.getName();
         final String newLocalName = XsdNameUtils.newRootElemName(localName, xsdElem.getSchemaType());
@@ -104,16 +104,16 @@ public class XsdPostProcessor {
     private void elementTopToComplex(final SchemaNode node, final XsdElementFactory xsdFactory) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting top-level element to complex-type ...");
 
-        final XmlSchemaElement xsdElem = (XmlSchemaElement)node.getXsdNode();
+        final XmlSchemaElement xsdElem = node.toXsdElem();
         final XElement xDefEl = node.toXdElem();
         String newRefLocalName = XsdNameUtils.newTopLocalRefName(xDefEl.getName());
 
         // Creating complex content with extension to original reference
         XmlSchemaType schemaType = null;
         if (xsdElem.getRef().getTargetQName() != null) {
-            schemaType = xsdFactory.createComplexContentWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
+            schemaType = xsdFactory.createComplexTypeWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
         } else if (xsdElem.getSchemaTypeName() != null) {
-            schemaType = xsdFactory.createComplextContentWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName(), true);
+            schemaType = xsdFactory.createComplextTypeWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName(), true);
         }
 
         if (schemaType == null) {
@@ -144,25 +144,33 @@ public class XsdPostProcessor {
                             xsdPtrElem.setName(newPtrElemName);
                             xsdPtrElem.setSchemaTypeName(newPtrQName);
 
-                            XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode) node.getXdNode(), "Change reference to schema type." +
+                            XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode) node.getXdNode(), "Change element reference to schema type." +
                                     " Elem=" + ptrNode.getXdName() + ", NewQName=" + newPtrQName + ", OldQName=" + ptrQName);
                         }
                     }
+                } else if (ptrNode.isXsdComplexExt()) {
+                    final XmlSchemaComplexContentExtension xsdPtrExt = ptrNode.toXsdComplexExt();
+                    final QName ptrQName = xsdPtrExt.getBaseTypeName();
+                    final QName newPtrQName = new QName(ptrQName.getNamespaceURI(), newLocalName);
+                    xsdPtrExt.setBaseTypeName(newPtrQName);
+
+                    XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode) node.getXdNode(), "Change complex extension base." +
+                            " Elem=" + ptrNode.getXdName() + ", NewQName=" + newPtrQName + ", OldQName=" + ptrQName);
                 }
             }
         }
     }
 
     private static boolean isTopElementRef(final SchemaNode node) {
-        return node.isXsdElem() && node.getXsdNode().isTopLevel() && node.isXdElem() && node.toXsdElem().isRef();
+        return node.isXsdElem() && node.toXsdElem().isTopLevel() && node.toXsdElem().isRef();
     }
 
     private static boolean isTopElement(final SchemaNode node) {
-        return node.isXsdElem() && node.getXsdNode().isTopLevel() && node.isXdElem();
+        return node.isXsdElem() && node.toXsdElem().isTopLevel();
     }
 
     private static boolean isTopElementWithPtr(final SchemaNode node) {
-        return node.isXsdElem() && node.getXsdNode().isTopLevel() && node.isXdElem() && node.hasAnyPointer();
+        return node.isXsdElem() && node.toXsdElem().isTopLevel() && node.hasAnyPointer();
     }
 
     private static boolean isQualifiedTopElementWithUnqualifiedPtr(final SchemaNode node) {
@@ -173,6 +181,11 @@ public class XsdPostProcessor {
                     final XmlSchemaForm ptrSchema = ptr.toXsdElem().getForm();
                     final boolean ptrHasNs = XsdNamespaceUtils.containsNsPrefix(ptr.getXdName());
                     if (!ptrHasNs && XmlSchemaForm.UNQUALIFIED.equals(ptrSchema) && XmlSchemaForm.QUALIFIED.equals(nodeSchema)) {
+                        return true;
+                    }
+                } else if (ptr.isXsdComplexExt()) {
+                    final boolean ptrHasNs = XsdNamespaceUtils.containsNsPrefix(ptr.getXdName());
+                    if (!ptrHasNs) {
                         return true;
                     }
                 }
@@ -200,7 +213,7 @@ public class XsdPostProcessor {
         }
     }
 
-    public static void elementComplexContent(final XElement defEl, final XmlSchemaComplexType complexType) {
+    public static void elementComplexType(final XmlSchemaComplexType complexType, final XNode[] xChildrenNodes, final XElement defEl) {
         XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
 
         // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
@@ -210,7 +223,7 @@ public class XsdPostProcessor {
 
             if (complexType.getParticle() instanceof XmlSchemaAll) {
 
-                for (XNode xNode : defEl._childNodes) {
+                for (XNode xNode : xChildrenNodes) {
                     if (xNode.getKind() == XNode.XMELEMENT) {
                         if (!xNode.isMaxUnlimited() && !xNode.isUnbounded()) {
                             allElementsUnbounded = false;
