@@ -209,7 +209,7 @@ public class XsdAdapterCtx {
     }
 
     public SchemaNode addOrUpdateNode(final String systemId, String nodePath, SchemaNode node) {
-        Map<String, SchemaNode> xsdSystemRefs = getSystemRefs(systemId);
+        Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
 
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
         if (refOrig != null && refOrig.getXsdNode() != null) {
@@ -246,7 +246,7 @@ public class XsdAdapterCtx {
     public void updateNode(final String systemId, String nodePath, final XmlSchemaNamed newXsdNode) {
         XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating xsd content of node. System=" + systemId + ", Path=" + nodePath + ", NewXsd=" + newXsdNode.getClass().getSimpleName());
 
-        Map<String, SchemaNode> xsdSystemRefs = getSystemRefs(systemId);
+        Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
 
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
         if (refOrig == null) {
@@ -257,7 +257,7 @@ public class XsdAdapterCtx {
         refOrig.setXsdNode(newXsdNode);
     }
 
-    public Map<String, SchemaNode> getSystemRefs(final String systemId) {
+    public Map<String, SchemaNode> getSchemaNodes(final String systemId) {
         Map<String, SchemaNode> xsdSystemRefs = nodes.get(systemId);
         if (xsdSystemRefs == null) {
             xsdSystemRefs = new HashMap<String, SchemaNode>();
@@ -265,6 +265,15 @@ public class XsdAdapterCtx {
         }
 
         return xsdSystemRefs;
+    }
+
+    public SchemaNode getSchemaNode(final String systemId, final String nodePath) {
+        final Map<String, SchemaNode> xsdSystemRefs = nodes.get(systemId);
+        if (xsdSystemRefs == null) {
+            return null;
+        }
+
+        return xsdSystemRefs.get(nodePath);
     }
 
 }

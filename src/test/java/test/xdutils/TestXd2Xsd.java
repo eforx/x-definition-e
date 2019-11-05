@@ -9,6 +9,7 @@ import org.xdef.XDPool;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
@@ -48,6 +49,7 @@ public class TestXd2Xsd extends XDTester {
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
         XsdLogger.setLogLevel(LOG_WARN);
+        XsdElementFactory.setCreateAnnotation(true);
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -374,23 +376,19 @@ public class TestXd2Xsd extends XDTester {
         } catch (Exception ex) {fail(ex);}
     }
 
-    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, false);
+    private void convertXdPool2XsdNoSupport(final String fileName, List<String> validTestingData, List<String> invalidTestingData, String exMsg) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, false, exMsg);
     }
 
-    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData, int schemaCount) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, schemaCount, false);
+    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, false, null);
     }
 
     private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, true);
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, null, true, null);
     }
 
-    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, int schemaCount) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, schemaCount, true);
-    }
-
-    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Integer schemaCount, boolean validateAgainstRefXsd) {
+    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Integer schemaCount, boolean validateAgainstRefXsd, String exMsg) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
@@ -414,7 +412,13 @@ public class TestXd2Xsd extends XDTester {
             validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd);
 
             assertNoErrors(reporter);
-        } catch (Exception ex) {fail(ex);}
+        } catch (Exception ex) {
+            if (exMsg != null) {
+                assertEq(exMsg, ex.getMessage());
+            } else {
+                fail(ex);
+            }
+        }
     }
 
     @Override
@@ -497,6 +501,12 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2XsdNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
         convertXdPool2XsdNoRef ("typeTest", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
+        convertXdPool2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
+
+
+        // ============ Unsupported ============
+
+        convertXdPool2XsdNoSupport ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1"}), null, "Any type with attributes/children nodes is not supported!");
     }
 
     ////////////////////////////////////////////////////////////////////////////////

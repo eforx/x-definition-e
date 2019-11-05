@@ -173,19 +173,26 @@ public class XDTree2XsdAdapter {
 
         final XmlSchemaElement xsdElem = xsdFactory.createEmptyElement(xElem, topLevel);
 
-        if (xElem.isReference() || xElem.getReferencePos() != null) {
-            final QName referenceQName = createElementReferenceQName(xElem);
-            if (xElem.isReference()) {
-                createElementReference(xElem, xsdElem, referenceQName);
-            } else {
-                createElementExtendedReference(xElem, xsdElem, referenceQName);
+        if ("$any".equals(xElem.getName())) {
+            if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
+                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Any type with attributes/children nodes is not supported!");
+                throw new RuntimeException("Any type with attributes/children nodes is not supported!");
             }
         } else {
-            // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
-            if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema)) {
-                createElementInDiffNamespace(xElem, xsdElem);
+            if (xElem.isReference() || xElem.getReferencePos() != null) {
+                final QName referenceQName = createElementReferenceQName(xElem);
+                if (xElem.isReference()) {
+                    createElementReference(xElem, xsdElem, referenceQName);
+                } else {
+                    createElementExtendedReference(xElem, xsdElem, referenceQName);
+                }
             } else {
-                createElement(xElem, xsdElem);
+                // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
+                if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema)) {
+                    createElementInDiffNamespace(xElem, xsdElem);
+                } else {
+                    createElement(xElem, xsdElem);
+                }
             }
         }
 
@@ -327,9 +334,8 @@ public class XDTree2XsdAdapter {
 
             if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
                 final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
-                xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-
                 final String refNodePath = XsdNameUtils.getReferenceNodePath(xDefPos);
+                xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
                 SchemaNodeFactory.createElemRefAndDef(xElem, xsdElem, schemaName, refNodePath, systemId, xDefPos, refNodePath, adapterCtx);
             } else {
                 nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
@@ -339,7 +345,7 @@ public class XDTree2XsdAdapter {
     }
 
     private void createElement(final XElement xElem, final XmlSchemaElement xsdElem) {
-        xsdElem.setName(xElem.getName());
+        xsdElem.setName(XsdNameUtils.getName(xElem));
         XsdNameUtils.resolveElementQName(schema, xsdElem);
 
         // If element contains only data, we dont have to create complexType
@@ -406,9 +412,29 @@ public class XDTree2XsdAdapter {
     private XmlSchemaComplexType createComplexType(final XData[] xAttrs, final XNode[] xChildrenNodes, final XElement defEl) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex type of element ...");
 
-        XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
+        final XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
 
-        Stack<XmlSchemaGroupParticle> groups = new Stack<XmlSchemaGroupParticle>();
+        // xd:mixed is reference
+        if (xChildrenNodes.length > 0 && xChildrenNodes[0].getKind() == XNode.XMMIXED && !xChildrenNodes[0].getXDPosition().contains(defEl.getXDPosition())) {
+            final String systemId = XsdNamespaceUtils.getReferenceSystemId(xChildrenNodes[0].getXDPosition());
+            String refNodePath = XsdNameUtils.getReferenceNodePath(xChildrenNodes[0].getXDPosition());
+            if (refNodePath.endsWith("/$mixed")) {
+                refNodePath = refNodePath.substring(0, refNodePath.lastIndexOf("/"));
+            }
+            final SchemaNode refNode = adapterCtx.getSchemaNode(systemId, refNodePath);
+            if (refNode == null || refNode.getXsdNode() == null) {
+                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());
+            } else if (!refNode.isXsdComplexType()) {
+                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! Path=" + xChildrenNodes[0].getXDPosition());
+            } else {
+                final XmlSchemaComplexType refComplexType = refNode.toXsdComplexType();
+                final XmlSchemaComplexContent complexContent = xsdFactory.createComplexContentWithComplexExtension(refComplexType.getQName());
+                complexType.setContentModel(complexContent);
+                return complexType;
+            }
+        }
+
+        final Stack<XmlSchemaGroupParticle> groups = new Stack<XmlSchemaGroupParticle>();
         XmlSchemaGroupParticle currGroup = null;
 
         // Convert all children nodes

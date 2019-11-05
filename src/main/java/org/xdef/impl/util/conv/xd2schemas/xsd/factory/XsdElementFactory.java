@@ -178,11 +178,16 @@ public class XsdElementFactory {
 
     public XmlSchemaComplexType createComplexTypeWithComplexExtension(final String name, final QName qName) {
         final XmlSchemaComplexType complexType = createEmptyComplexType(true);
-        final XmlSchemaComplexContentExtension complexContentExtension = createComplexContentExtension(qName);
-        final XmlSchemaComplexContent complexContent = createComplexContent(complexContentExtension);
+        final XmlSchemaComplexContent complexContent = createComplexContentWithComplexExtension(qName);
         complexType.setContentModel(complexContent);
         complexType.setName(name);
         return complexType;
+    }
+
+    public XmlSchemaComplexContent createComplexContentWithComplexExtension(final QName qName) {
+        final XmlSchemaComplexContentExtension complexContentExtension = createComplexContentExtension(qName);
+        final XmlSchemaComplexContent complexContent = createComplexContent(complexContentExtension);
+        return complexContent;
     }
 
     public XmlSchemaComplexType createComplextTypeWithSimpleExtension(final String name, final QName qName, boolean topLevel) {

@@ -6,6 +6,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 
 import javax.xml.namespace.QName;
@@ -120,6 +121,15 @@ public class XsdNameUtils {
         }
 
         return nodeName;
+    }
+
+    public static String getName(final XElement xElem) {
+        int typeSepPos = xElem.getName().indexOf('$');
+        if (typeSepPos <= 0) {
+            return xElem.getName();
+        }
+
+        return xElem.getName().substring(0, typeSepPos);
     }
 
     public static String newTopLocalRefName(final String name) {

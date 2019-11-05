@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" name="testGroup1" root='a | b | m/n | x'>
+   <xd:any xd:name='x' b='int()' />
+   <xd:mixed xd:name='m'>
+     <n/>
+     <o/>
+   </xd:mixed>
+   <a>
+     <xd:mixed xd:script='ref m' />
+   </a>
+   <b>
+     <xd:any xd:script='ref x' />
+   </b>
+</xd:def>

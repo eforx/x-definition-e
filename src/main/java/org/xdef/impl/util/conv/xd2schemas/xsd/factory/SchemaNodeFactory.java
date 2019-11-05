@@ -44,7 +44,7 @@ public class SchemaNodeFactory {
     }
 
     public static SchemaNode createDef(final String systemId, final String nodePos, final String nodePath, final XsdAdapterCtx adapterCtx) {
-        Map<String, SchemaNode> xsdSystemRefs = adapterCtx.getSystemRefs(systemId);
+        Map<String, SchemaNode> xsdSystemRefs = adapterCtx.getSchemaNodes(systemId);
         final String localName = XsdNameUtils.getReferenceName(nodePos);
         SchemaNode ref = xsdSystemRefs.get(nodePath);
         if (ref == null) {
