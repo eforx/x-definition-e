@@ -144,6 +144,8 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
             facet = totalDigits(param);
         } else if (XSD_FACET_WHITESPACE.equals(param.getName())) {
             facet = whitespace(param);
+        } else if (isInternalFacet(param)) {
+            // Do nothing
         } else if (!customFacet(facets, param)) {
             XsdLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported restriction parameter. Parameter=" + param.getName());
         }
@@ -151,5 +153,9 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         if (facet != null) {
             facets.add(facet);
         }
+    }
+
+    private boolean isInternalFacet(XDNamedValue param) {
+        return XD_INTERNAL_FACET_OUTFORMAT.equals(param.getName());
     }
 }

@@ -24,10 +24,16 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdElementFactory {
 
+    private static boolean createAnnotation = false;
+
     private final XmlSchema schema;
 
     public XsdElementFactory(XmlSchema schema) {
         this.schema = schema;
+    }
+
+    public static void setCreateAnnotation(boolean createAnnotation) {
+        XsdElementFactory.createAnnotation = createAnnotation;
     }
 
     /**
@@ -87,24 +93,22 @@ public class XsdElementFactory {
     }
 
     public void creatSimpleTypeTop(final XData xData, final String name) {
-        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Reference simple-type. Name=" + name);
-        XmlSchemaSimpleType itemType = createEmptySimpleType(true);
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type top. Name=" + name);
+        final XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
         itemType.setContent(createSimpleTypeContent(xData, name));
     }
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName) {
-        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type");
-        XmlSchemaSimpleType itemType = createEmptySimpleType(false);
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type no-top");
+        final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
         itemType.setContent(createSimpleTypeContent(xData, nodeName));
         return itemType;
     }
 
-    public XmlSchemaSimpleContent createSimpleContent(final XData xData) {
-        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-content");
-
-        XmlSchemaSimpleContent content = new XmlSchemaSimpleContent();
+    public XmlSchemaSimpleContent createSimpleContentWithExtension(final XData xData) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-content with extension");
 
         QName qName;
         if (xData.getRefTypeName() != null) {
@@ -128,9 +132,8 @@ public class XsdElementFactory {
         }
 
         if (qName != null) {
-            XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
-            contentExtension.setBaseTypeName(qName);
-            content.setContent(contentExtension);
+            final XmlSchemaSimpleContentExtension contentExtension = createSimpleContentExtension(qName);
+            final XmlSchemaSimpleContent content = createSimpleContent(contentExtension);
             XsdLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xData, "Simple-content extending type. QName=" + qName);
             return content;
         }
@@ -173,58 +176,57 @@ public class XsdElementFactory {
         return particle;
     }
 
-    public void createSchemaImport(final XmlSchema schema, final String nsUri, final String location) {
-        XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
-        schemaImport.setNamespace(nsUri);
-        schemaImport.setSchemaLocation(location);
-    }
-
-    public void createSchemaInclude(final XmlSchema schema, final String location) {
-        XmlSchemaInclude schemaImport = new XmlSchemaInclude(schema);
-        schemaImport.setSchemaLocation(location);
-    }
-
-    public static XmlSchemaAnnotation createAnnotation(final String annotationValue) {
-        XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
-        annotation.getItems().add(createAnnotationItem(annotationValue));
-        return annotation;
-    }
-
-    public static XmlSchemaAnnotation createAnnotation(final List<String> annotationValues) {
-        XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
-        for (String value : annotationValues) {
-            annotation.getItems().add(createAnnotationItem(value));
-        }
-        return annotation;
-    }
-
     public XmlSchemaComplexType createComplexTypeWithComplexExtension(final String name, final QName qName) {
-        XmlSchemaComplexType complexType = createEmptyComplexType(true);
-        XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
-        XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();
-        complexContentExtension.setBaseTypeName(qName);
-        complexContent.setContent(complexContentExtension);
+        final XmlSchemaComplexType complexType = createEmptyComplexType(true);
+        final XmlSchemaComplexContentExtension complexContentExtension = createComplexContentExtension(qName);
+        final XmlSchemaComplexContent complexContent = createComplexContent(complexContentExtension);
         complexType.setContentModel(complexContent);
         complexType.setName(name);
         return complexType;
     }
 
     public XmlSchemaComplexType createComplextTypeWithSimpleExtension(final String name, final QName qName, boolean topLevel) {
-        XmlSchemaComplexType complexType = createEmptyComplexType(topLevel);
-        XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
-        XmlSchemaSimpleContentExtension simpleContentExtension = new XmlSchemaSimpleContentExtension();
-        simpleContentExtension.setBaseTypeName(qName);
-        simpleContent.setContent(simpleContentExtension);
+        final XmlSchemaComplexType complexType = createEmptyComplexType(topLevel);
+        final XmlSchemaSimpleContentExtension simpleContentExtension = createSimpleContentExtension(qName);
+        final XmlSchemaSimpleContent simpleContent = createSimpleContent(simpleContentExtension);
         complexType.setContentModel(simpleContent);
         complexType.setName(name);
         return complexType;
     }
 
+    public XmlSchemaComplexContent createComplexContent(final XmlSchemaContent content) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Complex content. ContentType=" + content.getClass().getSimpleName());
+        final XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
+        complexContent.setContent(content);
+        return complexContent;
+    }
+
+    public XmlSchemaSimpleContent createSimpleContent(final XmlSchemaContent content) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Simple content. ContentType=" + content.getClass().getSimpleName());
+        final XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
+        simpleContent.setContent(content);
+        return simpleContent;
+    }
+
+    public XmlSchemaComplexContentExtension createComplexContentExtension(final QName baseType) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Complex content extension. BaseType=" + baseType);
+        final XmlSchemaComplexContentExtension contentExtension = new XmlSchemaComplexContentExtension();
+        contentExtension.setBaseTypeName(baseType);
+        return contentExtension;
+    }
+
+    public XmlSchemaSimpleContentExtension createSimpleContentExtension(final QName baseType) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Simple content extension. BaseType=" + baseType);
+        final XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
+        contentExtension.setBaseTypeName(baseType);
+        return contentExtension;
+    }
+
     private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData, final String nodeName) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type content");
 
-        XDValue parseMethod = xData.getParseMethod();
-        XsdSimpleContentFactory simpleContentFactory = new XsdSimpleContentFactory(this, xData);
+        final XDValue parseMethod = xData.getParseMethod();
+        final XsdSimpleContentFactory simpleContentFactory = new XsdSimpleContentFactory(this, xData);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
@@ -233,6 +235,39 @@ public class XsdElementFactory {
         }
 
         return simpleContentFactory.createDefaultRestriction(Constants.XSD_STRING);
+    }
+
+    public void createSchemaImport(final XmlSchema schema, final String nsUri, final String location) {
+        final XmlSchemaImport schemaImport = new XmlSchemaImport(schema);
+        schemaImport.setNamespace(nsUri);
+        schemaImport.setSchemaLocation(location);
+    }
+
+    public void createSchemaInclude(final XmlSchema schema, final String location) {
+        final XmlSchemaInclude schemaImport = new XmlSchemaInclude(schema);
+        schemaImport.setSchemaLocation(location);
+    }
+
+    public static XmlSchemaAnnotation createAnnotation(final String annotationValue) {
+        if (createAnnotation) {
+            final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+            annotation.getItems().add(createAnnotationItem(annotationValue));
+            return annotation;
+        }
+
+        return null;
+    }
+
+    public static XmlSchemaAnnotation createAnnotation(final List<String> annotationValues) {
+        if (createAnnotation) {
+            final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+            for (String value : annotationValues) {
+                annotation.getItems().add(createAnnotationItem(value));
+            }
+            return annotation;
+        }
+
+        return null;
     }
 
     private static XmlSchemaDocumentation createAnnotationItem(final String annotation) {

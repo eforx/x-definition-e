@@ -78,7 +78,7 @@ public class XDTree2XsdAdapter {
             }
             case XNode.XMTEXT: {
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xn, "Creating simple (text) content ...");
-                return xsdFactory.createSimpleContent((XData)xn);
+                return xsdFactory.createSimpleContentWithExtension((XData)xn);
             }
             case XNode.XMELEMENT: {
                 return createElement((XElement) xn, topLevel);
@@ -284,17 +284,15 @@ public class XDTree2XsdAdapter {
                 if (extNodes.size() > 0 || extAttrs.size() > 0) {
                     usingExtension = true;
 
-                    final XmlSchemaComplexContent complexContent = new XmlSchemaComplexContent();
-                    final XmlSchemaComplexContentExtension complexContentExtension = new XmlSchemaComplexContentExtension();
+                    final XmlSchemaComplexContentExtension complexContentExtension = xsdFactory.createComplexContentExtension(refQName);
+                    final XmlSchemaComplexContent complexContent = xsdFactory.createComplexContent(complexContentExtension);
                     final XmlSchemaComplexType complexType = createComplexType(extAttrs.toArray(new XData[extAttrs.size()]), extNodes.toArray(new XNode[extNodes.size()]), xElem);
 
-                    complexContentExtension.setBaseTypeName(refQName);
                     complexContentExtension.setParticle(complexType.getParticle());
                     complexContentExtension.getAttributes().addAll(complexType.getAttributes());
                     complexType.setParticle(null);
                     complexType.getAttributes().clear();
 
-                    complexContent.setContent(complexContentExtension);
                     complexType.setContentModel(complexContent);
                     xsdElem.setSchemaType(complexType);
 

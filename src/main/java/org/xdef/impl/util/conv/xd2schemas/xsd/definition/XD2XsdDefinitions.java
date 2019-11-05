@@ -11,7 +11,6 @@ public interface XD2XsdDefinitions {
 
     String XD_PARSER_CDATA = "CDATA";
     String XD_PARSER_DEC = "dec";
-    String XD_PARSER_ENUM = "enum";
     String XD_PARSER_EQ = "eq";
     String XD_PARSER_ISODATE = "ISOdate";
     String XD_PARSER_ISODATETIME = "ISOdateTime";
@@ -41,4 +40,6 @@ public interface XD2XsdDefinitions {
     String XD_FACET_ARGUMENT = "argument";
     String XD_FACET_FORMAT = "format";
     String XD_FACET_SEPARATOR = "separator";
+    String XD_INTERNAL_FACET_OUTFORMAT = "outFormat";
+
 }

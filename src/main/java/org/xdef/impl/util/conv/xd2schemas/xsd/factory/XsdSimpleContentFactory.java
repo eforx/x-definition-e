@@ -193,9 +193,9 @@ public class XsdSimpleContentFactory {
         // If exists some other restrictions for list, then wrap up list inside
         if (!restriction.getFacets().isEmpty()) {
             restriction.setBaseTypeName(null);
-            final XmlSchemaSimpleType simpleTypeRestriction = xsdFactory.createEmptySimpleType(false);
-            simpleTypeRestriction.setContent(content);
-            restriction.setBaseType(simpleTypeRestriction);
+            final XmlSchemaSimpleType simpleType = xsdFactory.createEmptySimpleType(false);
+            simpleType.setContent(content);
+            restriction.setBaseType(simpleType);
             return restriction;
         }
 
