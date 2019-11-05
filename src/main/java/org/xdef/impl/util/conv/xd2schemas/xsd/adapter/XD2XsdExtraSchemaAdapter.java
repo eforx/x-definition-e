@@ -127,7 +127,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
             XsdElementFactory xsdFactory = new XsdElementFactory(schema);
-            XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, schemaName, xsdFactory, adapterCtx);
+            XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
             XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
 
             treeAdapter.setPostProcessing();
@@ -229,7 +229,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
          * @param treeAdapter       transformation algorithm
          * @param nodes             source nodes to transform
          */
-        private void transformNodes(final XDTree2XsdAdapter treeAdapter, final ArrayList<XNode> nodes) {
+        private void transformNodes(final XD2XsdTreeAdapter treeAdapter, final ArrayList<XNode> nodes) {
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "*** Transformation of x-definition tree to schema ***");
 
             for (XNode n : nodes) {

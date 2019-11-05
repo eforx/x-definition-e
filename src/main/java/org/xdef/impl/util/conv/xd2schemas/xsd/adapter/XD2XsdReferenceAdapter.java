@@ -24,7 +24,7 @@ public class XD2XsdReferenceAdapter {
 
     private final XmlSchema schema;
     private final XsdElementFactory xsdFactory;
-    private final XDTree2XsdAdapter treeAdapter;
+    private final XD2XsdTreeAdapter treeAdapter;
     private final XsdAdapterCtx adapterCtx;
 
     private boolean isPostProcessingPhase = false;
@@ -36,7 +36,7 @@ public class XD2XsdReferenceAdapter {
      */
     private Set<String> namespaceIncludes;
 
-    public XD2XsdReferenceAdapter(XmlSchema schema, XsdElementFactory xsdFactory, XDTree2XsdAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
+    public XD2XsdReferenceAdapter(XmlSchema schema, XsdElementFactory xsdFactory, XD2XsdTreeAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.xsdFactory = xsdFactory;
         this.treeAdapter = treeAdapter;

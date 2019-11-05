@@ -10,7 +10,7 @@ import org.xdef.impl.util.conv.xd2schemas.XDef2SchemaAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.AbstractXd2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.XD2XsdPostProcessingAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.XD2XsdReferenceAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.XDTree2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.adapter.XD2XsdTreeAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
@@ -66,7 +66,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         }
 
         XsdElementFactory xsdFactory = new XsdElementFactory(schema);
-        XDTree2XsdAdapter treeAdapter = new XDTree2XsdAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
+        XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
         XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
 
         treeAdapter.loadXdefRootNames(xDefinition);
@@ -86,7 +86,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Transform x-definition tree to xsd schema via treeAdapter
      * @param treeAdapter   transformation algorithm
      */
-    private void transformXdef(final XDTree2XsdAdapter treeAdapter) {
+    private void transformXdef(final XD2XsdTreeAdapter treeAdapter) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xDefinition, "*** Transformation of x-definition tree ***");
 
         for (XElement elem : xDefinition.getXElements()) {

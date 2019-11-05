@@ -22,7 +22,7 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinition
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
-public class XDTree2XsdAdapter {
+public class XD2XsdTreeAdapter {
 
     final private XmlSchema schema;
     final private String schemaName;
@@ -33,7 +33,7 @@ public class XDTree2XsdAdapter {
     private Set<XMNode> xdProcessedNodes = null;
     private List<String> xdRootNames = null;
 
-    public XDTree2XsdAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx) {
+    public XD2XsdTreeAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
@@ -419,6 +419,7 @@ public class XDTree2XsdAdapter {
         final Stack<XmlSchemaParticle> groups = new Stack<XmlSchemaParticle>();
         XmlSchemaParticle currGroup = null;
         boolean groupRefNodes = false;
+        int stackPopCounter = 0;
 
         // Convert all children nodes
         for (XNode xnChild : xChildrenNodes) {
@@ -441,7 +442,7 @@ public class XDTree2XsdAdapter {
                     newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
                     if (currGroup != null) {
                         if (newGroup instanceof XmlSchemaAll && currGroup instanceof XmlSchemaSequence) {
-                            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD all group element cannot be inside XSD sequence group element! Path=" + xnChild.getXDPosition());
+                            stackPopCounter += convertGroupToAll(groups, newGroup, currGroup, defEl);
                         } else {
                             addNodeToParticleGroup(currGroup, newGroup);
                         }
@@ -469,9 +470,13 @@ public class XDTree2XsdAdapter {
                     XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Content of XText is not simple!");
                 }
             } else if (childrenKind == XNode.XMSELECTOR_END) {
-                currGroup = groups.pop();
-                if (!groups.empty()) {
-                    currGroup = groups.peek();
+                if (stackPopCounter > 0) {
+                    stackPopCounter--;
+                } else {
+                    currGroup = groups.pop();
+                    if (!groups.empty()) {
+                        currGroup = groups.peek();
+                    }
                 }
             } else {
                 XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
@@ -541,6 +546,31 @@ public class XDTree2XsdAdapter {
         }
 
         return null;
+    }
+
+    private int convertGroupToAll(final Stack<XmlSchemaParticle> groups, final XmlSchemaParticle newGroup, final XmlSchemaParticle currGroup, final XElement defEl) {
+        int stackPopCounter = 0;
+        do {
+            final XmlSchemaParticle peek = groups.peek();
+            if ((peek instanceof XmlSchemaSequence) == false) {
+                break;
+            }
+
+            for (XmlSchemaSequenceMember sequenceMember : ((XmlSchemaSequence) currGroup).getItems()) {
+                ((XmlSchemaAll) newGroup).getItems().add((XmlSchemaAllMember) sequenceMember);
+            }
+
+            XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "!Lossy transformation! Node xsd:sequency contains xsd:all node -> converting xsd:sequency node to xsd:all!");
+
+            stackPopCounter++;
+            groups.pop();
+        } while (!groups.empty());
+
+        if (!groups.empty()) {
+            addNodeToParticleGroup(groups.peek(), newGroup);
+        }
+
+        return stackPopCounter;
     }
 
     private XmlSchemaParticle createDefaultParticleGroup(XmlSchemaParticle currGroup, final Stack<XmlSchemaParticle> groups, final XElement defEl) {

@@ -22,7 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -529,7 +530,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdDef2XsdNoRef ("groupChoice1", Arrays.asList(new String[] {"groupChoice1_valid_1", "groupChoice1_valid_2"}), Arrays.asList(new String[] {"groupChoice1_invalid_1", "groupChoice1_invalid_2"}));
         convertXdDef2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
-        convertXdDef2XsdInvalidXsd ("groupMixed1", Arrays.asList(new String[] {"groupMixed1_valid_1"}), null);
+        convertXdDef2XsdNoRef ("groupMixed1", Arrays.asList(new String[] {"groupMixed1_valid_1", "groupMixed1_valid_2"}), Arrays.asList(new String[] {"groupMixed1_invalid_1"}));
 
         convertXdPool2XsdNoSupport ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1"}), null, "Any type with attributes/children nodes is not supported!");
         convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
