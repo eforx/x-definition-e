@@ -153,7 +153,7 @@ public class XD2XsdReferenceAdapter {
                 XElement xDefEl = (XElement)xn;
                 boolean isRef = false;
 
-                if (xDefEl.isReference()) {
+                if (xDefEl.isReference() || xDefEl.getReferencePos() != null) {
                     final String refPos = xDefEl.getReferencePos();
                     final String nodeNsUri = xDefEl.getNSUri();
                     if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), nodeNsUri, schema)) {
