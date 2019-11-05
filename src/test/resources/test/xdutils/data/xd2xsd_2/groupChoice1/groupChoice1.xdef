@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name='groupChoice1'>
+  <a>
+    <xd:sequence>
+      <xd:choice>
+        <p/>
+        <q/>
+      </xd:choice>
+      <b/>
+      <c/>
+    </xd:sequence>
+  </a>
+</xd:def>

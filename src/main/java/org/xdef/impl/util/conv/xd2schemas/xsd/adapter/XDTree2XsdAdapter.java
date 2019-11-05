@@ -440,7 +440,11 @@ public class XDTree2XsdAdapter {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
                     newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
                     if (currGroup != null) {
-                        addNodeToParticleGroup(currGroup, newGroup);
+                        if (newGroup instanceof XmlSchemaAll && currGroup instanceof XmlSchemaSequence) {
+                            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD all group element cannot be inside XSD sequence group element! Path=" + xnChild.getXDPosition());
+                        } else {
+                            addNodeToParticleGroup(currGroup, newGroup);
+                        }
                     }
                     groups.push(newGroup);
                     currGroup = newGroup;
