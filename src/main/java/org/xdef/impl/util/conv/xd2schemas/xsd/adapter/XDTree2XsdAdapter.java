@@ -431,17 +431,21 @@ public class XDTree2XsdAdapter {
             }
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                final XmlSchemaParticle refGroup = createGroupReference(xChildrenNodes, currGroup, groups, defEl);
-                if (refGroup == null) {
+                XmlSchemaParticle newGroup = null;
+                if (childrenKind == XNode.XMMIXED && !xnChild.getXDPosition().contains(defEl.getXDPosition())) {
+                    newGroup = createGroupReference(xChildrenNodes, currGroup, groups, defEl);
+                }
+
+                if (newGroup == null) {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
-                    XmlSchemaGroupParticle newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
+                    newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
                     if (currGroup != null) {
                         addNodeToParticleGroup(currGroup, newGroup);
                     }
                     groups.push(newGroup);
                     currGroup = newGroup;
-                } else if (refGroup instanceof XmlSchemaGroupRef) {
-                    currGroup = refGroup;
+                } else if (newGroup instanceof XmlSchemaGroupRef) {
+                    currGroup = newGroup;
                     groupRefNodes = true;
                 }
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node

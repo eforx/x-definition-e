@@ -474,7 +474,8 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
         convertXdDef2XsdNoRef ("simpleModelTest",
-                Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", /*"simpleModelTest_valid_3", */"simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
+                Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", //"simpleModelTest_valid_3",
+        "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 
         convertXdDef2XsdNoRef ("t990", Arrays.asList(new String[] {"t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
         convertXdDef2XsdNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
