@@ -352,7 +352,10 @@ public class XDTree2XsdAdapter {
         if (xElem._attrs.size() == 0 && xElem._childNodes.length == 1 && xElem._childNodes[0].getKind() == XNode.XMTEXT) {
             addSimpleTypeToElem(xsdElem, (XData) xElem._childNodes[0]);
         } else {
-            xsdElem.setType(createComplexType(xElem.getXDAttrs(), xElem._childNodes, xElem));
+            final XmlSchemaComplexType complexType = createComplexType(xElem.getXDAttrs(), xElem._childNodes, xElem);
+            if (complexType.getContentModel() != null || complexType.getAttributes().size() > 0 || complexType.getParticle() != null) {
+                xsdElem.setType(complexType);
+            }
         }
 
         SchemaNode node = SchemaNodeFactory.createElementNode(xsdElem, xElem);
@@ -413,42 +416,34 @@ public class XDTree2XsdAdapter {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex type of element ...");
 
         final XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
-
-        // xd:mixed is reference
-        if (xChildrenNodes.length > 0 && xChildrenNodes[0].getKind() == XNode.XMMIXED && !xChildrenNodes[0].getXDPosition().contains(defEl.getXDPosition())) {
-            final String systemId = XsdNamespaceUtils.getReferenceSystemId(xChildrenNodes[0].getXDPosition());
-            String refNodePath = XsdNameUtils.getReferenceNodePath(xChildrenNodes[0].getXDPosition());
-            if (refNodePath.endsWith("/$mixed")) {
-                refNodePath = refNodePath.substring(0, refNodePath.lastIndexOf("/"));
-            }
-            final SchemaNode refNode = adapterCtx.getSchemaNode(systemId, refNodePath);
-            if (refNode == null || refNode.getXsdNode() == null) {
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());
-            } else if (!refNode.isXsdComplexType()) {
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! Path=" + xChildrenNodes[0].getXDPosition());
-            } else {
-                final XmlSchemaComplexType refComplexType = refNode.toXsdComplexType();
-                final XmlSchemaComplexContent complexContent = xsdFactory.createComplexContentWithComplexExtension(refComplexType.getQName());
-                complexType.setContentModel(complexContent);
-                return complexType;
-            }
-        }
-
-        final Stack<XmlSchemaGroupParticle> groups = new Stack<XmlSchemaGroupParticle>();
-        XmlSchemaGroupParticle currGroup = null;
+        final Stack<XmlSchemaParticle> groups = new Stack<XmlSchemaParticle>();
+        XmlSchemaParticle currGroup = null;
+        boolean groupRefNodes = false;
 
         // Convert all children nodes
         for (XNode xnChild : xChildrenNodes) {
             short childrenKind = xnChild.getKind();
+            if (groupRefNodes == true) {
+                if (childrenKind == XNode.XMSELECTOR_END) {
+                    groupRefNodes = false;
+                }
+                continue;
+            }
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
-                XmlSchemaGroupParticle newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
-                if (currGroup != null) {
-                    addNodeToParticleGroup(currGroup, newGroup);
+                final XmlSchemaParticle refGroup = createGroupReference(xChildrenNodes, currGroup, groups, defEl);
+                if (refGroup == null) {
+                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
+                    XmlSchemaGroupParticle newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
+                    if (currGroup != null) {
+                        addNodeToParticleGroup(currGroup, newGroup);
+                    }
+                    groups.push(newGroup);
+                    currGroup = newGroup;
+                } else if (refGroup instanceof XmlSchemaGroupRef) {
+                    currGroup = refGroup;
+                    groupRefNodes = true;
                 }
-                groups.push(newGroup);
-                currGroup = newGroup;
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
                 if (complexType.getContentModel() != null) {
@@ -474,14 +469,7 @@ public class XDTree2XsdAdapter {
                 XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
                 if (xsdChild != null) {
                     XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add child to particle of element.");
-
-                    // x-definition has no particle group yet
-                    if (currGroup == null) {
-                        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Particle group is undefined. Creating sequence particle by default.");
-                        currGroup = new XmlSchemaSequence();
-                        groups.push(currGroup);
-                    }
-
+                    currGroup = createDefaultParticleGroup(currGroup, groups, defEl);
                     addNodeToParticleGroup(currGroup, xsdChild);
                 }
             }
@@ -504,7 +492,60 @@ public class XDTree2XsdAdapter {
         return complexType;
     }
 
-    private static void addNodeToParticleGroup(final XmlSchemaGroupParticle currGroup, final XmlSchemaObject xsdNode) {
+    /**
+     * Creates xs:group reference based on x-definition mixed node with reference
+     * @param xChildrenNodes
+     * @param currGroup
+     * @param groups
+     * @param defEl
+     * @return  null if node is not using reference
+     *          instance of XmlSchemaGroupRef if node is only child of element {@code defEl}
+     *          instance of XmlSchemaParticle if node is not only child of element {@code defEl}
+     */
+    private XmlSchemaParticle createGroupReference(final XNode[] xChildrenNodes, XmlSchemaParticle currGroup, final Stack<XmlSchemaParticle> groups, final XElement defEl) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating group reference");
+        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xChildrenNodes[0].getXDPosition());
+        String refNodePath = XsdNameUtils.getReferenceNodePath(xChildrenNodes[0].getXDPosition());
+        if (refNodePath.endsWith("/$mixed")) {
+            refNodePath = refNodePath.substring(0, refNodePath.lastIndexOf("/"));
+        }
+
+        final SchemaNode refNode = adapterCtx.getSchemaNode(systemId, refNodePath);
+
+        if (refNode == null || refNode.getXsdNode() == null) {
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());
+        } else if (!refNode.isXsdGroup()) {
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! Path=" + xChildrenNodes[0].getXDPosition());
+        } else {
+            final XmlSchemaGroup group = refNode.toXsdGroup();
+            final XmlSchemaGroupRef groupRef = xsdFactory.createGroupRef(group.getQName());
+
+            if (refNode.isXdElem() && refNode.toXdElem()._childNodes.length == xChildrenNodes.length) {
+                return groupRef;
+            } else {
+                currGroup = createDefaultParticleGroup(currGroup, groups, defEl);
+                addNodeToParticleGroup(currGroup, groupRef);
+
+                // TODO: If element contains group reference and another nodes, then we have to create new group ref and move elements inside it? Result will be not same, but atleast valid xsd
+                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "Group reference inside xs:sequence referencing to group containing xs:all leads to invalid XSD! Path=" + xChildrenNodes[0].getXDPosition());
+                return currGroup;
+            }
+        }
+
+        return null;
+    }
+
+    private XmlSchemaParticle createDefaultParticleGroup(XmlSchemaParticle currGroup, final Stack<XmlSchemaParticle> groups, final XElement defEl) {
+        if (currGroup == null) {
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Particle group is undefined. Creating sequence particle by default.");
+            currGroup = new XmlSchemaSequence();
+            groups.push(currGroup);
+        }
+
+        return currGroup;
+    }
+
+    private static void addNodeToParticleGroup(final XmlSchemaParticle currGroup, final XmlSchemaObject xsdNode) {
         if (currGroup instanceof XmlSchemaSequence) {
             ((XmlSchemaSequence) currGroup).getItems().add((XmlSchemaSequenceMember) xsdNode);
         } else if (currGroup instanceof XmlSchemaChoice) {

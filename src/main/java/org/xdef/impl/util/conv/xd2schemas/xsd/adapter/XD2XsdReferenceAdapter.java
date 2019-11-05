@@ -1,8 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.*;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
@@ -114,16 +112,26 @@ public class XD2XsdReferenceAdapter {
     private void extractTopLevelElementRefs(final XNode xNode) {
         XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
 
-        XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
-        XmlSchemaType elementType = xsdElem.getSchemaType();
+        final XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
+        final XmlSchemaType elementType = xsdElem.getSchemaType();
+
         if (elementType == null) {
-            XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Element=" + xsdElem.getName());
+            XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Name=" + xsdElem.getName());
         } else if (elementType instanceof XmlSchemaType) {
-            elementType.setName(xsdElem.getName());
-            adapterCtx.updateNode(xNode, elementType);
-            XD2XsdUtils.addSchemaType(schema, elementType);
-            XD2XsdUtils.removeItem(schema, xsdElem);
-            XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Element=" + xsdElem.getName());
+            // Convert xd:mixed to group
+            if (xNode.getName().endsWith("$mixed") && elementType instanceof XmlSchemaComplexType) {
+                final XmlSchemaGroup schemaGroup = xsdFactory.createGroup(xsdElem.getName());
+                schemaGroup.setParticle((XmlSchemaGroupParticle)((XmlSchemaComplexType)elementType).getParticle());
+                adapterCtx.updateNode(xNode, schemaGroup);
+                XD2XsdUtils.removeItem(schema, xsdElem);
+                XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of group. Name=" + xsdElem.getName());
+            } else {
+                elementType.setName(xsdElem.getName());
+                adapterCtx.updateNode(xNode, elementType);
+                XD2XsdUtils.addSchemaType(schema, elementType);
+                XD2XsdUtils.removeItem(schema, xsdElem);
+                XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Name=" + xsdElem.getName());
+            }
         }
     }
 

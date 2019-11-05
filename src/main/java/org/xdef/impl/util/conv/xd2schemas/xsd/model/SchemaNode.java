@@ -23,11 +23,12 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XS
  *      element ({@link XElement})
  *      attribute ({@link org.xdef.impl.XData}, kind {@link XNode.XMATTRIBUTE})
  *
- * Supported types of XSd nodes:
+ * Supported types of XSD nodes:
  *      element ({@link XmlSchemaElement})
  *      attribute ({@link XmlSchemaAttribute})
  *      complex-type ({@link XmlSchemaComplexType})
  *      complex-content-extension ({@link XmlSchemaComplexContentExtension})
+ *      group ({@link XmlSchemaGroup})
  */
 public class SchemaNode {
 
@@ -138,6 +139,10 @@ public class SchemaNode {
         return (xsdNode instanceof XmlSchemaComplexContentExtension);
     }
 
+    public boolean isXsdGroup() {
+        return (xsdNode instanceof XmlSchemaGroup);
+    }
+
     public XmlSchemaElement toXsdElem() {
         return (XmlSchemaElement)xsdNode;
     }
@@ -152,6 +157,10 @@ public class SchemaNode {
 
     public XmlSchemaComplexContentExtension toXsdComplexExt() {
         return (XmlSchemaComplexContentExtension)xsdNode;
+    }
+
+    public XmlSchemaGroup toXsdGroup() {
+        return (XmlSchemaGroup)xsdNode;
     }
 
     public boolean isXdElem() {

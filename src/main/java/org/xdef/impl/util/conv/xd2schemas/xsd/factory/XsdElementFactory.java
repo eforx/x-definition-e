@@ -176,6 +176,20 @@ public class XsdElementFactory {
         return particle;
     }
 
+    public XmlSchemaGroup createGroup(final String name) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Group. Name=" + name);
+        final XmlSchemaGroup group = new XmlSchemaGroup(schema);
+        group.setName(name);
+        return group;
+    }
+
+    public XmlSchemaGroupRef createGroupRef(final QName qName) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Group reference. QName=" + qName);
+        final XmlSchemaGroupRef groupRef = new XmlSchemaGroupRef();
+        groupRef.setRefName(qName);
+        return groupRef;
+    }
+
     public XmlSchemaComplexType createComplexTypeWithComplexExtension(final String name, final QName qName) {
         final XmlSchemaComplexType complexType = createEmptyComplexType(true);
         final XmlSchemaComplexContent complexContent = createComplexContentWithComplexExtension(qName);
