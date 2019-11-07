@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
@@ -11,6 +12,9 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaGroupParticle;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaSequence;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
 
@@ -416,14 +420,15 @@ public class XD2XsdTreeAdapter {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex type of element ...");
 
         final XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
-        final Stack<XmlSchemaParticle> groups = new Stack<XmlSchemaParticle>();
-        XmlSchemaParticle currGroup = null;
+        final Stack<XmlSchemaParticle> particleStack = new Stack<XmlSchemaParticle>();
+        XmlSchemaParticle currParticle = null;
         boolean groupRefNodes = false;
         int stackPopCounter = 0;
 
         // Convert all children nodes
         for (XNode xnChild : xChildrenNodes) {
             short childrenKind = xnChild.getKind();
+            // Skip all reference children nodes
             if (groupRefNodes == true) {
                 if (childrenKind == XNode.XMSELECTOR_END) {
                     groupRefNodes = false;
@@ -432,25 +437,18 @@ public class XD2XsdTreeAdapter {
             }
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
-                XmlSchemaParticle newGroup = null;
+                XmlSchemaParticle newParticle = null;
                 if (childrenKind == XNode.XMMIXED && !xnChild.getXDPosition().contains(defEl.getXDPosition())) {
-                    newGroup = createGroupReference(xChildrenNodes, currGroup, groups, defEl);
+                    newParticle = createGroupReference(xChildrenNodes, currParticle, particleStack, defEl);
                 }
 
-                if (newGroup == null) {
+                if (newParticle == null) {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
-                    newGroup = (XmlSchemaGroupParticle) convertTreeInt(xnChild, false);
-                    if (currGroup != null) {
-                        if (newGroup instanceof XmlSchemaAll && currGroup instanceof XmlSchemaSequence) {
-                            stackPopCounter += convertGroupToAll(groups, newGroup, currGroup, defEl);
-                        } else {
-                            addNodeToParticleGroup(currGroup, newGroup);
-                        }
-                    }
-                    groups.push(newGroup);
-                    currGroup = newGroup;
-                } else if (newGroup instanceof XmlSchemaGroupRef) {
-                    currGroup = newGroup;
+                    final CXmlSchemaGroupParticle newGroupParticle = (CXmlSchemaGroupParticle) convertTreeInt(xnChild, false);
+                    stackPopCounter += updateGroupParticles(particleStack, currParticle, newGroupParticle);
+                    currParticle = particleStack.peek();
+                } else if (newParticle instanceof XmlSchemaGroupRef) {
+                    currParticle = newParticle;
                     groupRefNodes = true;
                 }
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
@@ -473,23 +471,31 @@ public class XD2XsdTreeAdapter {
                 if (stackPopCounter > 0) {
                     stackPopCounter--;
                 } else {
-                    currGroup = groups.pop();
-                    if (!groups.empty()) {
-                        currGroup = groups.peek();
+                    if (!particleStack.empty()) {
+                        currParticle = particleStack.pop();
+                        if (currParticle instanceof CXmlSchemaChoice && ((CXmlSchemaChoice) currParticle).isSourceMixed()) {
+                            ((CXmlSchemaChoice) currParticle).updateOccurence();
+                        }
+
+                        if (!particleStack.empty()) {
+                            currParticle = particleStack.peek();
+                        }
+                    } else {
+                        XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Group particle stack is empty, but it should not be!");
                     }
                 }
             } else {
                 XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
                 if (xsdChild != null) {
                     XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add child to particle of element.");
-                    currGroup = createDefaultParticleGroup(currGroup, groups, defEl);
-                    addNodeToParticleGroup(currGroup, xsdChild);
+                    currParticle = createDefaultParticleGroup(currParticle, particleStack, defEl);
+                    addNodeToParticleGroup(currParticle, xsdChild);
                 }
             }
         }
 
-        if (currGroup != null) {
-            complexType.setParticle(currGroup);
+        if (currParticle != null) {
+            complexType.setParticle(currParticle instanceof CXmlSchemaGroupParticle ? ((CXmlSchemaGroupParticle) currParticle).xsd() : currParticle);
         }
 
         XsdPostProcessor.elementComplexType(complexType, xChildrenNodes, defEl);
@@ -548,48 +554,102 @@ public class XD2XsdTreeAdapter {
         return null;
     }
 
-    private int convertGroupToAll(final Stack<XmlSchemaParticle> groups, final XmlSchemaParticle newGroup, final XmlSchemaParticle currGroup, final XElement defEl) {
+    /**
+     * Transform group particles to valid XSD
+     * @param particleStack
+     * @param prev
+     * @param newGroupParticle
+     * @return
+     */
+    private static int updateGroupParticles(final Stack<XmlSchemaParticle> particleStack, XmlSchemaParticle prev, final CXmlSchemaGroupParticle newGroupParticle) {
         int stackPopCounter = 0;
+        particleStack.push(newGroupParticle);
+
         do {
-            final XmlSchemaParticle peek = groups.peek();
-            if ((peek instanceof XmlSchemaSequence) == false) {
+            XmlSchemaParticle curr = particleStack.peek();
+
+            if (prev == null || (prev instanceof CXmlSchemaGroupParticle) == false || (curr instanceof CXmlSchemaGroupParticle) == false) {
                 break;
             }
 
-            for (XmlSchemaSequenceMember sequenceMember : ((XmlSchemaSequence) currGroup).getItems()) {
-                ((XmlSchemaAll) newGroup).getItems().add((XmlSchemaAllMember) sequenceMember);
+            final CXmlSchemaGroupParticle cCurr = (CXmlSchemaGroupParticle) curr;
+            final CXmlSchemaGroupParticle cPrev = (CXmlSchemaGroupParticle) prev;
+            boolean merge = false;
+
+            if (cCurr.xsd() instanceof XmlSchemaAll) {
+                if (cPrev.xsd() instanceof XmlSchemaAll) {
+                    cCurr.addItems(cPrev.getItems());
+                    merge = true;
+                } else {
+                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
+                    newGroupChoice.setSourceMixed();
+                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                    XsdLogger.print(LOG_WARN, TRANSFORMATION, "", "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                    replaceLastGroupParticle(particleStack, newGroupChoice);
+                }
+            } else if (cPrev.xsd() instanceof XmlSchemaAll) {
+                final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
+                newGroupChoice.setSourceMixed();
+                newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                XsdLogger.print(LOG_WARN, TRANSFORMATION, "", "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                particleStack.pop();
+                prev = replaceLastGroupParticle(particleStack, newGroupChoice);
+                pushGroupParticleToStack(particleStack, newGroupChoice, newGroupParticle);
+            } else {
+                if (prev != null) {
+                    addNodeToParticleGroup(prev, newGroupParticle);
+                }
             }
 
-            XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "!Lossy transformation! Node xsd:sequency contains xsd:all node -> converting xsd:sequency node to xsd:all!");
+            if (!merge) {
+                break;
+            }
 
             stackPopCounter++;
-            groups.pop();
-        } while (!groups.empty());
-
-        if (!groups.empty()) {
-            addNodeToParticleGroup(groups.peek(), newGroup);
-        }
+            particleStack.pop();
+            prev = replaceLastGroupParticle(particleStack, cCurr);
+        } while (!particleStack.empty());
 
         return stackPopCounter;
+    }
+
+    private static XmlSchemaParticle replaceLastGroupParticle(final Stack<XmlSchemaParticle> particleStack, final CXmlSchemaGroupParticle newGroupParticle) {
+        XmlSchemaParticle prev = null;
+        if (!particleStack.empty()) {
+            particleStack.pop();
+            prev = particleStack.empty() ? null : particleStack.peek();
+            if (prev != null) {
+                addNodeToParticleGroup(prev, newGroupParticle);
+            }
+        }
+
+        particleStack.push(newGroupParticle);
+        return prev;
     }
 
     private XmlSchemaParticle createDefaultParticleGroup(XmlSchemaParticle currGroup, final Stack<XmlSchemaParticle> groups, final XElement defEl) {
         if (currGroup == null) {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Particle group is undefined. Creating sequence particle by default.");
-            currGroup = new XmlSchemaSequence();
+            currGroup = new CXmlSchemaSequence(new XmlSchemaSequence());
             groups.push(currGroup);
         }
 
         return currGroup;
     }
 
-    private static void addNodeToParticleGroup(final XmlSchemaParticle currGroup, final XmlSchemaObject xsdNode) {
-        if (currGroup instanceof XmlSchemaSequence) {
-            ((XmlSchemaSequence) currGroup).getItems().add((XmlSchemaSequenceMember) xsdNode);
-        } else if (currGroup instanceof XmlSchemaChoice) {
-            ((XmlSchemaChoice) currGroup).getItems().add((XmlSchemaChoiceMember) xsdNode);
-        } else if (currGroup instanceof XmlSchemaAll) {
-            ((XmlSchemaAll) currGroup).getItems().add((XmlSchemaAllMember) xsdNode);
+    private static CXmlSchemaGroupParticle pushGroupParticleToStack(final Stack<XmlSchemaParticle> particleStack, final XmlSchemaParticle currParticle, final CXmlSchemaGroupParticle newGroupParticle) {
+        addNodeToParticleGroup(currParticle, newGroupParticle);
+        particleStack.push(newGroupParticle);
+        return newGroupParticle;
+    }
+
+    private static void addNodeToParticleGroup(final XmlSchemaParticle currGroup, XmlSchemaObject xsdNode) {
+        if (xsdNode instanceof CXmlSchemaGroupParticle) {
+            xsdNode = ((CXmlSchemaGroupParticle)xsdNode).xsd();
+        }
+
+        if (currGroup instanceof CXmlSchemaGroupParticle) {
+            ((CXmlSchemaGroupParticle)currGroup).addItem(xsdNode);
         }
     }
 

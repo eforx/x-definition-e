@@ -9,6 +9,10 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaAll;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaGroupParticle;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaSequence;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMOccurrence;
 
@@ -147,21 +151,21 @@ public class XsdElementFactory {
      * @param groupType
      * @return
      */
-    public XmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
+    public CXmlSchemaGroupParticle createGroupParticle(short groupType, final XMOccurrence occurrence) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Particle=" + XD2XsdUtils.particleXKindToString(groupType));
 
-        XmlSchemaGroupParticle particle;
+        CXmlSchemaGroupParticle particle;
         switch (groupType) {
             case XNode.XMSEQUENCE: {
-                particle = new XmlSchemaSequence();
+                particle = new CXmlSchemaSequence(new XmlSchemaSequence());
                 break;
             }
             case XNode.XMMIXED: {
-                particle = new XmlSchemaAll();
+                particle = new CXmlSchemaAll(new XmlSchemaAll());
                 break;
             }
             case XNode.XMCHOICE: {
-                particle = new XmlSchemaChoice();
+                particle = new CXmlSchemaChoice(new XmlSchemaChoice());
                 break;
             }
             default: {
@@ -170,8 +174,8 @@ public class XsdElementFactory {
             }
         }
 
-        particle.setMinOccurs(occurrence.minOccurs());
-        particle.setMaxOccurs((occurrence.isUnbounded() || occurrence.isMaxUnlimited()) ? Long.MAX_VALUE : occurrence.maxOccurs());
+        particle.xsd().setMinOccurs(occurrence.minOccurs());
+        particle.xsd().setMaxOccurs((occurrence.isUnbounded() || occurrence.isMaxUnlimited()) ? Long.MAX_VALUE : occurrence.maxOccurs());
 
         return particle;
     }

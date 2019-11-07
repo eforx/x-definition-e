@@ -529,8 +529,17 @@ public class TestXd2Xsd extends XDTester {
         // ============ Groups ============
 
         convertXdDef2XsdNoRef ("groupChoice1", Arrays.asList(new String[] {"groupChoice1_valid_1", "groupChoice1_valid_2"}), Arrays.asList(new String[] {"groupChoice1_invalid_1", "groupChoice1_invalid_2"}));
+        convertXdDef2XsdNoRef ("groupChoice2", Arrays.asList(new String[] {"groupChoice2_valid_1", "groupChoice2_valid_2"}), Arrays.asList(new String[] {"groupChoice2_invalid_1"}));
+        convertXdDef2XsdNoRef ("groupChoice3",
+                Arrays.asList(new String[] {"groupChoice3_valid_1", "groupChoice3_valid_2", "groupChoice3_valid_3", "groupChoice3_valid_4", "groupChoice3_valid_5"}),
+                Arrays.asList(new String[] {"groupChoice3_invalid_1", "groupChoice3_invalid_2", "groupChoice3_invalid_3"})
+        );
         convertXdDef2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
         convertXdDef2XsdNoRef ("groupMixed1", Arrays.asList(new String[] {"groupMixed1_valid_1", "groupMixed1_valid_2"}), Arrays.asList(new String[] {"groupMixed1_invalid_1"}));
+        convertXdDef2XsdNoRef ("groupMixed2", Arrays.asList(new String[] {"groupMixed2_valid_1", "groupMixed2_valid_2", "groupMixed2_valid_3", "groupMixed2_valid_4"}), Arrays.asList(new String[] {"groupMixed2_invalid_1"}));
+        convertXdDef2XsdNoRef ("groupMixed3",
+                Arrays.asList(new String[] {"groupMixed3_valid_1", "groupMixed3_valid_2"}),
+                Arrays.asList(new String[] {"groupMixed3_invalid_1", "groupMixed3_invalid_2"}));
 
         convertXdPool2XsdNoSupport ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1"}), null, "Any type with attributes/children nodes is not supported!");
         convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
