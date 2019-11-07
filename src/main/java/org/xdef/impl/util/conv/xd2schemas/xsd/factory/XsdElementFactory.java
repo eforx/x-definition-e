@@ -96,6 +96,18 @@ public class XsdElementFactory {
         return new XmlSchemaSimpleType(schema, topLevel);
     }
 
+    /**
+     * Creates xsd any
+     * Example: <element>
+     */
+    public XmlSchemaAny createAny(final XElement xElement) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Any");
+        XmlSchemaAny any = new XmlSchemaAny();
+        any.setMinOccurs(xElement.getOccurence().minOccurs());
+        any.setMaxOccurs((xElement.isUnbounded() || xElement.isMaxUnlimited()) ? Long.MAX_VALUE : xElement.getOccurence().maxOccurs());
+        return any;
+    }
+
     public void creatSimpleTypeTop(final XData xData, final String name) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type top. Name=" + name);
         final XmlSchemaSimpleType itemType = createEmptySimpleType(true);

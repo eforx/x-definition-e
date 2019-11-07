@@ -442,6 +442,10 @@ public class TestXd2Xsd extends XDTester {
                 fail(ex);
             }
         }
+
+        if (exMsg != null) {
+            fail("Test should failed with message: " + exMsg);
+        }
     }
 
     @Override
@@ -541,7 +545,7 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"groupMixed3_valid_1", "groupMixed3_valid_2"}),
                 Arrays.asList(new String[] {"groupMixed3_invalid_1", "groupMixed3_invalid_2"}));
 
-        convertXdPool2XsdNoSupport ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1"}), null, "Any type with attributes/children nodes is not supported!");
+        convertXdPool2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
         convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
 
 

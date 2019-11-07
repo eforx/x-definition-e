@@ -1,6 +1,5 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
-import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
@@ -16,14 +15,15 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaGroupParticle;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaSequence;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
+import org.xdef.model.XMData;
 import org.xdef.model.XMNode;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XD2XsdTreeAdapter {
@@ -177,26 +177,35 @@ public class XD2XsdTreeAdapter {
 
         final XmlSchemaElement xsdElem = xsdFactory.createEmptyElement(xElem, topLevel);
 
-        if ("$any".equals(xElem.getName())) {
-            if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Any type with attributes/children nodes is not supported!");
-                throw new RuntimeException("Any type with attributes/children nodes is not supported!");
+        if (!XD2XsdUtils.isAnyElement(xElem) && (xElem.isReference() || xElem.getReferencePos() != null)) {
+            final QName referenceQName = createElementReferenceQName(xElem);
+            if (xElem.isReference()) {
+                createElementReference(xElem, xsdElem, referenceQName);
+            } else {
+                createElementExtendedReference(xElem, xsdElem, referenceQName, topLevel);
             }
         } else {
-            if (xElem.isReference() || xElem.getReferencePos() != null) {
-                final QName referenceQName = createElementReferenceQName(xElem);
-                if (xElem.isReference()) {
-                    createElementReference(xElem, xsdElem, referenceQName);
-                } else {
-                    createElementExtendedReference(xElem, xsdElem, referenceQName);
-                }
+            // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
+            if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema)) {
+                createElementInDiffNamespace(xElem, xsdElem);
             } else {
-                // Element is not reference but name contains different namespace -> we will have to create reference in new namespace in post-processing
-                if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema)) {
-                    createElementInDiffNamespace(xElem, xsdElem);
-                } else {
-                    createElement(xElem, xsdElem);
+
+                if (XD2XsdUtils.isAnyElement(xElem)) {
+                    final XmlSchemaAny xsdAny = xsdFactory.createAny(xElem);
+                    // TODO: should has zero occurs by default?
+                    xsdAny.setMinOccurs(0);
+                    xsdAny.setProcessContent(XmlSchemaContentProcessing.LAX);
+                    if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
+                        xsdAny.setAnnotation(XsdElementFactory.createAnnotation("Original any element contains children nodes/attributes"));
+                        XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "!Lossy transformation! Any type with attributes/children nodes is not supported!");
+                    }
+
+                    return xsdAny;
+                } else if (topLevel && XD2XsdUtils.containsAnyElement(xElem)) {
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Any element cannot be root element of xsd!");
                 }
+
+                createElement(xElem, xsdElem, topLevel);
             }
         }
 
@@ -223,6 +232,8 @@ public class XD2XsdTreeAdapter {
         } else if (XsdNamespaceUtils.isRefInDifferentSystem(refXPos, xPos)) {
             xsdElem.getRef().setTargetQName(refQName);
             XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Element referencing to different x-definition. XDefinition=" + refSystemId);
+        } else if (XD2XsdUtils.isAnyElement(xElem)) {
+            xsdElem.getRef().setTargetQName(refQName);
         } else {
             xsdElem.setName(xElem.getName());
             xsdElem.setSchemaTypeName(refQName);
@@ -234,7 +245,7 @@ public class XD2XsdTreeAdapter {
         SchemaNodeFactory.createElemRefAndDef(xElem, xsdElem, refSystemId, refXPos, refNodePath, adapterCtx);
     }
 
-    private void createElementExtendedReference(final XElement xElem, final XmlSchemaElement xsdElem, final QName refQName) {
+    private void createElementExtendedReference(final XElement xElem, final XmlSchemaElement xsdElem, final QName refQName, boolean topLevel) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Creating element extended reference ...");
 
         final String refXPos = xElem.getReferencePos();
@@ -297,7 +308,7 @@ public class XD2XsdTreeAdapter {
 
                     final XmlSchemaComplexContentExtension complexContentExtension = xsdFactory.createComplexContentExtension(refQName);
                     final XmlSchemaComplexContent complexContent = xsdFactory.createComplexContent(complexContentExtension);
-                    final XmlSchemaComplexType complexType = createComplexType(extAttrs.toArray(new XData[extAttrs.size()]), extNodes.toArray(new XNode[extNodes.size()]), xElem);
+                    final XmlSchemaComplexType complexType = createComplexType(extAttrs.toArray(new XData[extAttrs.size()]), extNodes.toArray(new XNode[extNodes.size()]), xElem, topLevel);
 
                     complexContentExtension.setParticle(complexType.getParticle());
                     complexContentExtension.getAttributes().addAll(complexType.getAttributes());
@@ -315,7 +326,7 @@ public class XD2XsdTreeAdapter {
         }
 
         if (!usingExtension) {
-            createElement(xElem, xsdElem);
+            createElement(xElem, xsdElem, topLevel);
         }
     }
 
@@ -348,7 +359,7 @@ public class XD2XsdTreeAdapter {
         }
     }
 
-    private void createElement(final XElement xElem, final XmlSchemaElement xsdElem) {
+    private void createElement(final XElement xElem, final XmlSchemaElement xsdElem, boolean topLevel) {
         xsdElem.setName(XsdNameUtils.getName(xElem));
         XsdNameUtils.resolveElementQName(schema, xsdElem);
 
@@ -356,7 +367,7 @@ public class XD2XsdTreeAdapter {
         if (xElem._attrs.size() == 0 && xElem._childNodes.length == 1 && xElem._childNodes[0].getKind() == XNode.XMTEXT) {
             addSimpleTypeToElem(xsdElem, (XData) xElem._childNodes[0]);
         } else {
-            final XmlSchemaComplexType complexType = createComplexType(xElem.getXDAttrs(), xElem._childNodes, xElem);
+            final XmlSchemaComplexType complexType = createComplexType(xElem.getXDAttrs(), xElem._childNodes, xElem, topLevel);
             if (complexType.getContentModel() != null || complexType.getAttributes().size() > 0 || complexType.getParticle() != null) {
                 xsdElem.setType(complexType);
             }
@@ -397,6 +408,14 @@ public class XD2XsdTreeAdapter {
             return new QName(nsUri, refLocalName);
         } else if (XsdNamespaceUtils.isRefInDifferentSystem(refXPos, xPos)) {
             return new QName(XSD_NAMESPACE_PREFIX_EMPTY, refLocalName);
+        } else if (XD2XsdUtils.isAnyElement(xElem)) {
+            final String refNamespace = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
+            String anyLocalName = refLocalName;
+            final int anyPos = anyLocalName.indexOf("$any/$any");
+            if (anyPos != -1) {
+                anyLocalName = anyLocalName.substring(0, anyPos);
+            }
+            return new QName(refNamespace, anyLocalName);
         } else {
             final String refNamespace = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
             return new QName(refNamespace, refLocalName);
@@ -416,8 +435,8 @@ public class XD2XsdTreeAdapter {
         }
     }
 
-    private XmlSchemaComplexType createComplexType(final XData[] xAttrs, final XNode[] xChildrenNodes, final XElement defEl) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating complex type of element ...");
+    private XmlSchemaComplexType createComplexType(final XData[] xAttrs, final XNode[] xChildrenNodes, final XElement xElem, boolean topLevel) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Creating complex type of element ...");
 
         final XmlSchemaComplexType complexType = xsdFactory.createEmptyComplexType(false);
         final Stack<XmlSchemaParticle> particleStack = new Stack<XmlSchemaParticle>();
@@ -438,12 +457,12 @@ public class XD2XsdTreeAdapter {
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
                 XmlSchemaParticle newParticle = null;
-                if (childrenKind == XNode.XMMIXED && !xnChild.getXDPosition().contains(defEl.getXDPosition())) {
-                    newParticle = createGroupReference(xChildrenNodes, currParticle, particleStack, defEl);
+                if (childrenKind == XNode.XMMIXED && !xnChild.getXDPosition().contains(xElem.getXDPosition())) {
+                    newParticle = createGroupReference(xChildrenNodes, currParticle, particleStack, xElem);
                 }
 
                 if (newParticle == null) {
-                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
+                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Creating particle to complex content of element. Particle=" + XD2XsdUtils.particleXKindToString(childrenKind));
                     final CXmlSchemaGroupParticle newGroupParticle = (CXmlSchemaGroupParticle) convertTreeInt(xnChild, false);
                     stackPopCounter += updateGroupParticles(particleStack, currParticle, newGroupParticle);
                     currParticle = particleStack.peek();
@@ -454,9 +473,9 @@ public class XD2XsdTreeAdapter {
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
                 if (complexType.getContentModel() != null) {
-                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Complex type already has simple content!");
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Complex type already has simple content!");
                 } else if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
-                    XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add simple content with attributes to complex content of element.");
+                    XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add simple content with attributes to complex content of element.");
 
                     complexType.setContentModel(simpleContent);
 
@@ -465,7 +484,7 @@ public class XD2XsdTreeAdapter {
                             ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(xAttrs[j], false));
                     }
                 } else {
-                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Content of XText is not simple!");
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Content of XText is not simple!");
                 }
             } else if (childrenKind == XNode.XMSELECTOR_END) {
                 if (stackPopCounter > 0) {
@@ -481,14 +500,24 @@ public class XD2XsdTreeAdapter {
                             currParticle = particleStack.peek();
                         }
                     } else {
-                        XsdLogger.printP(LOG_WARN, TRANSFORMATION, defEl, "Group particle stack is empty, but it should not be!");
+                        XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Group particle stack is empty, but it should not be!");
                     }
                 }
             } else {
+
+                if (childrenKind == XNode.XMELEMENT && topLevel && !((XElement)xnChild).isReference() && XD2XsdUtils.isAnyElement((XElement)xnChild)) {
+                    XElement xElemChild = ((XElement)xnChild);
+                    if (!xElemChild._attrs.isEmpty()) {
+                        for (XMData attr : xElemChild.getAttrs()) {
+                            complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt((XData)attr, false));
+                        }
+                    }
+                }
+
                 XmlSchemaObject xsdChild = convertTreeInt(xnChild, false);
                 if (xsdChild != null) {
-                    XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add child to particle of element.");
-                    currParticle = createDefaultParticleGroup(currParticle, particleStack, defEl);
+                    XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add child to particle of element.");
+                    currParticle = createDefaultParticleGroup(currParticle, particleStack, xElem);
                     addNodeToParticleGroup(currParticle, xsdChild);
                 }
             }
@@ -498,10 +527,10 @@ public class XD2XsdTreeAdapter {
             complexType.setParticle(currParticle instanceof CXmlSchemaGroupParticle ? ((CXmlSchemaGroupParticle) currParticle).xsd() : currParticle);
         }
 
-        XsdPostProcessor.elementComplexType(complexType, xChildrenNodes, defEl);
+        XsdPostProcessor.elementComplexType(complexType, xChildrenNodes, xElem);
 
         if (complexType.getContentModel() == null) {
-            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, defEl, "Add attributes to complex content of element");
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add attributes to complex content of element");
 
             for (int i = 0; i < xAttrs.length; i++) {
                 complexType.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(xAttrs[i], false));

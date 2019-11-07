@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
 import org.apache.ws.commons.schema.*;
+import org.xdef.impl.XElement;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -65,4 +66,11 @@ public class XD2XsdUtils {
         return stringBuilder.toString();
     }
 
+    public static boolean isAnyElement(final XElement xElem) {
+        return "$any".equals(xElem.getName());
+    }
+
+    public static boolean containsAnyElement(final XElement xElem) {
+        return xElem.getName().endsWith("$any");
+    }
 }
