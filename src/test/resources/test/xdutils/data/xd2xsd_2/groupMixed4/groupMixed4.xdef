@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name="groupMixed4">
+  <a>
+    <xd:mixed>
+      <b/>
+      <xd:mixed>
+        <p/>
+        <xd:mixed>
+          <q/>
+        </xd:mixed>
+        <xd:mixed>
+          <o/>
+        </xd:mixed>
+      </xd:mixed>
+      <xd:mixed>
+        <c/>
+      </xd:mixed>
+    </xd:mixed>
+  </a>
+</xd:def>

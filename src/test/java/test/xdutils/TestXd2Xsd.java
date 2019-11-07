@@ -22,8 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -49,7 +48,7 @@ public class TestXd2Xsd extends XDTester {
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_WARN);
+        XsdLogger.setLogLevel(LOG_INFO);
         XsdElementFactory.setCreateAnnotation(true);
     }
 
@@ -454,6 +453,7 @@ public class TestXd2Xsd extends XDTester {
 
         // ============ XDef ============
 
+/*
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), null);
         convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
         convertXdDef2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
@@ -544,11 +544,11 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("groupMixed3",
                 Arrays.asList(new String[] {"groupMixed3_valid_1", "groupMixed3_valid_2"}),
                 Arrays.asList(new String[] {"groupMixed3_invalid_1", "groupMixed3_invalid_2"}));
+        convertXdPool2XsdNoRef ("groupMixed4", Arrays.asList(new String[] {"groupMixed4_valid_1"}), Arrays.asList(new String[] {"groupMixed4_invalid_1", "groupMixed4_invalid_2"}));
 
         convertXdPool2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
         convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
-
-
+*/
 
     }
 
