@@ -8,6 +8,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.ListFacetFactory;
@@ -44,7 +45,7 @@ public class XsdSimpleContentFactory {
         this.parameters = parameters;
     }
 
-    public XmlSchemaSimpleTypeContent createSimpleContent(final String nodeName) {
+    public XmlSchemaSimpleTypeContent createSimpleContent(final String nodeName, boolean isAttr) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating restrictions of simple content ...");
 
         boolean customParser = true;
@@ -66,6 +67,8 @@ public class XsdSimpleContentFactory {
 
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Following factory will be used. Factory=" + parserInfo.getValue().getClass().getSimpleName() + ", Parser=" + parserName);
 
+        List<String> annotations = new LinkedList<String>();
+
         XmlSchemaSimpleTypeContent res;
         if (parserInfo.getValue() instanceof ListFacetFactory) {
             res = simpleTypeList(parserInfo.getKey(), parserInfo.getValue());
@@ -74,8 +77,16 @@ public class XsdSimpleContentFactory {
         } else {
             res = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue(), parameters);
             if (customParser || unknownParser) {
-                res.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + parserName));
+                annotations.add("Original x-definition parser: " + parserName);
             }
+        }
+
+        if (!isAttr && xData.getDefaultValue() != null) {
+            annotations.add("Original x-definition default value: " + xData.getDefaultValue());
+        }
+
+        if (!annotations.isEmpty()) {
+            res.setAnnotation(XsdElementFactory.createAnnotation(annotations));
         }
 
         return res;

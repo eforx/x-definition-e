@@ -108,18 +108,18 @@ public class XsdElementFactory {
         return any;
     }
 
-    public void creatSimpleTypeTop(final XData xData, final String name) {
+    public void creatSimpleTypeTop(final XData xData, final String name, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type top. Name=" + name);
         final XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
-        itemType.setContent(createSimpleTypeContent(xData, name));
+        itemType.setContent(createSimpleTypeContent(xData, name, isAttr));
     }
 
-    public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName) {
+    public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type no-top");
         final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
-        itemType.setContent(createSimpleTypeContent(xData, nodeName));
+        itemType.setContent(createSimpleTypeContent(xData, nodeName, isAttr));
         return itemType;
     }
 
@@ -257,7 +257,7 @@ public class XsdElementFactory {
         return contentExtension;
     }
 
-    private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData, final String nodeName) {
+    private XmlSchemaSimpleTypeContent createSimpleTypeContent(final XData xData, final String nodeName, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type content");
 
         final XDValue parseMethod = xData.getParseMethod();
@@ -266,7 +266,7 @@ public class XsdElementFactory {
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             simpleContentFactory.setParameters(parser.getNamedParams().getXDNamedItems());
-            return simpleContentFactory.createSimpleContent(nodeName);
+            return simpleContentFactory.createSimpleContent(nodeName, isAttr);
         }
 
         return simpleContentFactory.createDefaultRestriction(Constants.XSD_STRING);

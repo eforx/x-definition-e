@@ -257,15 +257,15 @@ public class XD2XsdReferenceAdapter {
             final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
 
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                xsdFactory.creatSimpleTypeTop(xData, refTypeName);
+                xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition of reference. Name=" + refTypeName);
                 return;
             }
 
-            if (isAttrRef == false && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
+            if (!isAttrRef && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
                 refTypeName = XsdNameUtils.createRefNameFromParser(xData);
                 if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                    xsdFactory.creatSimpleTypeTop(xData, refTypeName);
+                    xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
                     return;
                 }

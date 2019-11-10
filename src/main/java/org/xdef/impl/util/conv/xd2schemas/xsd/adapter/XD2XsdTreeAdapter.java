@@ -140,16 +140,24 @@ public class XD2XsdTreeAdapter {
                         " Name=" + xData.getName() + ", Type=" + attr.getSchemaTypeName());
             } else if ((qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData)) != null) {
                 attr.setSchemaTypeName(qName);
-                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype" +
+                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype. " +
                         "Element=" + xData.getName() + ", Type=" + qName);
             } else if (XD_PARSER_EQ.equals(xData.getParserName())) {
                 qName = XD2XsdParserMapping.getDefaultParserQName(xData.getValueTypeName());
-                attr.setFixedValue(xData.getFixedValue());
+                final String fixedValue = xData.getFixedValue();
+                if (fixedValue != null) {
+                    attr.setFixedValue(fixedValue);
+                }
                 attr.setSchemaTypeName(qName);
-                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains datatype with fixed value" +
-                        "Element=" + xData.getName() + ", Type=" + qName);
+                XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains datatype with fixed value. " +
+                        "Element=" + xData.getName() + ", Type=" + qName + ", FixedValue=" + fixedValue);
             } else {
-                attr.setSchemaType(xsdFactory.creatSimpleType(xData, attr.getName()));
+                attr.setSchemaType(xsdFactory.creatSimpleType(xData, attr.getName(), true));
+            }
+
+            final String defaultValue = xData.getDefaultValue();
+            if (defaultValue != null) {
+                attr.setDefaultValue(defaultValue);
             }
 
             XsdNameUtils.resolveAttributeQName(schema, attr, xData.getName());
@@ -443,7 +451,7 @@ public class XD2XsdTreeAdapter {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xd, "Content of element contains only XSD datatype" +
                     "Element=" + xsdElem.getName() + ", DataType=" + qName.getLocalPart());
         } else {
-            xsdElem.setType(xsdFactory.creatSimpleType(xd, xsdElem.getName()));
+            xsdElem.setType(xsdFactory.creatSimpleType(xd, xsdElem.getName(), false));
         }
     }
 

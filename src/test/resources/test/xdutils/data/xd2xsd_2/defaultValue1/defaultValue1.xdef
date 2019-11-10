@@ -1,0 +1,7 @@
+<xd:def xmlns:xd      =  "http://www.syntea.cz/xdef/2.0"
+         xd:name      =  "defaultValue1"
+         xd:root      =  "Vehicle">
+    <Vehicle type = "optional enum('SUV', 'MPV',
+    'personal','truck', 'sport', 'other');
+    default 'personal'"/>
+</xd:def>
