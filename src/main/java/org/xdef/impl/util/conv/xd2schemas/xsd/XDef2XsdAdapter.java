@@ -18,6 +18,8 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 
+import java.util.Set;
+
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
@@ -65,9 +67,9 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
             schema = adapterCtx.getSchema(xDef.getName(), false, INITIALIZATION);
         }
 
-        XsdElementFactory xsdFactory = new XsdElementFactory(schema);
-        XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
-        XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
+        final XsdElementFactory xsdFactory = new XsdElementFactory(schema);
+        final XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
+        final XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xDef.getName(), xsdFactory, treeAdapter, adapterCtx);
 
         treeAdapter.loadXdefRootNames(xDefinition);
         referenceAdapter.createRefsAndImports(xDefinition);
@@ -89,8 +91,10 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     private void transformXdef(final XD2XsdTreeAdapter treeAdapter) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xDefinition, "*** Transformation of x-definition tree ***");
 
+        final Set<String> rootNodeNames = adapterCtx.getSchemaRootNodeNames(xDefinition.getName());
+
         for (XElement elem : xDefinition.getXElements()) {
-            if (treeAdapter.getXdRootNames().contains(elem.getName())) {
+            if (rootNodeNames != null && rootNodeNames.contains(elem.getName())) {
                 treeAdapter.convertTree(elem);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
             }

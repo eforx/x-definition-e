@@ -11,6 +11,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaGroupParticle;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaSequence;
@@ -35,7 +36,6 @@ public class XD2XsdTreeAdapter {
 
     private boolean isPostProcessingPhase = false;
     private Set<XMNode> xdProcessedNodes = null;
-    private List<String> xdRootNames = null;
 
     public XD2XsdTreeAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
@@ -48,18 +48,12 @@ public class XD2XsdTreeAdapter {
         this.isPostProcessingPhase = true;
     }
 
-    public List<String> getXdRootNames() {
-        return xdRootNames;
-    }
-
-    public void loadXdefRootNames(final XDefinition def) {
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, def, "Loading root of x-definitions");
-
-        xdRootNames = new ArrayList<String>();
-        if (def._rootSelection != null) {
-            for (String rootName : def._rootSelection.keySet()) {
-                xdRootNames.add(rootName);
-                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, def, "Add root name. Name=" + rootName);
+    public void loadXdefRootNames(final XDefinition xDef) {
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Loading root of x-definitions");
+        if (xDef._rootSelection != null) {
+            for (String rootName : xDef._rootSelection.keySet()) {
+                adapterCtx.addRootNodeName(schemaName, rootName);
+                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xDef, "Add root name. Name=" + rootName);
             }
         }
     }
@@ -334,24 +328,29 @@ public class XD2XsdTreeAdapter {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Creating element in different namespace ...");
 
         final String localName = XsdNameUtils.getReferenceName(xElem.getName());
+        final String xDefPos = xElem.getXDPosition();
+        final String nodePath = XsdNameUtils.getReferenceNodePath(xDefPos);
         String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
         String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
         // Post-processing
         if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
             xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-            if (adapterCtx.isPostProcessingNamespace(nsUri)) {
+            final XsdSchemaImportLocation importLocation = adapterCtx.getPostProcessingNsImport(nsUri);
+            if (importLocation != null) {
+                final String refSystemId = importLocation.getFileName();
                 adapterCtx.addNodeToPostProcessing(nsUri, xElem);
+                SchemaNodeFactory.createElemRefAndDefInDiffNamespace(xElem, xsdElem, schemaName, nodePath, refSystemId, adapterCtx);
+            } else {
+                XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element is in different namespace which is not marked for post-processing! Namespace=" + nsUri);
             }
         } else {
-            final String xDefPos = xElem.getXDPosition();
             nsUri = XsdNamespaceUtils.getNodeNamespaceUri(xElem, adapterCtx, TRANSFORMATION);
 
             if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
                 final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
-                final String refNodePath = XsdNameUtils.getReferenceNodePath(xDefPos);
                 xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-                SchemaNodeFactory.createElemRefAndDef(xElem, xsdElem, schemaName, refNodePath, systemId, xDefPos, refNodePath, adapterCtx);
+                SchemaNodeFactory.createElemRefAndDef(xElem, xsdElem, schemaName, nodePath, systemId, xDefPos, nodePath, adapterCtx);
             } else {
                 nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
                 XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
@@ -374,7 +373,20 @@ public class XD2XsdTreeAdapter {
         }
 
         SchemaNode node = SchemaNodeFactory.createElementNode(xsdElem, xElem);
-        adapterCtx.addOrUpdateNode(node);
+        if (isPostProcessingPhase) {
+            String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
+            String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+            final XsdSchemaImportLocation importLocation = adapterCtx.getPostProcessingNsImport(nsUri);
+            if (importLocation != null) {
+                final String systemId = importLocation.getFileName();
+                adapterCtx.addOrUpdateNodeInDiffNs(node, systemId);
+            } else {
+                adapterCtx.addOrUpdateNode(node);
+            }
+        } else {
+            adapterCtx.addOrUpdateNode(node);
+        }
+
     }
 
     private QName createElementReferenceQName(final XElement xElem) {

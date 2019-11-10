@@ -9,10 +9,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
@@ -61,6 +58,13 @@ public class XsdAdapterCtx {
      */
     private Map<String, Map<String, XNode>> nodesToBePostProcessed;
 
+    /**
+     * Names of nodes which can be root of x-definitions
+     * Key:     x-definition name
+     * Value:   set of node names
+     */
+    private Map<String, Set<String>> rootNodeNames = null;
+
     public void init() {
         schemaNames = new HashSet<String>();
         schemaLocationsCtx = new HashMap<String, XsdSchemaImportLocation>();
@@ -68,6 +72,7 @@ public class XsdAdapterCtx {
         xmlSchemaCollection = new XmlSchemaCollection();
         nodes = new HashMap<String, Map<String, SchemaNode>>();
         nodesToBePostProcessed = new HashMap<String, Map<String, XNode>>();
+        rootNodeNames = new HashMap<String, Set<String>>();
     }
 
     public final Set<String> getSchemaNames() {
@@ -124,12 +129,16 @@ public class XsdAdapterCtx {
         return schemaLocationsCtx.containsKey(nsUri);
     }
 
+    public XsdSchemaImportLocation getPostProcessingNsImport(final String nsUri) {
+        return extraSchemaLocationsCtx.get(nsUri);
+    }
+
     public boolean isPostProcessingNamespace(final String nsUri) {
         return extraSchemaLocationsCtx.containsKey(nsUri);
     }
 
     public void addNodeToPostProcessing(final String nsUri, final XNode xNode) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xNode, "Add attribute to post-processing.");
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xNode, "Add node to post-processing.");
 
         final String nodeName = xNode.getName();
         Map<String, XNode> ppNsNodes = nodesToBePostProcessed.get(nsUri);
@@ -208,6 +217,12 @@ public class XsdAdapterCtx {
         return addOrUpdateNode(systemId, nodePath, node);
     }
 
+    public SchemaNode addOrUpdateNodeInDiffNs(SchemaNode node, final String systemId) {
+        final String xPos = node.getXdNode().getXDPosition();
+        final String nodePath = XsdNameUtils.getPostProcessingReferenceNodePath(xPos);
+        return addOrUpdateNode(systemId, nodePath, node);
+    }
+
     public SchemaNode addOrUpdateNode(final String systemId, String nodePath, SchemaNode node) {
         Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
 
@@ -238,17 +253,18 @@ public class XsdAdapterCtx {
     }
 
     public void updateNode(final XNode xNode, final XmlSchemaNamed newXsdNode) {
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xNode.getXDPosition());
-        final String nodePath = XsdNameUtils.getReferenceNodePath(xNode.getXDPosition());
+        final String xPos = xNode.getXDPosition();
+        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
+        final String nodePath = XsdNameUtils.getReferenceNodePath(xPos);
         updateNode(systemId, nodePath, newXsdNode);
     }
 
     public void updateNode(final String systemId, String nodePath, final XmlSchemaNamed newXsdNode) {
         XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating xsd content of node. System=" + systemId + ", Path=" + nodePath + ", NewXsd=" + newXsdNode.getClass().getSimpleName());
 
-        Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
-
+        final Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
+
         if (refOrig == null) {
             XsdLogger.printG(LOG_WARN, XSD_REFERENCE, "Node does not exist in system! System=" + systemId + ", Path=" + nodePath);
             return;
@@ -274,6 +290,37 @@ public class XsdAdapterCtx {
         }
 
         return xsdSystemRefs.get(nodePath);
+    }
+
+    public void removeNode(final XNode xNode) {
+        final String xPos = xNode.getXDPosition();
+        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
+        final String nodePath = XsdNameUtils.getReferenceNodePath(xPos);
+        removeNode(systemId, nodePath);
+    }
+
+    public void removeNode(final String systemId, String nodePath) {
+        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Removing xsd node. System=" + systemId + ", Path=" + nodePath);
+
+        final Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
+        final SchemaNode refOrig = xsdSystemRefs.remove(nodePath);
+        if (refOrig != null) {
+            XsdLogger.printG(LOG_DEBUG, XSD_REFERENCE, "Node has been removed! System=" + systemId + ", Path=" + nodePath + ", NodeName: " + refOrig.getXdName());
+        }
+    }
+
+    public Set<String> getSchemaRootNodeNames(final String schemaName) {
+        return rootNodeNames.get(schemaName);
+    }
+
+    public void addRootNodeName(final String schemaName, final String nodeName) {
+        Set<String> schemaRootNodeNames = getSchemaRootNodeNames(schemaName);
+        if (schemaRootNodeNames == null) {
+            schemaRootNodeNames = new HashSet<String>();
+            rootNodeNames.put(schemaName, schemaRootNodeNames);
+        }
+
+        schemaRootNodeNames.add(nodeName);
     }
 
 }

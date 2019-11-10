@@ -28,7 +28,7 @@ public class SchemaNodeFactory {
                                            final String refSystemId, final String refNodePos, final String refNodePath,
                                            final XsdAdapterCtx adapterCtx) {
         SchemaNode node = createElementNode(xsdElem, xDefEl);
-        SchemaNode nodeRef = createDef(refSystemId, refNodePos, refNodePath, adapterCtx);
+        final SchemaNode nodeRef = createDef(refSystemId, refNodePos, refNodePath, adapterCtx);
         node = adapterCtx.addOrUpdateNode(node);
         SchemaNode.createBinding(node, nodeRef);
     }
@@ -37,6 +37,19 @@ public class SchemaNodeFactory {
                                            final String systemId, String nodePath,
                                            final String refSystemId, final String refNodePos, final String refNodePath,
                                            final XsdAdapterCtx adapterCtx) {
+        SchemaNode node = createElementNode(xsdElem, xDefEl);
+        SchemaNode nodeRef = createDef(refSystemId, refNodePos, refNodePath, adapterCtx);
+        node = adapterCtx.addOrUpdateNode(systemId, nodePath, node);
+        SchemaNode.createBinding(node, nodeRef);
+    }
+
+    public static void createElemRefAndDefInDiffNamespace(final XElement xDefEl, final XmlSchemaElement xsdElem,
+                                                          final String systemId, String nodePath,
+                                                          final String refSystemId,
+                                                          final XsdAdapterCtx adapterCtx) {
+        final String refNodePath = XsdNameUtils.getPostProcessingReferenceNodePath(xDefEl.getXDPosition());
+        final String refNodePos = XsdNameUtils.getPostProcessingNodePos(refSystemId, refNodePath);
+
         SchemaNode node = createElementNode(xsdElem, xDefEl);
         SchemaNode nodeRef = createDef(refSystemId, refNodePos, refNodePath, adapterCtx);
         node = adapterCtx.addOrUpdateNode(systemId, nodePath, node);

@@ -9,8 +9,10 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
@@ -26,24 +28,42 @@ public class XsdPostProcessor {
     public void processRefs() {
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"*** Updating references ***");
 
+        final List<SchemaNode> nodesToRemove = new ArrayList<SchemaNode>();
+
         for (Map.Entry<String, Map<String, SchemaNode>> systemRefEntry : adapterCtx.getNodes().entrySet()) {
             XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
 
-            XmlSchema xmlSchema = adapterCtx.getSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
-            XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema);
+            final XmlSchema xmlSchema = adapterCtx.getSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
+            final XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema);
+            final Set<String> schemaRootNodeNames = adapterCtx.getSchemaRootNodeNames(systemRefEntry.getKey());
 
             for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
-                final SchemaNode refNode = refEntry.getValue();
-                if (isTopElementRef(refNode)) {
-                    elementTopLevelRef(refNode, xsdFactory);
+                final SchemaNode node = refEntry.getValue();
+                if (isTopElement(node)) {
+                    // Process elements which are on top level but they are not root of x-definition
+                    if (!adapterCtx.isPostProcessingNamespace(xmlSchema.getTargetNamespace()) && (schemaRootNodeNames == null || !schemaRootNodeNames.contains(node.getXdName()))) {
+                        if (!node.hasAnyPointer()) {
+                            nodesToRemove.add(node);
+                            continue;
+                        } else {
+                            elementTopToComplex(node, xsdFactory);
+                        }
+                    } else if (node.toXsdElem().isRef()) {
+                        elementRootRef(node, xsdFactory);
+                    }
                 }
 
-                updateRefType(refNode, xsdFactory);
+                updateRefType(node);
 
-                if (refNode.getReference() == null && isQualifiedTopElementWithUnqualifiedPtr(refNode)) {
-                    elementRootDecomposition(refNode);
+                if (node.getReference() == null && isQualifiedTopElementWithUnqualifiedPtr(node)) {
+                    elementRootDecomposition(node);
                 }
             }
+        }
+
+        for (SchemaNode node : nodesToRemove) {
+            adapterCtx.removeNode((XNode)node.getXdNode());
+            XD2XsdUtils.removeItem(node.toXsdElem().getParent(), node.toXsdElem());
         }
     }
 
@@ -79,7 +99,7 @@ public class XsdPostProcessor {
         updatePointers(node, newLocalName);
     }
 
-    private void elementTopLevelRef(final SchemaNode node, final XsdElementFactory xsdFactory) {
+    private void elementRootRef(final SchemaNode node, final XsdElementFactory xsdFactory) {
         SchemaNode refNode = node.getReference();
         if (refNode == null || (refNode.isXsdComplexType() && !node.hasAnyPointer())) {
             return;
@@ -94,7 +114,7 @@ public class XsdPostProcessor {
             XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
             XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema);
             if (refNode.toXsdElem().isRef()) {
-                elementTopLevelRef(refNode, refXsdFactory);
+                elementRootRef(refNode, refXsdFactory);
             } else {
                 elementTopToComplex(refNode, refXsdFactory);
             }
@@ -116,9 +136,10 @@ public class XsdPostProcessor {
             schemaType = xsdFactory.createComplextTypeWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName(), true);
         }
 
+        // If element does not contain schema type, create new empty complex type
         if (schemaType == null) {
-            XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Schema type has been expected!");
-            return;
+            schemaType = xsdFactory.createEmptyComplexType(true);
+            schemaType.setName(newRefLocalName);
         }
 
         node.setXsdNode(schemaType);
@@ -161,10 +182,6 @@ public class XsdPostProcessor {
         }
     }
 
-    private static boolean isTopElementRef(final SchemaNode node) {
-        return node.isXsdElem() && node.toXsdElem().isTopLevel() && node.toXsdElem().isRef();
-    }
-
     private static boolean isTopElement(final SchemaNode node) {
         return node.isXsdElem() && node.toXsdElem().isTopLevel();
     }
@@ -195,7 +212,7 @@ public class XsdPostProcessor {
         return false;
     }
 
-    private static void updateRefType(final SchemaNode node, final XsdElementFactory xsdFactory) {
+    private static void updateRefType(final SchemaNode node) {
         if (node.getReference() != null) {
             if (node.getReference().isXsdElem() && node.isXsdElem() && node.toXsdElem().getRef().getTargetQName() == null) {
                 // Reference element to element

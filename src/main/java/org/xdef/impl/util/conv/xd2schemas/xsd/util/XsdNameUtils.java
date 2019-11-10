@@ -38,6 +38,19 @@ public class XsdNameUtils {
         return refPos;
     }
 
+    public static String getPostProcessingReferenceNodePath(final String refPos) {
+        int xdefSystemSeparatorPos = refPos.indexOf('/');
+        if (xdefSystemSeparatorPos != -1) {
+            return refPos.substring(xdefSystemSeparatorPos + 1);
+        }
+
+        return getReferenceNodePath(refPos);
+    }
+
+    public static String getPostProcessingNodePos(final String systemId, final String path) {
+        return systemId + "#" + path;
+    }
+
     /**
      * Returns name without target namespace
      * @param schema

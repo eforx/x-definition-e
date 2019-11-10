@@ -23,6 +23,7 @@ import static org.xdef.model.XMNode.XMATTRIBUTE;
 public class XD2XsdReferenceAdapter {
 
     private final XmlSchema schema;
+    private final String schemaName;
     private final XsdElementFactory xsdFactory;
     private final XD2XsdTreeAdapter treeAdapter;
     private final XsdAdapterCtx adapterCtx;
@@ -36,8 +37,9 @@ public class XD2XsdReferenceAdapter {
      */
     private Set<String> namespaceIncludes;
 
-    public XD2XsdReferenceAdapter(XmlSchema schema, XsdElementFactory xsdFactory, XD2XsdTreeAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
+    public XD2XsdReferenceAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XD2XsdTreeAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
+        this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
         this.treeAdapter = treeAdapter;
         this.adapterCtx = adapterCtx;
@@ -89,7 +91,7 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
-    private void extractRefsAndImports(XDefinition xDef) {
+    private void extractRefsAndImports(final XDefinition xDef) {
         XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
 
         final Set<XMNode> processed = new HashSet<XMNode>();
@@ -102,8 +104,9 @@ public class XD2XsdReferenceAdapter {
 
         // Extract all complex types
         XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
+        final Set<String> rootNodeNames = adapterCtx.getSchemaRootNodeNames(schemaName);
         for (XElement elem : xDef.getXElements()) {
-            if (!treeAdapter.getXdRootNames().contains(elem.getName())) {
+            if (rootNodeNames == null || !rootNodeNames.contains(elem.getName())) {
                 extractTopLevelElementRefs(elem);
             }
         }

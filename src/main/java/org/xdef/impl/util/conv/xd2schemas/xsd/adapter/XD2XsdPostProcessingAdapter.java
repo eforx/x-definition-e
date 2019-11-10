@@ -65,9 +65,13 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
     private void processQNames(final Set<String> updatedNamespaces) {
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing qualified names ...");
         for (String schemaNs : updatedNamespaces) {
-            String schemaName = adapterCtx.getSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
-            XmlSchema schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
-            Map<String, SchemaNode> nodes = adapterCtx.getNodes().get(schemaName);
+            if (adapterCtx.isPostProcessingNamespace(schemaNs) && !adapterCtx.existsSchemaLocation(schemaNs)) {
+                continue;
+            }
+
+            final String schemaName = adapterCtx.getSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
+            final XmlSchema schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
+            final Map<String, SchemaNode> nodes = adapterCtx.getNodes().get(schemaName);
             if (nodes != null && !nodes.isEmpty()) {
                 for (SchemaNode n : nodes.values()) {
                     if (n.isXsdAttr()) {
