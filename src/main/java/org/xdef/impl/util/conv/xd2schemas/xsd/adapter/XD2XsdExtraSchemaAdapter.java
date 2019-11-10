@@ -54,16 +54,23 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     protected Set<String> transformNodes(final Map<String, Map<String, XNode>> allNodesToResolve) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, sourceXDefinition, "Transforming gathered nodes into extra schemas ...");
 
+        final String sourceSystemId = XsdNamespaceUtils.getReferenceSystemId(sourceXDefinition.getXDPosition());
+        final Set<String> updatedNamespaces = new HashSet<String>();
+
         Map<String, XsdSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
         int lastSizeMap = schemasToResolve.size();
-        final String sourceSystemId = XsdNamespaceUtils.getReferenceSystemId(sourceXDefinition.getXDPosition());
-        Set<String> updatedNamespaces = new HashSet<String>();
 
         while (!schemasToResolve.isEmpty()) {
             Iterator<Map.Entry<String, XsdSchemaImportLocation>> itr = schemasToResolve.entrySet().iterator();
             while (itr.hasNext()) {
-                Map.Entry<String, XsdSchemaImportLocation> schemaToResolve = itr.next();
+                final Map.Entry<String, XsdSchemaImportLocation> schemaToResolve = itr.next();
                 final String schemaTargetNsUri = schemaToResolve.getKey();
+
+                if (updatedNamespaces.contains(schemaTargetNsUri)) {
+                    itr.remove();
+                    continue;
+                }
+
                 Map<String, XNode> nodesInSchemaToResolve = allNodesToResolve.get(schemaTargetNsUri);
 
                 if (nodesInSchemaToResolve != null) {
@@ -89,8 +96,10 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                 }
             }
 
-            // Prevent infinite loop - there is nothing to update
-            if (lastSizeMap <= schemasToResolve.size()) {
+            int currSchemasToResolve = adapterCtx.getExtraSchemaLocationsCtx().size();
+            if (lastSizeMap < currSchemasToResolve) {
+                schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
+            } else if (lastSizeMap <= schemasToResolve.size()) { // Prevent infinite loop - there is nothing to update
                 break;
             }
 
@@ -124,11 +133,11 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
 
-            String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
+            final String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
-            XsdElementFactory xsdFactory = new XsdElementFactory(schema);
-            XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
-            XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, xsdFactory, treeAdapter, adapterCtx);
+            final XsdElementFactory xsdFactory = new XsdElementFactory(schema);
+            final XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
+            final XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, schemaName, xsdFactory, treeAdapter, adapterCtx);
 
             treeAdapter.setPostProcessing();
             referenceAdapter.setPostProcessing();
