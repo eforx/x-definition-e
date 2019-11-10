@@ -613,16 +613,16 @@ public class XD2XsdTreeAdapter {
                     final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
                     newGroupChoice.setSourceMixed();
                     newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
-                    XsdLogger.print(LOG_WARN, TRANSFORMATION, "", "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
                     replaceLastGroupParticle(particleStack, newGroupChoice);
                 }
             } else if (cPrev.xsd() instanceof XmlSchemaAll) {
                 final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
                 newGroupChoice.setSourceMixed();
                 newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
-                XsdLogger.print(LOG_WARN, TRANSFORMATION, "", "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
                 particleStack.pop();
-                prev = replaceLastGroupParticle(particleStack, newGroupChoice);
+                replaceLastGroupParticle(particleStack, newGroupChoice);
                 pushGroupParticleToStack(particleStack, newGroupChoice, newGroupParticle);
             } else {
                 if (prev != null) {

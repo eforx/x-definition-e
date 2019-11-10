@@ -4,16 +4,16 @@ import builtools.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.xdef.XDDocument;
-import org.xdef.XDPool;
-import org.xdef.XDValue;
+import org.xdef.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
+import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
+import org.xdef.sys.SUtils;
 import org.xdef.util.XValidate;
 
 import javax.xml.transform.stream.StreamSource;
@@ -48,7 +48,7 @@ public class TestXd2Xsd extends XDTester {
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_INFO);
+        XsdLogger.setLogLevel(LOG_WARN);
         XsdElementFactory.setCreateAnnotation(true);
     }
 
@@ -416,8 +416,13 @@ public class TestXd2Xsd extends XDTester {
         try {
             XDPool2XsdAdapter adapter = createXdPoolAdapter();
 
+            // Load x-definition files
+            File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
+            XDBuilder xb = XDFactory.getXDBuilder(null);
+            xb.setExternals(getClass());
+            xb.setSource(defFiles);
+            XDPool inputXD = xb.compileXD();
             // Convert XD -> XSD Schema
-            XDPool inputXD = compileXd(fileName);
             XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
             int expectedShemaCount = inputXD.getXMDefinitions().length;
 
@@ -453,7 +458,6 @@ public class TestXd2Xsd extends XDTester {
 
         // ============ XDef ============
 
-/*
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), null);
         convertXdDef2Xsd("t001", Arrays.asList(new String[] {"t001"}), null);
         convertXdDef2Xsd("t002", Arrays.asList(new String[] {"t002"}), null);
@@ -528,6 +532,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2XsdNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
         convertXdPool2XsdNoRef ("typeTest", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
+        convertXdPool2XsdNoRef("Test000_05", Arrays.asList(new String[] {"Test000_05"}), null);
 
 
         // ============ Groups ============
@@ -548,7 +553,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
         convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
-*/
+
 
     }
 
@@ -563,6 +568,8 @@ public class TestXd2Xsd extends XDTester {
     public static void chk_dec_nonNegative(XXElement chkEl, XDValue[] params) {}
     public static void chk_RC_DatNar_ifEQ(XXElement chkEl, XDValue[] params) {}
     public static void setDefault_ifEx(XXElement chkElem, XDValue[] params) {}
+    public static void isEqual(XXNode c, XDValue[] p) {}
+    public static void exactlyOneAttr(XXNode c, XDValue[] p){}
     public static void emptySubjHasAddr(XXElement chkElem, XDValue[] params) {}
     public static String getIdOsoba(XXElement chkElem) { return "1"; }
     public static void protocol(XXElement chkElem, String role, long idXxx) {}
