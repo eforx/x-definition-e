@@ -75,20 +75,28 @@ public class SchemaNode {
         return xsdNode;
     }
 
-    public void setXsdNode(XmlSchemaNamed xsdNode) {
+    public void setXsdNode(XmlSchemaObjectBase xsdNode) {
         this.xsdNode = xsdNode;
 
         if (xsdNode instanceof XmlSchemaNamed) {
-            final XmlSchemaNamed xsdNamedNode = xsdNode;
+            final XmlSchemaNamed xsdNamedNode = (XmlSchemaNamed)xsdNode;
             final QName qName = xsdNamedNode.getQName();
             if (qName != null) {
                 final String nsPrefix = xsdNamedNode.getParent().getNamespaceContext().getPrefix(qName.getNamespaceURI());
 
                 int systemDelPos = xdPosition.indexOf('#');
-                if (systemDelPos != -1) {
-                    xdPosition = xdPosition.substring(0, systemDelPos + 1).concat(nsPrefix + ":" + xsdNamedNode.getName());
+                if (nsPrefix != null) {
+                    if (systemDelPos != -1) {
+                        xdPosition = xdPosition.substring(0, systemDelPos + 1).concat(nsPrefix + ":" + xsdNamedNode.getName());
+                    } else {
+                        xdPosition = nsPrefix + ":" + xsdNamedNode.getName();
+                    }
                 } else {
-                    xdPosition = nsPrefix + ":" + xsdNamedNode.getName();
+                    if (systemDelPos != -1) {
+                        xdPosition = xdPosition.substring(0, systemDelPos + 1).concat(xsdNamedNode.getName());
+                    } else {
+                        xdPosition = xsdNamedNode.getName();
+                    }
                 }
             }
         }
