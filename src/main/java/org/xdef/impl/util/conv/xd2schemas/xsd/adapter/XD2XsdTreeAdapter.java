@@ -606,10 +606,10 @@ public class XD2XsdTreeAdapter {
                     for (XmlSchemaAllMember member : ((XmlSchemaAll) group.getParticle()).getItems()) {
                         newGroupChoice.addItem(member);
                     }
-                    // We have to use occurence on groupRef element
-                    groupRef.setMaxOccurs(newGroupChoice.getItems().size());
                     newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
                     group.setParticle(newGroupChoice.xsd());
+                    // We have to use occurence on groupRef element
+                    groupRef.setMaxOccurs(newGroupChoice.getItems().size());
                     XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
                 }
 

@@ -550,9 +550,12 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"groupMixed3_valid_1", "groupMixed3_valid_2"}),
                 Arrays.asList(new String[] {"groupMixed3_invalid_1", "groupMixed3_invalid_2"}));
         convertXdPool2XsdNoRef ("groupMixed4", Arrays.asList(new String[] {"groupMixed4_valid_1"}), Arrays.asList(new String[] {"groupMixed4_invalid_1", "groupMixed4_invalid_2"}));
+        convertXdPool2XsdNoRef ("groupMixed5",
+                Arrays.asList(new String[] {"groupMixed5_valid_1", "groupMixed5_valid_2", "groupMixed5_valid_3"}),
+                Arrays.asList(new String[] {"groupMixed5_invalid_1"}));
 
         convertXdPool2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
-        convertXdPool2XsdInvalidXsd ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
+        convertXdPool2XsdNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
 
         // ============ Default/Fixed values ============
 

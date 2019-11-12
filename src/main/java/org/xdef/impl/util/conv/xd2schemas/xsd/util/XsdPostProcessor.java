@@ -7,12 +7,10 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
@@ -236,7 +234,9 @@ public class XsdPostProcessor {
         // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
         {
             boolean allElementsUnbounded = true;
-            boolean anyElementUnbounded = false;
+            boolean anyElementMultiple = false;
+            boolean anyElementUnbound = false;
+            int elementMaxOccursSum = 0;
 
             if (complexType.getParticle() instanceof XmlSchemaAll) {
 
@@ -244,27 +244,50 @@ public class XsdPostProcessor {
                     if (xNode.getKind() == XNode.XMELEMENT) {
                         if (!xNode.isMaxUnlimited() && !xNode.isUnbounded()) {
                             allElementsUnbounded = false;
-                        } else if (xNode.maxOccurs() > 1) {
-                            anyElementUnbounded = true;
+                            elementMaxOccursSum += xNode.maxOccurs();
+                            if (xNode.maxOccurs() > 1) {
+                                anyElementMultiple = true;
+                            }
+                        } else {
+                            anyElementUnbound = true;
                         }
                     }
                 }
 
-                if (allElementsUnbounded) {
+                if (allElementsUnbounded || anyElementUnbound || anyElementMultiple) {
                     XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Complex content contains xs:all with only unbounded elements. Update to unbounded xs:choise.");
 
-                    XmlSchemaChoice group = new XmlSchemaChoice();
-                    group.setMaxOccurs(Long.MAX_VALUE);
+                    final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
+                    newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
+                    if (allElementsUnbounded || anyElementUnbound) {
+                        newGroupChoice.setMaxOccurs(Long.MAX_VALUE);
 
-                    // Copy elements
-                    for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
-                        group.getItems().add((XmlSchemaChoiceMember) member);
+                        // Copy elements
+                        for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
+                            newGroupChoice.getItems().add((XmlSchemaChoiceMember) member);
+                        }
+                    } else {
+                        newGroupChoice.setMaxOccurs(elementMaxOccursSum);
+                        newGroupChoice.setMinOccurs(complexType.getParticle().getMinOccurs());
+
+                        // Copy elements
+                        for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
+                            if (member instanceof XmlSchemaElement) {
+                                ((XmlSchemaElement) member).setAnnotation(XsdElementFactory.createAnnotation(
+                                        new LinkedList<String>(Arrays.asList(
+                                                "Minimum occurrence: " + ((XmlSchemaElement)member).getMinOccurs(),
+                                                "Maximum occurrence: " + ((XmlSchemaElement)member).getMaxOccurs())
+                                        )));
+                                ((XmlSchemaElement) member).setMaxOccurs(1);
+                                if (((XmlSchemaElement)member).getMinOccurs() > 1) {
+                                    ((XmlSchemaElement) member).setMinOccurs(1);
+                                }
+                            }
+                            newGroupChoice.getItems().add((XmlSchemaChoiceMember) member);
+                        }
                     }
 
-                    complexType.setParticle(group);
-                } else if (anyElementUnbounded) {
-                    // TODO: XD->XSD Solve?
-                    XsdLogger.printP(LOG_ERROR, POSTPROCESSING, defEl, "xs:all contains element which has maxOccurs higher than 1");
+                    complexType.setParticle(newGroupChoice);
                 }
             }
         }

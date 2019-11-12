@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name="groupMixed5">
+<a>
+  <xd:mixed script='optional'>
+    <c xd:script='2..3;'/>
+    <d xd:script='1..3;'/>
+  </xd:mixed>
+</a>
+</xd:def>
