@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.XDPool;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
@@ -477,6 +478,7 @@ public class XD2XsdTreeAdapter {
             // Particle nodes (sequence, choice, all)
             if (childrenKind == XNode.XMSEQUENCE || childrenKind == XNode.XMMIXED || childrenKind == XNode.XMCHOICE) {
                 XmlSchemaParticle newParticle = null;
+                // Create group reference
                 if (childrenKind == XNode.XMMIXED && !xnChild.getXDPosition().contains(xElem.getXDPosition())) {
                     newParticle = createGroupReference(xChildrenNodes, currParticle, particleStack, xElem);
                 }
@@ -570,7 +572,10 @@ public class XD2XsdTreeAdapter {
      *          instance of XmlSchemaGroupRef if node is only child of element {@code defEl}
      *          instance of XmlSchemaParticle if node is not only child of element {@code defEl}
      */
-    private XmlSchemaParticle createGroupReference(final XNode[] xChildrenNodes, XmlSchemaParticle currGroup, final Stack<XmlSchemaParticle> groups, final XElement defEl) {
+    private XmlSchemaParticle createGroupReference(final XNode[] xChildrenNodes,
+                                                   XmlSchemaParticle currGroup,
+                                                   final Stack<XmlSchemaParticle> groups,
+                                                   final XElement defEl) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating group reference");
         final String systemId = XsdNamespaceUtils.getReferenceSystemId(xChildrenNodes[0].getXDPosition());
         String refNodePath = XsdNameUtils.getReferenceNodePath(xChildrenNodes[0].getXDPosition());
@@ -588,14 +593,26 @@ public class XD2XsdTreeAdapter {
             final XmlSchemaGroup group = refNode.toXsdGroup();
             final XmlSchemaGroupRef groupRef = xsdFactory.createGroupRef(group.getQName());
 
+            SchemaNodeFactory.createGroupRef(defEl, groupRef, refNode, adapterCtx);
+
             if (refNode.isXdElem() && refNode.toXdElem()._childNodes.length == xChildrenNodes.length) {
                 return groupRef;
             } else {
                 currGroup = createDefaultParticleGroup(currGroup, groups, defEl);
                 addNodeToParticleGroup(currGroup, groupRef);
 
-                // TODO: If element contains group reference and another nodes, then we have to create new group ref and move elements inside it? Result will be not same, but atleast valid xsd
-                XsdLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "Group reference inside xs:sequence referencing to group containing xs:all leads to invalid XSD! Path=" + xChildrenNodes[0].getXDPosition());
+                if (group.getParticle() instanceof XmlSchemaAll) {
+                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
+                    for (XmlSchemaAllMember member : ((XmlSchemaAll) group.getParticle()).getItems()) {
+                        newGroupChoice.addItem(member);
+                    }
+                    // We have to use occurence on groupRef element
+                    groupRef.setMaxOccurs(newGroupChoice.getItems().size());
+                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                    group.setParticle(newGroupChoice.xsd());
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                }
+
                 return currGroup;
             }
         }

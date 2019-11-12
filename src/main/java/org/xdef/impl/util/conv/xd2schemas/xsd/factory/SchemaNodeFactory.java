@@ -3,6 +3,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroupRef;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
@@ -57,7 +58,7 @@ public class SchemaNodeFactory {
     }
 
     public static SchemaNode createDef(final String systemId, final String nodePos, final String nodePath, final XsdAdapterCtx adapterCtx) {
-        Map<String, SchemaNode> xsdSystemRefs = adapterCtx.getSchemaNodes(systemId);
+        final Map<String, SchemaNode> xsdSystemRefs = adapterCtx.getSchemaNodes(systemId);
         final String localName = XsdNameUtils.getReferenceName(nodePos);
         SchemaNode ref = xsdSystemRefs.get(nodePath);
         if (ref == null) {
@@ -82,6 +83,17 @@ public class SchemaNodeFactory {
 
     private static SchemaNode createComplexExtNode(final XmlSchemaComplexContentExtension xsdComplexExt, final XElement xDefEl) {
         return new SchemaNode(xDefEl.getXDPosition(), xsdComplexExt, xDefEl);
+    }
+
+    public static void createGroupRef(final XElement xDefEl, final XmlSchemaGroupRef xsdGroupRef,
+                                      final SchemaNode nodeRef, final XsdAdapterCtx adapterCtx) {
+        SchemaNode node = createGroupRefNode(xsdGroupRef, xDefEl);
+        node = adapterCtx.addOrUpdateNode(node);
+        SchemaNode.createBinding(node, nodeRef);
+    }
+
+    private static SchemaNode createGroupRefNode(final XmlSchemaGroupRef xsdGroupRef, final XElement xDefEl) {
+        return new SchemaNode(xDefEl.getXDPosition(), xsdGroupRef, xDefEl);
     }
 
 
