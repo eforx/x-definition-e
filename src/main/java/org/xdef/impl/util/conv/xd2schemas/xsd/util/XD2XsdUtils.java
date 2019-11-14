@@ -1,10 +1,13 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,5 +75,43 @@ public class XD2XsdUtils {
 
     public static boolean containsAnyElement(final XElement xElem) {
         return xElem.getName().endsWith("$any");
+    }
+
+    public static Pair<Long, Long> calculateGroupAllMembersOccurrence(final XmlSchemaAll groupParticleAll) {
+        final XmlSchemaObjectBase[] members = new XmlSchemaObjectBase[groupParticleAll.getItems().size()];
+        groupParticleAll.getItems().toArray(members);
+        return calculateGroupParticleMembersOccurrence(members);
+    }
+
+    public static Pair<Long, Long> calculateGroupChoiceMembersOccurrence(final XmlSchemaChoice groupParticleChoice) {
+        final XmlSchemaObjectBase[] members = new XmlSchemaObjectBase[groupParticleChoice.getItems().size()];
+        groupParticleChoice.getItems().toArray(members);
+        return calculateGroupParticleMembersOccurrence(members);
+    }
+
+    public static Pair<Long, Long> calculateGroupParticleMembersOccurrence(final XmlSchemaObjectBase[] members) {
+        long elementMaxOccursSum = 0;
+        long elementMinOccursSum = 0;
+
+        for (XmlSchemaObjectBase member : members) {
+            if (member instanceof XmlSchemaParticle) {
+                final XmlSchemaParticle memberParticle = (XmlSchemaParticle) member;
+                if (memberParticle.getMaxOccurs() < Long.MAX_VALUE) {
+                    elementMaxOccursSum += memberParticle.getMaxOccurs();
+                } else {
+                    elementMaxOccursSum = Long.MAX_VALUE;
+                    break;
+                }
+
+                if (memberParticle.getMinOccurs() < Long.MAX_VALUE) {
+                    elementMinOccursSum += memberParticle.getMinOccurs();
+                } else {
+                    elementMinOccursSum = Long.MAX_VALUE;
+                    break;
+                }
+            }
+        }
+
+        return new Pair<Long, Long>(elementMinOccursSum, elementMaxOccursSum);
     }
 }

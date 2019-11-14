@@ -2,7 +2,6 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.adapter;
 
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
-import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.XDPool;
 import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
@@ -514,7 +513,7 @@ public class XD2XsdTreeAdapter {
                 } else {
                     if (!particleStack.empty()) {
                         currParticle = particleStack.pop();
-                        if (currParticle instanceof CXmlSchemaChoice && ((CXmlSchemaChoice) currParticle).isSourceMixed()) {
+                        if (currParticle instanceof CXmlSchemaChoice && ((CXmlSchemaChoice) currParticle).hasTransformDirection()) {
                             ((CXmlSchemaChoice) currParticle).updateOccurence();
                         }
 
@@ -602,15 +601,13 @@ public class XD2XsdTreeAdapter {
                 addNodeToParticleGroup(currGroup, groupRef);
 
                 if (group.getParticle() instanceof XmlSchemaAll) {
-                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
-                    for (XmlSchemaAllMember member : ((XmlSchemaAll) group.getParticle()).getItems()) {
-                        newGroupChoice.addItem(member);
-                    }
-                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(XsdPostProcessor.groupParticleAllToChoice((XmlSchemaAll)group.getParticle(), false));
                     group.setParticle(newGroupChoice.xsd());
                     // We have to use occurence on groupRef element
-                    groupRef.setMaxOccurs(newGroupChoice.getItems().size());
-                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+                    groupRef.setMinOccurs(newGroupChoice.xsd().getMinOccurs());
+                    groupRef.setMaxOccurs(newGroupChoice.xsd().getMaxOccurs());
+                    newGroupChoice.xsd().setMinOccurs(1);
+                    newGroupChoice.xsd().setMaxOccurs(1);
                 }
 
                 return currGroup;
@@ -648,15 +645,15 @@ public class XD2XsdTreeAdapter {
                     merge = true;
                 } else {
                     final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
-                    newGroupChoice.setSourceMixed();
-                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                    newGroupChoice.setTransformDirection(CXmlSchemaChoice.TransformationDirection.BOTTOM_UP);
+                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
                     XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
                     replaceLastGroupParticle(particleStack, newGroupChoice);
                 }
             } else if (cPrev.xsd() instanceof XmlSchemaAll) {
                 final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
-                newGroupChoice.setSourceMixed();
-                newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation(new LinkedList<String>(Arrays.asList("Original group particle: all", "Each children node has to appear once"))));
+                newGroupChoice.setTransformDirection(CXmlSchemaChoice.TransformationDirection.TOP_DOWN);
+                newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
                 XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
                 particleStack.pop();
                 replaceLastGroupParticle(particleStack, newGroupChoice);

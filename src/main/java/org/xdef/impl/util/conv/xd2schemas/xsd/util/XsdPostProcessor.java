@@ -1,6 +1,8 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.util;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
@@ -13,6 +15,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdPostProcessor {
@@ -231,64 +234,10 @@ public class XsdPostProcessor {
     public static void elementComplexType(final XmlSchemaComplexType complexType, final XNode[] xChildrenNodes, final XElement defEl) {
         XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
 
-        // if xs:all contains only unbounded elements, then we can use unbounded xs:choise
-        {
-            boolean allElementsUnbounded = true;
-            boolean anyElementMultiple = false;
-            boolean anyElementUnbound = false;
-            int elementMaxOccursSum = 0;
-
-            if (complexType.getParticle() instanceof XmlSchemaAll) {
-
-                for (XNode xNode : xChildrenNodes) {
-                    if (xNode.getKind() == XNode.XMELEMENT) {
-                        if (!xNode.isMaxUnlimited() && !xNode.isUnbounded()) {
-                            allElementsUnbounded = false;
-                            elementMaxOccursSum += xNode.maxOccurs();
-                            if (xNode.maxOccurs() > 1) {
-                                anyElementMultiple = true;
-                            }
-                        } else {
-                            anyElementUnbound = true;
-                        }
-                    }
-                }
-
-                if (allElementsUnbounded || anyElementUnbound || anyElementMultiple) {
-                    XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Complex content contains xs:all with only unbounded elements. Update to unbounded xs:choise.");
-
-                    final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
-                    newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
-                    if (allElementsUnbounded || anyElementUnbound) {
-                        newGroupChoice.setMaxOccurs(Long.MAX_VALUE);
-
-                        // Copy elements
-                        for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
-                            newGroupChoice.getItems().add((XmlSchemaChoiceMember) member);
-                        }
-                    } else {
-                        newGroupChoice.setMaxOccurs(elementMaxOccursSum);
-                        newGroupChoice.setMinOccurs(complexType.getParticle().getMinOccurs());
-
-                        // Copy elements
-                        for (XmlSchemaAllMember member : ((XmlSchemaAll)complexType.getParticle()).getItems()) {
-                            if (member instanceof XmlSchemaElement) {
-                                ((XmlSchemaElement) member).setAnnotation(XsdElementFactory.createAnnotation(
-                                        new LinkedList<String>(Arrays.asList(
-                                                "Minimum occurrence: " + ((XmlSchemaElement)member).getMinOccurs(),
-                                                "Maximum occurrence: " + ((XmlSchemaElement)member).getMaxOccurs())
-                                        )));
-                                ((XmlSchemaElement) member).setMaxOccurs(1);
-                                if (((XmlSchemaElement)member).getMinOccurs() > 1) {
-                                    ((XmlSchemaElement) member).setMinOccurs(1);
-                                }
-                            }
-                            newGroupChoice.getItems().add((XmlSchemaChoiceMember) member);
-                        }
-                    }
-
-                    complexType.setParticle(newGroupChoice);
-                }
+        if (complexType.getParticle() instanceof XmlSchemaAll) {
+            final XmlSchemaChoice newGroupChoice = groupParticleAllToChoice((XmlSchemaAll)complexType.getParticle());
+            if (newGroupChoice != null) {
+                complexType.setParticle(newGroupChoice);
             }
         }
 
@@ -313,6 +262,78 @@ public class XsdPostProcessor {
                 complexType.setMixed(true);
                 complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));
             }
+        }
+    }
+
+    public static XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll) {
+        boolean anyElementMultiple = false;
+        boolean anyElementUnbound = false;
+
+        for (XmlSchemaAllMember member : groupParticleAll.getItems()) {
+            if (member instanceof XmlSchemaElement) {
+                final XmlSchemaElement memberElem = (XmlSchemaElement) member;
+                if (memberElem.getMaxOccurs() == Long.MAX_VALUE) {
+                    anyElementUnbound = true;
+                } else if (memberElem.getMaxOccurs() > 1) {
+                    anyElementMultiple = true;
+                }
+            }
+        }
+
+        if (anyElementUnbound || anyElementMultiple) {
+            return groupParticleAllToChoice(groupParticleAll, anyElementUnbound);
+        }
+
+        return null;
+    }
+
+    public static XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll, boolean unbounded) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle xsd:all to xsd:choice ...");
+        XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+
+        final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
+        newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
+
+        long elementMinOccursSum = 0;
+        long elementMaxOccursSum = 0;
+
+        // Calculate member occurrences
+        if (!unbounded) {
+            final Pair<Long, Long> memberOccurence = XD2XsdUtils.calculateGroupAllMembersOccurrence(groupParticleAll);
+            elementMinOccursSum = memberOccurence.getKey();
+            elementMaxOccursSum = memberOccurence.getValue();
+        } else {
+            elementMinOccursSum = groupParticleAll.getMinOccurs();
+            elementMaxOccursSum = Long.MAX_VALUE;
+        }
+
+        newGroupChoice.setMaxOccurs(elementMaxOccursSum);
+        if (groupParticleAll.getMinOccurs() == 0) {
+            newGroupChoice.setMinOccurs(0);
+        } else {
+            newGroupChoice.setMinOccurs(elementMinOccursSum);
+        }
+        copyAllMembersToChoice(groupParticleAll, newGroupChoice);
+        return newGroupChoice;
+    }
+
+    private static void copyAllMembersToChoice(final XmlSchemaAll groupParticleAll, final XmlSchemaChoice schemaChoice) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle's members of xsd:all to xsd:choice");
+        for (XmlSchemaAllMember member : groupParticleAll.getItems()) {
+            allMemberToChoiceMember(member);
+            schemaChoice.getItems().add((XmlSchemaChoiceMember) member);
+        }
+    }
+
+    public static void allMemberToChoiceMember(final XmlSchemaObjectBase member) {
+        if (member instanceof XmlSchemaParticle) {
+            final XmlSchemaParticle memberParticle = (XmlSchemaParticle)member;
+            if (memberParticle.getMinOccurs() != 1 || memberParticle.getMaxOccurs() != 1) {
+                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + memberParticle.getMinOccurs() + ", " + memberParticle.getMaxOccurs() + "]"));
+            }
+
+            memberParticle.setMaxOccurs(1);
+            memberParticle.setMinOccurs(1);
         }
     }
 }
