@@ -54,9 +54,9 @@ public class XsdSimpleContentFactory {
         boolean customParser = true;
         boolean unknownParser = false;
 
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getCustomFacetFactory(parserName, parameters);
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getCustomFacetFactory(parserName, parameters, adapterCtx);
         if (parserInfo == null) {
-            parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(parserName);
+            parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(parserName, adapterCtx);
             if (parserInfo != null) {
                 customParser = false;
             }
@@ -182,7 +182,7 @@ public class XsdSimpleContentFactory {
 
     private void simpleTypeUnionTopReference(final XDParser value, final Set<String> refNames, final String nodeName) {
         boolean unknownParser = false;
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(value.parserName());
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(value.parserName(), adapterCtx);
         if (parserInfo == null) {
             XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported simple content parser! Parser=" + value.parserName());
             parserInfo = new Pair(Constants.XSD_STRING, new DefaultFacetFactory());

@@ -262,8 +262,8 @@ public class XD2XsdReferenceAdapter {
                 return;
             }
 
-            if (!isAttrRef && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData) == null && xData.getValueTypeName() != null) {
-                refTypeName = XsdNameUtils.createRefNameFromParser(xData);
+            if (!isAttrRef && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx) == null && xData.getValueTypeName() != null) {
+                refTypeName = XsdNameUtils.createRefNameFromParser(xData, adapterCtx);
                 if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
                     xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);

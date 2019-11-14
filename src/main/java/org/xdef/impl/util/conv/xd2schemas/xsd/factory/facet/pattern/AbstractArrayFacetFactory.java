@@ -101,7 +101,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
         if (parserName == null || parserName.isEmpty()) {
             type = Constants.XSD_STRING;
         } else if (allParsersSame) {
-            type = XD2XsdParserMapping.getDefaultParserQName(parserName);
+            type = XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
         }
 
         if (type == null) {
@@ -112,7 +112,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
     }
 
     protected String parserParamsToRegex(final String parserName, final XDNamedValue[] params) {
-        QName parserQName = this instanceof ListRegexFacetFactory ? type : XD2XsdParserMapping.getDefaultParserQName(parserName);
+        QName parserQName = this instanceof ListRegexFacetFactory ? type : XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
         String regex = "";
 
         if (Constants.XSD_INT.equals(parserQName)) {

@@ -4,7 +4,7 @@ import java.util.EnumSet;
 
 public enum XD2XsdFeature {
     XSD_ANNOTATION,                 // Output xsd schema will contain additional annotations
-    XSD_DECIMAL_ANY_SEPARATOR,      // Output xsd schema will contain decimal type using any decimal separator
+    XSD_DECIMAL_ANY_SEPARATOR,      // Output xsd schema will convert dec parser to string regular pattern if decimal separator is not dot
     XSD_ALL_UNBOUNDED,              // Output xsd schema will contain only unbounded xs:choice element, if source of the element is xd:mixed
     XSD_KEYS,                       // Output xsd schema will contain xs:unique element
     XSD_KEYS_AND_REFS,              // Output xsd schema will contain xs:key and xs:keyref elements

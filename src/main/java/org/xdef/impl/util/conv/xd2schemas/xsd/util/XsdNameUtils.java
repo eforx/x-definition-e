@@ -8,6 +8,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import javax.xml.namespace.QName;
 
@@ -177,12 +178,12 @@ public class XsdNameUtils {
         }
     }
 
-    public static String createRefNameFromParser(final XData xData) {
+    public static String createRefNameFromParser(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
 
         String name;
-        QName defaultQName = XD2XsdParserMapping.getDefaultParserQName(parserName);
+        QName defaultQName = XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
         if (defaultQName != null) {
             name = defaultQName.getLocalPart();
         } else {

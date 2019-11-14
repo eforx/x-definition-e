@@ -8,7 +8,6 @@ import org.xdef.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
-import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
@@ -21,10 +20,11 @@ import org.xdef.util.XValidate;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -51,7 +51,6 @@ public class TestXd2Xsd extends XDTester {
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
         XsdLogger.setLogLevel(LOG_WARN);
-        XsdElementFactory.setCreateAnnotation(true);
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -119,18 +118,24 @@ public class TestXd2Xsd extends XDTester {
         return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xsd");
     }
 
-    private XDef2XsdAdapter createXdDefAdapter(List<XD2XsdFeature> additionalFeatures) {
+    private XDef2XsdAdapter createXdDefAdapter(Set<XD2XsdFeature> additionalFeatures) {
         final XDef2XsdAdapter adapter = new XDef2XsdAdapter();
         final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
         features.add(XD2XsdFeature.XSD_ANNOTATION);
+        if (additionalFeatures != null) {
+            features.addAll(additionalFeatures);
+        }
         adapter.setFeatures(features);
         return adapter;
     }
 
-    private XDPool2XsdAdapter createXdPoolAdapter(List<XD2XsdFeature> additionalFeatures) {
+    private XDPool2XsdAdapter createXdPoolAdapter(Set<XD2XsdFeature> additionalFeatures) {
         final XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
         final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
         features.add(XD2XsdFeature.XSD_ANNOTATION);
+        if (additionalFeatures != null) {
+            features.addAll(additionalFeatures);
+        }
         adapter.setFeatures(features);
         return adapter;
     }
@@ -349,29 +354,34 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private void convertXdDef2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, true, null, false);
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, true, null, false, null);
     }
 
     private void convertXdDef2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, null, false);
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, null);
+    }
+
+    private void convertXdDef2XsdWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<XD2XsdFeature> features) {
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, features);
     }
 
     private void convertXdDef2XsdNoSupport(final String fileName, List<String> validTestingData, List<String> invalidTestingData, String exMsg) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, exMsg, false);
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, exMsg, false, null);
     }
 
     private void convertXdDef2XsdInvalidXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, null, true);
+        convertXdDef2Xsd(fileName, validTestingData, invalidTestingData, false, null, true, null);
     }
 
     private void convertXdDef2Xsd(final String fileName,
                                   List<String> validTestingData, List<String> invalidTestingData,
                                   boolean validateAgainstRefXsd,
-                                  String exMsg, boolean invalidXsd) {
+                                  String exMsg, boolean invalidXsd,
+                                  Set<XD2XsdFeature> features) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDef2XsdAdapter adapter = createXdDefAdapter(null);
+            XDef2XsdAdapter adapter = createXdDefAdapter(features);
 
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
@@ -400,29 +410,34 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private void convertXdPool2XsdNoSupport(final String fileName, List<String> validTestingData, List<String> invalidTestingData, String exMsg) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, exMsg, false);
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, exMsg, false, null);
     }
 
     private void convertXdPool2XsdInvalidXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, true);
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, true, null);
     }
 
     private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, false);
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, null);
+    }
+
+    private void convertXdPool2XsdWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<XD2XsdFeature> features) {
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, features);
     }
 
     private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, true, null, false);
+        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, true, null, false, null);
     }
 
     private void convertXdPool2Xsd(final String fileName, List<String> validTestingData,
                                    List<String> invalidTestingData,
                                    boolean validateAgainstRefXsd,
-                                   String exMsg, boolean invalidXsd) {
+                                   String exMsg, boolean invalidXsd,
+                                   Set<XD2XsdFeature> features) {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDPool2XsdAdapter adapter = createXdPoolAdapter(null);
+            XDPool2XsdAdapter adapter = createXdPoolAdapter(features);
 
             // Load x-definition files
             File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
@@ -464,6 +479,7 @@ public class TestXd2Xsd extends XDTester {
     public void test() {
         init();
 
+
         // ============ XDef ============
 
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), null);
@@ -501,7 +517,6 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
 
         convertXdDef2XsdNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
-
         convertXdDef2XsdNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
         convertXdPool2XsdNoRef("namespaceTest3", Arrays.asList(new String[] {"namespaceTest3_valid_1"}), null);
         convertXdPool2XsdNoRef("namespaceTest4", Arrays.asList(new String[] {"namespaceTest4_valid_1"}), null);
@@ -540,6 +555,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdPool2XsdNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
         convertXdPool2XsdNoRef ("typeTest", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
+        convertXdPool2XsdWithFeatures ("typeTest2", Arrays.asList(new String[] {"typeTest2_valid_1"}), null, EnumSet.of(XD2XsdFeature.XSD_DECIMAL_ANY_SEPARATOR));
         convertXdPool2XsdNoRef("Test000_05", Arrays.asList(new String[] {"Test000_05"}), null);
 
 
@@ -555,7 +571,7 @@ public class TestXd2Xsd extends XDTester {
                 Arrays.asList(new String[] {"groupChoice4_valid_1", "groupChoice4_valid_2", "groupChoice4_valid_3"}),
                 Arrays.asList(new String[] {"groupChoice4_invalid_1", "groupChoice4_invalid_2"})
         );
-        
+
         convertXdDef2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
         convertXdDef2XsdNoRef ("groupMixed1", Arrays.asList(new String[] {"groupMixed1_valid_1", "groupMixed1_valid_2"}), Arrays.asList(new String[] {"groupMixed1_invalid_1"}));
         convertXdDef2XsdNoRef ("groupMixed2", Arrays.asList(new String[] {"groupMixed2_valid_1", "groupMixed2_valid_2", "groupMixed2_valid_3", "groupMixed2_valid_4"}), Arrays.asList(new String[] {"groupMixed2_invalid_1"}));
@@ -578,6 +594,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdDef2XsdNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
         convertXdDef2XsdNoRef ("defaultValue2", Arrays.asList(new String[] {"defaultValue2_valid_1"}), null);
+
 
     }
 

@@ -138,12 +138,12 @@ public class XD2XsdTreeAdapter {
                 attr.setSchemaTypeName(new QName(nsUri, refTypeName));
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition." +
                         " Name=" + xData.getName() + ", Type=" + attr.getSchemaTypeName());
-            } else if ((qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData)) != null) {
+            } else if ((qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx)) != null) {
                 attr.setSchemaTypeName(qName);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype. " +
                         "Element=" + xData.getName() + ", Type=" + qName);
             } else if (XD_PARSER_EQ.equals(xData.getParserName())) {
-                qName = XD2XsdParserMapping.getDefaultParserQName(xData.getValueTypeName());
+                qName = XD2XsdParserMapping.getDefaultParserQName(xData.getValueTypeName(), adapterCtx);
                 final String fixedValue = xData.getFixedValue();
                 if (fixedValue != null) {
                     attr.setFixedValue(fixedValue);
@@ -445,7 +445,7 @@ public class XD2XsdTreeAdapter {
     private void addSimpleTypeToElem(final XmlSchemaElement xsdElem, final XData xd) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xd, "Creating simple type of element. Element=" + xsdElem.getName());
 
-        final QName qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xd);
+        final QName qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xd, adapterCtx);
         if (qName != null) {
             xsdElem.setSchemaTypeName(qName);
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xd, "Content of element contains only XSD datatype" +

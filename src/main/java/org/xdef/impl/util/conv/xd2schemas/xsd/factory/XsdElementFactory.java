@@ -133,11 +133,11 @@ public class XsdElementFactory {
             qName = new QName(nsUri, refTypeName);
             XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
         } else {
-            qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData);
+            qName = XD2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx);
         }
 
         if (qName == null) {
-            final String refParserName = XsdNameUtils.createRefNameFromParser(xData);
+            final String refParserName = XsdNameUtils.createRefNameFromParser(xData, adapterCtx);
             if (refParserName != null) {
                 qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
                 XsdLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xData, "Simple-content using parser. Parser=" + refParserName);

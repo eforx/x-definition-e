@@ -10,7 +10,6 @@ public interface XD2XsdDefinitions {
      */
 
     String XD_PARSER_CDATA = "CDATA";
-    String XD_PARSER_DEC = "dec";
     String XD_PARSER_EQ = "eq";
     String XD_PARSER_ISODATE = "ISOdate";
     String XD_PARSER_ISODATETIME = "ISOdateTime";

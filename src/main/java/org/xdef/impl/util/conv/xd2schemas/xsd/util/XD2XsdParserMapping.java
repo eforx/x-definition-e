@@ -6,6 +6,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.ListRegexFacetFactory;
@@ -13,6 +14,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.TokensRegexF
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.TokensFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.UnionRegexFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.*;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
@@ -34,7 +36,6 @@ public class XD2XsdParserMapping {
         defaultQNameMap.put(XD_PARSER_ISODATE, Constants.XSD_DATE);
         defaultQNameMap.put(XD_PARSER_ISODATETIME, Constants.XSD_DATETIME);
         defaultQNameMap.put(XD_PARSER_ISOYEARMONTH, Constants.XSD_YEARMONTH);
-        defaultQNameMap.put(XD_PARSER_DEC, Constants.XSD_DECIMAL);
         defaultQNameMap.put(XD_PARSER_ISOYEAR, Constants.XSD_YEAR);
         defaultQNameMap.put(XD_PARSER_REGEX, Constants.XSD_STRING);
 
@@ -97,8 +98,15 @@ public class XD2XsdParserMapping {
      * @param parserName
      * @return
      */
-    public static QName getDefaultParserQName(final String parserName) {
-        return defaultQNameMap.get(parserName);
+    public static QName getDefaultParserQName(final String parserName, final XsdAdapterCtx adapterCtx) {
+        QName qName = defaultQNameMap.get(parserName);
+        if (qName == null) {
+            if (DecFacetFactory.XD_PARSER_NAME.equals(parserName) && !adapterCtx.hasEnableFeature(XD2XsdFeature.XSD_DECIMAL_ANY_SEPARATOR)) {
+                return Constants.XSD_DECIMAL;
+            }
+        }
+
+        return qName;
     }
 
     /**
@@ -107,12 +115,14 @@ public class XD2XsdParserMapping {
      * @return  QName - qualified XML name
      *          Boolean - use also default facet facets factory
      */
-    public static Pair<QName, IXsdFacetFactory> getCustomFacetFactory(final String parserName, final XDNamedValue[] parameters) {
+    public static Pair<QName, IXsdFacetFactory> getCustomFacetFactory(final String parserName, final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
         Pair<QName, IXsdFacetFactory> res = customFacetMap.get(parserName);
         // Custom dynamic facet factories
         if (res == null) {
-            if (ListFacetFactory.XD_PARSER_NAME.equals(parserName)) {
-                final QName qName = determineListBaseType(parameters);
+            if (DecFacetFactory.XD_PARSER_NAME.equals(parserName) && adapterCtx.hasEnableFeature(XD2XsdFeature.XSD_DECIMAL_ANY_SEPARATOR)) {
+                res = new Pair(Constants.XSD_STRING, new DecFacetFactory());
+            } else if (ListFacetFactory.XD_PARSER_NAME.equals(parserName)) {
+                final QName qName = determineListBaseType(parameters, adapterCtx);
                 res = new Pair(qName, new ListFacetFactory());
             } else if (UnionFacetFactory.XD_PARSER_NAME.equals(parserName)) {
                 res = new Pair(null, new UnionFacetFactory());
@@ -128,8 +138,8 @@ public class XD2XsdParserMapping {
         return res;
     }
 
-    public static Pair<QName, IXsdFacetFactory> getDefaultFacetFactory(final String parserName) {
-        QName qName = getDefaultParserQName(parserName);
+    public static Pair<QName, IXsdFacetFactory> getDefaultFacetFactory(final String parserName, final XsdAdapterCtx adapterCtx) {
+        final QName qName = getDefaultParserQName(parserName, adapterCtx);
         if (qName != null) {
             return new Pair(qName, new DefaultFacetFactory());
         }
@@ -137,16 +147,16 @@ public class XD2XsdParserMapping {
         return null;
     }
 
-    public static QName getDefaultSimpleParserQName(final XData xData) {
+    public static QName getDefaultSimpleParserQName(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
 
-        QName defaultQName = getDefaultParserQName(parserName);
+        final QName defaultQName = getDefaultParserQName(parserName, adapterCtx);
 
         if (defaultQName != null && parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
             XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            if (parameters.length == 0 && getCustomFacetFactory(parserName, parameters) == null) {
+            if (parameters.length == 0 && getCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
                 return defaultQName;
             }
         }
@@ -154,7 +164,7 @@ public class XD2XsdParserMapping {
         return null;
     }
 
-    private static QName determineListBaseType(final XDNamedValue[] parameters) {
+    private static QName determineListBaseType(final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Determination of list QName ...");
 
         String parserName = null;
@@ -178,7 +188,7 @@ public class XD2XsdParserMapping {
             throw new RuntimeException("Expected parser type or multiple parsers used!");
         }
 
-        QName res = getDefaultParserQName(parserName);
+        QName res = getDefaultParserQName(parserName, adapterCtx);
         if (res == null) {
             XsdLogger.printP(LOG_WARN, TRANSFORMATION, "Unsupported simple content parser! Parser=" + parserName);
             res = Constants.XSD_STRING;
