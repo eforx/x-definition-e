@@ -52,7 +52,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         }
 
         this.xdPool = xdPool;
-        adapterCtx = new XsdAdapterCtx();
+        adapterCtx = new XsdAdapterCtx(features);
         adapterCtx.init();
 
         init();

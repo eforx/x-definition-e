@@ -7,7 +7,9 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.*;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
@@ -117,13 +119,19 @@ public class TestXd2Xsd extends XDTester {
         return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xsd");
     }
 
-    private XDef2XsdAdapter createXdDefAdapter() {
-        XDef2XsdAdapter adapter = new XDef2XsdAdapter();
+    private XDef2XsdAdapter createXdDefAdapter(List<XD2XsdFeature> additionalFeatures) {
+        final XDef2XsdAdapter adapter = new XDef2XsdAdapter();
+        final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
+        features.add(XD2XsdFeature.XSD_ANNOTATION);
+        adapter.setFeatures(features);
         return adapter;
     }
 
-    private XDPool2XsdAdapter createXdPoolAdapter() {
-        XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
+    private XDPool2XsdAdapter createXdPoolAdapter(List<XD2XsdFeature> additionalFeatures) {
+        final XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
+        final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
+        features.add(XD2XsdFeature.XSD_ANNOTATION);
+        adapter.setFeatures(features);
         return adapter;
     }
 
@@ -363,7 +371,7 @@ public class TestXd2Xsd extends XDTester {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDef2XsdAdapter adapter = createXdDefAdapter();
+            XDef2XsdAdapter adapter = createXdDefAdapter(null);
 
             // Convert XD -> XSD Schema
             XDPool inputXD = compileXd(fileName);
@@ -414,7 +422,7 @@ public class TestXd2Xsd extends XDTester {
         ArrayReporter reporter = new ArrayReporter();
         setProperty("xdef.warnings", "true");
         try {
-            XDPool2XsdAdapter adapter = createXdPoolAdapter();
+            XDPool2XsdAdapter adapter = createXdPoolAdapter(null);
 
             // Load x-definition files
             File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");

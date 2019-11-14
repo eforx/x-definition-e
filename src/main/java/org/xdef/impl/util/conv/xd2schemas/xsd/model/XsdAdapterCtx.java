@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNamespaceUtils;
@@ -64,6 +65,15 @@ public class XsdAdapterCtx {
      * Value:   set of node names
      */
     private Map<String, Set<String>> rootNodeNames = null;
+
+    /**
+     * Enabled algorithm features
+     */
+    final private Set<XD2XsdFeature> features;
+
+    public XsdAdapterCtx(Set<XD2XsdFeature> features) {
+        this.features = features;
+    }
 
     public void init() {
         schemaNames = new HashSet<String>();
@@ -321,6 +331,10 @@ public class XsdAdapterCtx {
         }
 
         schemaRootNodeNames.add(nodeName);
+    }
+
+    public boolean hasEnableFeature(final XD2XsdFeature feature) {
+        return features.contains(feature);
     }
 
 }

@@ -8,11 +8,12 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
-import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.ListFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.UnionFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdParserMapping;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
@@ -26,17 +27,20 @@ import java.util.Set;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
 
 public class XsdSimpleContentFactory {
 
     private final XsdElementFactory xsdFactory;
+    private final XsdAdapterCtx adapterCtx;
     private final XData xData;
     private final String parserName;
     private XDNamedValue[] parameters = null;
 
-    public XsdSimpleContentFactory(XsdElementFactory xsdFactory, XData xData) {
+    public XsdSimpleContentFactory(XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx, XData xData) {
         this.xsdFactory = xsdFactory;
+        this.adapterCtx = adapterCtx;
         this.xData = xData;
         this.parserName = xData.getParserName();
     }
@@ -46,7 +50,6 @@ public class XsdSimpleContentFactory {
     }
 
     public XmlSchemaSimpleTypeContent createSimpleContent(final String nodeName, boolean isAttr) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating restrictions of simple content ...");
 
         boolean customParser = true;
         boolean unknownParser = false;
@@ -86,7 +89,7 @@ public class XsdSimpleContentFactory {
         }
 
         if (!annotations.isEmpty()) {
-            res.setAnnotation(XsdElementFactory.createAnnotation(annotations));
+            res.setAnnotation(XsdElementFactory.createAnnotation(annotations, adapterCtx));
         }
 
         return res;
@@ -99,7 +102,8 @@ public class XsdSimpleContentFactory {
 
     private XmlSchemaSimpleTypeRestriction simpleTypeRestriction(final QName qName, final IXsdFacetFactory facetBuilder, final XDNamedValue[] parameters) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type restriction. Type=" + qName);
-        XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();
+        facetBuilder.setAdapterCtx(adapterCtx);
+        final XmlSchemaSimpleTypeRestriction restriction = new XmlSchemaSimpleTypeRestriction();
         if (qName != null) {
             restriction.setBaseTypeName(qName);
         }
@@ -187,7 +191,7 @@ public class XsdSimpleContentFactory {
 
         final XmlSchemaSimpleTypeRestriction restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue(), value.getNamedParams().getXDNamedItems());
         if (unknownParser) {
-            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + value.parserName()));
+            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + value.parserName(), adapterCtx));
         }
 
         final String refName = XsdNameUtils.newUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());

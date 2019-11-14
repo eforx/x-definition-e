@@ -198,7 +198,7 @@ public class XD2XsdTreeAdapter {
                     xsdAny.setMinOccurs(0);
                     xsdAny.setProcessContent(XmlSchemaContentProcessing.LAX);
                     if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
-                        xsdAny.setAnnotation(XsdElementFactory.createAnnotation("Original any element contains children nodes/attributes"));
+                        xsdAny.setAnnotation(XsdElementFactory.createAnnotation("Original any element contains children nodes/attributes", adapterCtx));
                         XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "!Lossy transformation! Any type with attributes/children nodes is not supported!");
                     }
 
@@ -514,7 +514,7 @@ public class XD2XsdTreeAdapter {
                     if (!particleStack.empty()) {
                         currParticle = particleStack.pop();
                         if (currParticle instanceof CXmlSchemaChoice && ((CXmlSchemaChoice) currParticle).hasTransformDirection()) {
-                            ((CXmlSchemaChoice) currParticle).updateOccurence();
+                            ((CXmlSchemaChoice) currParticle).updateOccurence(adapterCtx);
                         }
 
                         if (!particleStack.empty()) {
@@ -548,7 +548,7 @@ public class XD2XsdTreeAdapter {
             complexType.setParticle(currParticle instanceof CXmlSchemaGroupParticle ? ((CXmlSchemaGroupParticle) currParticle).xsd() : currParticle);
         }
 
-        XsdPostProcessor.elementComplexType(complexType, xChildrenNodes, xElem);
+        new XsdPostProcessor(adapterCtx).elementComplexType(complexType, xElem);
 
         if (complexType.getContentModel() == null) {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add attributes to complex content of element");
@@ -601,13 +601,15 @@ public class XD2XsdTreeAdapter {
                 addNodeToParticleGroup(currGroup, groupRef);
 
                 if (group.getParticle() instanceof XmlSchemaAll) {
-                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(XsdPostProcessor.groupParticleAllToChoice((XmlSchemaAll)group.getParticle(), false));
-                    group.setParticle(newGroupChoice.xsd());
-                    // We have to use occurence on groupRef element
-                    groupRef.setMinOccurs(newGroupChoice.xsd().getMinOccurs());
-                    groupRef.setMaxOccurs(newGroupChoice.xsd().getMaxOccurs());
-                    newGroupChoice.xsd().setMinOccurs(1);
-                    newGroupChoice.xsd().setMaxOccurs(1);
+                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XsdPostProcessor(adapterCtx).groupParticleAllToChoice((XmlSchemaAll)group.getParticle(), false));
+                    if (newGroupChoice != null) {
+                        group.setParticle(newGroupChoice.xsd());
+                        // We have to use occurence on groupRef element
+                        groupRef.setMinOccurs(newGroupChoice.xsd().getMinOccurs());
+                        groupRef.setMaxOccurs(newGroupChoice.xsd().getMaxOccurs());
+                        newGroupChoice.xsd().setMinOccurs(1);
+                        newGroupChoice.xsd().setMaxOccurs(1);
+                    }
                 }
 
                 return currGroup;
@@ -624,7 +626,7 @@ public class XD2XsdTreeAdapter {
      * @param newGroupParticle
      * @return
      */
-    private static int updateGroupParticles(final Stack<XmlSchemaParticle> particleStack, XmlSchemaParticle prev, final CXmlSchemaGroupParticle newGroupParticle) {
+    private int updateGroupParticles(final Stack<XmlSchemaParticle> particleStack, XmlSchemaParticle prev, final CXmlSchemaGroupParticle newGroupParticle) {
         int stackPopCounter = 0;
         particleStack.push(newGroupParticle);
 
@@ -644,20 +646,18 @@ public class XD2XsdTreeAdapter {
                     cCurr.addItems(cPrev.getItems());
                     merge = true;
                 } else {
-                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
-                    newGroupChoice.setTransformDirection(CXmlSchemaChoice.TransformationDirection.BOTTOM_UP);
-                    newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
-                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
-                    replaceLastGroupParticle(particleStack, newGroupChoice);
+                    final CXmlSchemaChoice newGroupChoice = new XsdPostProcessor(adapterCtx).groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.BOTTOM_UP);
+                    if (newGroupChoice != null) {
+                        replaceLastGroupParticle(particleStack, newGroupChoice);
+                    }
                 }
             } else if (cPrev.xsd() instanceof XmlSchemaAll) {
-                final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
-                newGroupChoice.setTransformDirection(CXmlSchemaChoice.TransformationDirection.TOP_DOWN);
-                newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
-                XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
-                particleStack.pop();
-                replaceLastGroupParticle(particleStack, newGroupChoice);
-                pushGroupParticleToStack(particleStack, newGroupChoice, newGroupParticle);
+                final CXmlSchemaChoice newGroupChoice = new XsdPostProcessor(adapterCtx).groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.TOP_DOWN);
+                if (newGroupChoice != null) {
+                    particleStack.pop();
+                    replaceLastGroupParticle(particleStack, newGroupChoice);
+                    pushGroupParticleToStack(particleStack, newGroupChoice, newGroupParticle);
+                }
             } else {
                 if (prev != null) {
                     addNodeToParticleGroup(prev, newGroupParticle);

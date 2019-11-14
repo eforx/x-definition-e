@@ -4,10 +4,9 @@ import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,5 +112,11 @@ public class XD2XsdUtils {
         }
 
         return new Pair<Long, Long>(elementMinOccursSum, elementMaxOccursSum);
+    }
+
+    public static Set<XD2XsdFeature> defaultFeatures() {
+        Set<XD2XsdFeature> features = new HashSet<XD2XsdFeature>();
+        features.addAll(XD2XsdFeature.POSTPROCESSING_FEATURES);
+        return features;
     }
 }

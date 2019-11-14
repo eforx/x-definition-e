@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public interface IXsdFacetFactory {
         STRING
     }
 
+    void setAdapterCtx(XsdAdapterCtx adapterCtx);
 
     /**
      * Creates facets from parameters

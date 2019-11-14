@@ -9,6 +9,9 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaAll;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaGroupParticle;
@@ -28,16 +31,12 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 public class XsdElementFactory {
 
-    private static boolean createAnnotation = false;
-
     private final XmlSchema schema;
+    private final XsdAdapterCtx adapterCtx;
 
-    public XsdElementFactory(XmlSchema schema) {
+    public XsdElementFactory(XmlSchema schema, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
-    }
-
-    public static void setCreateAnnotation(boolean createAnnotation) {
-        XsdElementFactory.createAnnotation = createAnnotation;
+        this.adapterCtx = adapterCtx;
     }
 
     /**
@@ -261,7 +260,7 @@ public class XsdElementFactory {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type content");
 
         final XDValue parseMethod = xData.getParseMethod();
-        final XsdSimpleContentFactory simpleContentFactory = new XsdSimpleContentFactory(this, xData);
+        final XsdSimpleContentFactory simpleContentFactory = new XsdSimpleContentFactory(this, adapterCtx, xData);
 
         if (parseMethod instanceof XDParser) {
             XDParser parser = ((XDParser)parseMethod);
@@ -283,8 +282,8 @@ public class XsdElementFactory {
         schemaImport.setSchemaLocation(location);
     }
 
-    public static XmlSchemaAnnotation createAnnotation(final String annotationValue) {
-        if (createAnnotation) {
+    public static XmlSchemaAnnotation createAnnotation(final String annotationValue, final XsdAdapterCtx adapterCtx) {
+        if (adapterCtx.hasEnableFeature(XD2XsdFeature.XSD_ANNOTATION)) {
             final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
             annotation.getItems().add(createAnnotationItem(annotationValue));
             return annotation;
@@ -293,8 +292,8 @@ public class XsdElementFactory {
         return null;
     }
 
-    public static XmlSchemaAnnotation createAnnotation(final List<String> annotationValues) {
-        if (createAnnotation) {
+    public static XmlSchemaAnnotation createAnnotation(final List<String> annotationValues, final XsdAdapterCtx adapterCtx) {
+        if (adapterCtx.hasEnableFeature(XD2XsdFeature.XSD_ANNOTATION)) {
             final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
             for (String value : annotationValues) {
                 annotation.getItems().add(createAnnotationItem(value));
@@ -310,7 +309,7 @@ public class XsdElementFactory {
             return null;
         }
 
-        XmlSchemaDocumentation annotationItem = new XmlSchemaDocumentation();
+        final XmlSchemaDocumentation annotationItem = new XmlSchemaDocumentation();
 
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();

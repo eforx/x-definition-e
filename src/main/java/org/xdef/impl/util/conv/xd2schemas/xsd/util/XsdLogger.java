@@ -35,7 +35,7 @@ public class XsdLogger {
         print(level, null, group, node, msg);
     }
 
-    private static void print(int level, final AlgPhase phase, final String group, final XNode node, final String msg) {
+    public static void print(int level, final AlgPhase phase, final String group, final XNode node, final String msg) {
         if (level > LOG_LEVEL) {
             return;
         }

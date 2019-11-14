@@ -50,7 +50,7 @@ public class DateTimeFormatFacetFactory extends AbstractXsdFacetFactory {
         final Set<String> patterns = DateTimeFormatAdapter.getRegexes(value);
         final String pattern = XD2XsdUtils.regexCollectionToSingleRegex(patterns);
         XmlSchemaPatternFacet facet = super.pattern(pattern);
-        facet.setAnnotation(XsdElementFactory.createAnnotation("Original pattern value: '" + value + "'"));
+        facet.setAnnotation(XsdElementFactory.createAnnotation("Original pattern value: '" + value + "'", adapterCtx));
         facets.add(facet);
     }
 }

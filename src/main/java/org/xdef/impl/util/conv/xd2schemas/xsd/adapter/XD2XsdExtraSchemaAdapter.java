@@ -135,7 +135,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
 
             final String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
-            final XsdElementFactory xsdFactory = new XsdElementFactory(schema);
+            final XsdElementFactory xsdFactory = new XsdElementFactory(schema, adapterCtx);
             final XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
             final XD2XsdReferenceAdapter referenceAdapter = new XD2XsdReferenceAdapter(schema, schemaName, xsdFactory, treeAdapter, adapterCtx);
 

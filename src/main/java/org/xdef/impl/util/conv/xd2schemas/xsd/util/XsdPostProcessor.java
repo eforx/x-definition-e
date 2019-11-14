@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
@@ -12,7 +13,10 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
@@ -35,7 +39,7 @@ public class XsdPostProcessor {
             XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
 
             final XmlSchema xmlSchema = adapterCtx.getSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
-            final XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema);
+            final XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
             final Set<String> schemaRootNodeNames = adapterCtx.getSchemaRootNodeNames(systemRefEntry.getKey());
 
             for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
@@ -112,8 +116,8 @@ public class XsdPostProcessor {
 
         if (isTopElement(refNode)) {
             final String systemId = XsdNamespaceUtils.getReferenceSystemId(refNode.getXdNode().getXDPosition());
-            XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
-            XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema);
+            final XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
+            final XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
             if (refNode.toXsdElem().isRef()) {
                 elementRootRef(refNode, refXsdFactory);
             } else {
@@ -231,7 +235,7 @@ public class XsdPostProcessor {
         }
     }
 
-    public static void elementComplexType(final XmlSchemaComplexType complexType, final XNode[] xChildrenNodes, final XElement defEl) {
+    public void elementComplexType(final XmlSchemaComplexType complexType, final XElement defEl) {
         XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
 
         if (complexType.getParticle() instanceof XmlSchemaAll) {
@@ -243,7 +247,7 @@ public class XsdPostProcessor {
 
         // element contains simple content and particle -> XSD does not support restrictions for text if element contains elements
         // We have to use mixed attribute for root element and remove simple content
-        {
+        if (adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_MIXED)) {
             if (complexType.getParticle() != null && complexType.getContentModel() != null && complexType.getContentModel() instanceof XmlSchemaSimpleContent) {
                 XsdLogger.printP(LOG_WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
 
@@ -260,12 +264,16 @@ public class XsdPostProcessor {
                 //XD2XsdUtils.removeItem(schema, complexType.getContentModel());
                 complexType.setContentModel(null);
                 complexType.setMixed(true);
-                complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition"));
+                complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition", adapterCtx));
             }
         }
     }
 
-    public static XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll) {
+    public XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll) {
+        if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
+            return null;
+        }
+
         boolean anyElementMultiple = false;
         boolean anyElementUnbound = false;
 
@@ -287,12 +295,16 @@ public class XsdPostProcessor {
         return null;
     }
 
-    public static XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll, boolean unbounded) {
+    public XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll, boolean unbounded) {
+        if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
+            return null;
+        }
+
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle xsd:all to xsd:choice ...");
         XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
 
         final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
-        newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all"));
+        newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all", adapterCtx));
 
         long elementMinOccursSum = 0;
         long elementMaxOccursSum = 0;
@@ -317,7 +329,7 @@ public class XsdPostProcessor {
         return newGroupChoice;
     }
 
-    private static void copyAllMembersToChoice(final XmlSchemaAll groupParticleAll, final XmlSchemaChoice schemaChoice) {
+    private void copyAllMembersToChoice(final XmlSchemaAll groupParticleAll, final XmlSchemaChoice schemaChoice) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle's members of xsd:all to xsd:choice");
         for (XmlSchemaAllMember member : groupParticleAll.getItems()) {
             allMemberToChoiceMember(member);
@@ -325,17 +337,32 @@ public class XsdPostProcessor {
         }
     }
 
-    public static void allMemberToChoiceMember(final XmlSchemaObjectBase member) {
+    public void allMemberToChoiceMember(final XmlSchemaObjectBase member) {
+        if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
+            return;
+        }
+
         if (member instanceof XmlSchemaParticle) {
             final XmlSchemaParticle memberParticle = (XmlSchemaParticle)member;
             if (memberParticle.getMinOccurs() != 1 || memberParticle.getMaxOccurs() != 1) {
                 final String minOcc = memberParticle.getMinOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMinOccurs());
                 final String maxOcc = memberParticle.getMaxOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMaxOccurs());
-                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + minOcc + ", " + maxOcc + "]"));
+                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + minOcc + ", " + maxOcc + "]", adapterCtx));
             }
 
             memberParticle.setMaxOccurs(1);
             memberParticle.setMinOccurs(1);
         }
+    }
+
+    public CXmlSchemaChoice groupParticleAllToChoice(final CXmlSchemaChoice.TransformDirection transformDirection) {
+        if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
+            return null;
+        }
+        final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
+        newGroupChoice.setTransformDirection(transformDirection);
+        newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all", adapterCtx));
+        XsdLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
+        return newGroupChoice;
     }
 }
