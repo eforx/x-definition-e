@@ -311,7 +311,7 @@ public class XsdPostProcessor {
 
         // Calculate member occurrences
         if (!unbounded) {
-            final Pair<Long, Long> memberOccurence = XD2XsdUtils.calculateGroupAllMembersOccurrence(groupParticleAll);
+            final Pair<Long, Long> memberOccurence = XD2XsdUtils.calculateGroupAllMembersOccurrence(groupParticleAll, adapterCtx);
             elementMinOccursSum = memberOccurence.getKey();
             elementMaxOccursSum = memberOccurence.getValue();
         } else {

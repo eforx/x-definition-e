@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -76,19 +77,19 @@ public class XD2XsdUtils {
         return xElem.getName().endsWith("$any");
     }
 
-    public static Pair<Long, Long> calculateGroupAllMembersOccurrence(final XmlSchemaAll groupParticleAll) {
+    public static Pair<Long, Long> calculateGroupAllMembersOccurrence(final XmlSchemaAll groupParticleAll, final XsdAdapterCtx adapterCtx) {
         final XmlSchemaObjectBase[] members = new XmlSchemaObjectBase[groupParticleAll.getItems().size()];
         groupParticleAll.getItems().toArray(members);
-        return calculateGroupParticleMembersOccurrence(members);
+        return calculateGroupParticleMembersOccurrence(members, adapterCtx);
     }
 
-    public static Pair<Long, Long> calculateGroupChoiceMembersOccurrence(final XmlSchemaChoice groupParticleChoice) {
+    public static Pair<Long, Long> calculateGroupChoiceMembersOccurrence(final XmlSchemaChoice groupParticleChoice, final XsdAdapterCtx adapterCtx) {
         final XmlSchemaObjectBase[] members = new XmlSchemaObjectBase[groupParticleChoice.getItems().size()];
         groupParticleChoice.getItems().toArray(members);
-        return calculateGroupParticleMembersOccurrence(members);
+        return calculateGroupParticleMembersOccurrence(members, adapterCtx);
     }
 
-    public static Pair<Long, Long> calculateGroupParticleMembersOccurrence(final XmlSchemaObjectBase[] members) {
+    public static Pair<Long, Long> calculateGroupParticleMembersOccurrence(final XmlSchemaObjectBase[] members, final XsdAdapterCtx adapterCtx) {
         long elementMaxOccursSum = 0;
         long elementMinOccursSum = 0;
 
@@ -109,6 +110,10 @@ public class XD2XsdUtils {
                     break;
                 }
             }
+        }
+
+        if (adapterCtx.hasEnableFeature(XD2XsdFeature.XSD_ALL_UNBOUNDED)) {
+            elementMaxOccursSum = Long.MAX_VALUE;
         }
 
         return new Pair<Long, Long>(elementMinOccursSum, elementMaxOccursSum);

@@ -52,7 +52,7 @@ public class CXmlSchemaChoice extends CXmlSchemaGroupParticle<XmlSchemaChoice, X
     }
 
     public void updateOccurence(final XsdAdapterCtx adapterCtx) {
-        final Pair<Long, Long> memberOccurence = XD2XsdUtils.calculateGroupChoiceMembersOccurrence(xsdNode);
+        final Pair<Long, Long> memberOccurence = XD2XsdUtils.calculateGroupChoiceMembersOccurrence(xsdNode, adapterCtx);
         long elementMinOccursSum = memberOccurence.getKey();
         long elementMaxOccursSum = memberOccurence.getValue();
 
