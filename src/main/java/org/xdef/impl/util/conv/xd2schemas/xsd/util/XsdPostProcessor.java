@@ -329,7 +329,9 @@ public class XsdPostProcessor {
         if (member instanceof XmlSchemaParticle) {
             final XmlSchemaParticle memberParticle = (XmlSchemaParticle)member;
             if (memberParticle.getMinOccurs() != 1 || memberParticle.getMaxOccurs() != 1) {
-                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + memberParticle.getMinOccurs() + ", " + memberParticle.getMaxOccurs() + "]"));
+                final String minOcc = memberParticle.getMinOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMinOccurs());
+                final String maxOcc = memberParticle.getMaxOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMaxOccurs());
+                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + minOcc + ", " + maxOcc + "]"));
             }
 
             memberParticle.setMaxOccurs(1);

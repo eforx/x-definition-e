@@ -9,6 +9,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.ListRegexFacetFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.TokensRegexFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.TokensFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.UnionRegexFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.*;
@@ -86,8 +87,8 @@ public class XD2XsdParserMapping {
         customFacetMap.put(RegexFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new RegexFacetFactory()));
         customFacetMap.put(StartsFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new StartsFacetFactory(true)));
         customFacetMap.put(StartsFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new StartsFacetFactory(false)));
-        customFacetMap.put(TokensFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new TokensFacetFactory(true)));
-        customFacetMap.put(TokensFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new TokensFacetFactory(false)));
+        customFacetMap.put(TokensFacetFactory.XD_PARSER_NAME, new Pair(Constants.XSD_STRING, new TokensFacetFactory()));
+        customFacetMap.put(TokensRegexFacetFactory.XD_PARSER_CI_NAME, new Pair(Constants.XSD_STRING, new TokensRegexFacetFactory()));
 
     }
 

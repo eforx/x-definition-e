@@ -31,7 +31,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
     public List<XmlSchemaFacet> build(final XDNamedValue[] params) {
         XsdLogger.print(LOG_INFO, TRANSFORMATION, this.getClass().getSimpleName(),"Building facets ...");
 
-        List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
+        final List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
@@ -43,7 +43,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
             }
         }
 
-        facets.addAll(createPatternFacets());
+        createPatternFacets(facets);
         return facets;
     }
 
@@ -130,9 +130,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
         return false;
     }
 
-    protected List<XmlSchemaFacet> createPatternFacets() {
-        return null;
-    }
+    protected void createPatternFacets(final List<XmlSchemaFacet> facets) { }
 
     protected void createPatterns(final String parserName, final XDNamedValue[] params) { }
 

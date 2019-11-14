@@ -53,10 +53,8 @@ public class ListRegexFacetFactory extends AbstractArrayFacetFactory {
     }
 
     @Override
-    protected List<XmlSchemaFacet> createPatternFacets() {
+    protected void createPatternFacets(final List<XmlSchemaFacet> facets) {
         XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
-
-        List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (regex != null && !regex.isEmpty()) {
             String pattern = "((" + regex + ")\\s)";
@@ -86,8 +84,6 @@ public class ListRegexFacetFactory extends AbstractArrayFacetFactory {
 
             facets.add(super.pattern(pattern));
         }
-
-        return facets;
     }
 
     @Override

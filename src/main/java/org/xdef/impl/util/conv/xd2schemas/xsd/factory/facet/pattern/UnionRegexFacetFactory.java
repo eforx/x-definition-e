@@ -45,10 +45,8 @@ public class UnionRegexFacetFactory extends AbstractArrayFacetFactory {
     }
 
     @Override
-    protected List<XmlSchemaFacet> createPatternFacets() {
+    protected void createPatternFacets(final List<XmlSchemaFacet> facets) {
         XsdLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(),"Creating pattern facets ...");
-
-        List<XmlSchemaFacet> facets = new ArrayList<XmlSchemaFacet>();
 
         if (!facetPatterns.isEmpty()) {
             // Enumeration with list inside
@@ -99,11 +97,7 @@ public class UnionRegexFacetFactory extends AbstractArrayFacetFactory {
                     facets.add(super.pattern("(" + pattern + ")"));
                 }
             }
-
-
         }
-
-        return facets;
     }
 
 }

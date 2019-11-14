@@ -41,4 +41,19 @@ public class EnumerationRegexFactory implements RegexFactory {
 
         return sb.toString();
     }
+
+    public static String containerValuesToPattern(String[] values) {
+        final StringBuilder sb = new StringBuilder();
+        for (String value : values) {
+            // Remove all new lines and leading whitespaces on new line
+            String strValue = value.replaceAll("\\n *", " ");
+            if (sb.length() == 0) {
+                sb.append(strValue);
+            } else {
+                sb.append("|" + strValue);
+            }
+        }
+
+        return sb.toString();
+    }
 }
