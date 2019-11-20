@@ -30,13 +30,13 @@ public class XsdNameUtils {
         return refPos;
     }
 
-    public static String getReferenceNodePath(final String refPos) {
-        int xdefSystemSeparatorPos = refPos.indexOf('#');
+    public static String getXNodePath(final String nodePos) {
+        int xdefSystemSeparatorPos = nodePos.indexOf('#');
         if (xdefSystemSeparatorPos != -1) {
-            return refPos.substring(xdefSystemSeparatorPos + 1);
+            return nodePos.substring(xdefSystemSeparatorPos + 1);
         }
 
-        return refPos;
+        return nodePos;
     }
 
     public static String getPostProcessingReferenceNodePath(final String refPos) {
@@ -45,7 +45,7 @@ public class XsdNameUtils {
             return refPos.substring(xdefSystemSeparatorPos + 1);
         }
 
-        return getReferenceNodePath(refPos);
+        return getXNodePath(refPos);
     }
 
     public static String getPostProcessingNodePos(final String systemId, final String path) {
@@ -144,6 +144,29 @@ public class XsdNameUtils {
         }
 
         return xElem.getName().substring(0, typeSepPos);
+    }
+
+    public static String getUniqueSetVarName(final String varTypeName) {
+        final int pos = varTypeName.lastIndexOf('.');
+        if (pos != -1) {
+            final String res = varTypeName.substring(pos + 1);
+            if (XD_UNIQUE_ID.equals(res) || XD_UNIQUE_IDREF.equals(res) || XD_UNIQUE_IDREFS.equals(res) || XD_UNIQUE_CHKID.equals(res)) {
+                return getUniqueSetVarName(varTypeName.substring(0, pos));
+            } else {
+                return res;
+            }
+        }
+
+        return null;
+    }
+
+    public static String getUniqueSetName(final String varTypeName) {
+        final int pos = varTypeName.indexOf('.');
+        if (pos != -1) {
+            return varTypeName.substring(0, pos);
+        }
+
+        return varTypeName;
     }
 
     public static String newTopLocalRefName(final String name) {

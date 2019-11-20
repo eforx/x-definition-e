@@ -6,8 +6,9 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.UniqueConstraints;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
 import org.xdef.model.XMNode;
 
@@ -139,7 +140,6 @@ public class XD2XsdReferenceAdapter {
     }
 
     private void extractSimpleRefsAndImports(XNode xn, final Set<XMNode> processed, boolean parentRef) {
-
         if (!processed.add(xn)) {
             XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Already processed. This node is reference probably");
             return;
@@ -153,13 +153,14 @@ public class XD2XsdReferenceAdapter {
             case XNode.XMELEMENT: {
                 XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XMElement node. Node=" + xn.getName());
 
-                XElement xDefEl = (XElement)xn;
+                final XElement xElem = (XElement)xn;
                 boolean isRef = false;
+                treeAdapter.loadElementUniqueSets(xElem);
 
-                if (xDefEl.isReference() || xDefEl.getReferencePos() != null) {
-                    final String refPos = xDefEl.getReferencePos();
-                    final String nodeNsUri = xDefEl.getNSUri();
-                    if (XsdNamespaceUtils.isNodeInDifferentNamespace(xDefEl.getName(), nodeNsUri, schema)) {
+                if (xElem.isReference() || xElem.getReferencePos() != null) {
+                    final String refPos = xElem.getReferencePos();
+                    final String nodeNsUri = xElem.getNSUri();
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), nodeNsUri, schema)) {
                         addSchemaImportFromElem(nodeNsUri, refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
                         final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
@@ -167,19 +168,19 @@ public class XD2XsdReferenceAdapter {
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                         if (!XsdNamespaceUtils.isValidNsUri(nsUri)) {
-                            XsdLogger.printP(LOG_ERROR, PREPROCESSING, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + refNsPrefix);
+                            XsdLogger.printP(LOG_ERROR, PREPROCESSING, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + refNsPrefix);
                         } else {
                             addSchemaImportFromElem(nsUri, refPos);
                         }
-                    } else if (XsdNamespaceUtils.isRefInDifferentSystem(refPos, xDefEl.getXDPosition())) {
+                    } else if (XsdNamespaceUtils.isRefInDifferentSystem(refPos, xElem.getXDPosition())) {
                         addSchemaInclude(refPos);
                     } // else {} // Reference in same x-definition and same namespace
 
                     isRef = true;
                 } else {
                     // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
-                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl, schema) && isPostProcessingPhase == false) {
-                        String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName());
+                    if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema) && isPostProcessingPhase == false) {
+                        String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
                         String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
                         // Post-processing
@@ -191,15 +192,15 @@ public class XD2XsdReferenceAdapter {
                                 addPostProcessingSchemaImport(nsPrefix, nsUri);
                             }
                         } else {
-                            final String xDefPos = xDefEl.getXDPosition();
-                            nsUri = XsdNamespaceUtils.getNodeNamespaceUri(xDefEl, adapterCtx, PREPROCESSING);
+                            final String xDefPos = xElem.getXDPosition();
+                            nsUri = XsdNamespaceUtils.getNodeNamespaceUri(xElem, adapterCtx, PREPROCESSING);
 
                             if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
                                 addSchemaImportFromElem(nsUri, xDefPos);
                             } else {
                                 if (parentRef == false) {
                                     nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
-                                    XsdLogger.printP(LOG_ERROR, PREPROCESSING, xDefEl, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
+                                    XsdLogger.printP(LOG_ERROR, PREPROCESSING, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                                 }
                             }
                         }
@@ -209,17 +210,17 @@ public class XD2XsdReferenceAdapter {
                 }
 
                 if (isRef == false) {
-                    XMNode[] attrs = xDefEl.getXDAttrs();
+                    XMNode[] attrs = xElem.getXDAttrs();
                     for (int i = 0; i < attrs.length; i++) {
                         addSimpleTypeReference((XData)attrs[i]);
                     }
 
-                    int childrenCount = xDefEl._childNodes.length;
-                    for (XNode xChild : xDefEl._childNodes) {
+                    int childrenCount = xElem._childNodes.length;
+                    for (XNode xChild : xElem._childNodes) {
                         if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
                             addSimpleTypeReference((XData) xChild);
                         } else {
-                            extractSimpleRefsAndImports(xChild, processed, xDefEl.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xDefEl, schema));
+                            extractSimpleRefsAndImports(xChild, processed, xElem.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema));
                         }
                     }
                 }
@@ -242,19 +243,29 @@ public class XD2XsdReferenceAdapter {
     private void addSimpleTypeReference(final XData xData) {
         // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
         if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xData, schema) && isPostProcessingPhase == false) {
-            String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
-            String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+            final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
+            final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
 
             // Post-processing
             if (nsUri != null && !nsUri.isEmpty()) {
-                XsdSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
+                final XsdSchemaImportLocation importLocation = adapterCtx.getSchemaLocationsCtx().get(nsUri);
                 if (importLocation != null) {
                     addPostProcessingSchema(nsUri, importLocation);
                 }
             }
         } else {
-            String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
             final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
+
+            if (isAttrRef == true) {
+                final UniqueConstraints uniqueConstraints = adapterCtx.findUniqueInfo(xData);
+                // Do not create reference if attribute is using unique set
+                if (uniqueConstraints != null) {
+                    adapterCtx.addVarToUniqueInfo(xData, uniqueConstraints);
+                    return;
+                }
+            }
+
+            String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
 
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
                 xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);

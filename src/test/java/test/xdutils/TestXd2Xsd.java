@@ -594,7 +594,10 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdDef2XsdNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
         convertXdDef2XsdNoRef ("defaultValue2", Arrays.asList(new String[] {"defaultValue2_valid_1"}), null);
+        // ============ UniqueSets ============
 
+        convertXdDef2XsdNoRef ("keyAndRef1", Arrays.asList(new String[] {"keyAndRef1_valid_1"}), null);
+        convertXdDef2XsdNoRef ("keyAndRef2", Arrays.asList(new String[] {"keyAndRef2_valid_1", "keyAndRef2_valid_2"}), null);
 
     }
 

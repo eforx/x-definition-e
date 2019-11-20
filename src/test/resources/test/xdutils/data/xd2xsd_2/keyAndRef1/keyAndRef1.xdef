@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name="keyAndRef1">
+    <xd:declaration>
+        uniqueSet u {x: int()}
+    </xd:declaration>
+    <a>
+        <b z='u.x.IDREFS' d='u.x.IDREFS()'/>
+        <c x='u.x.ID()' y='u.x.ID'/>
+    </a>
+</xd:def>
+

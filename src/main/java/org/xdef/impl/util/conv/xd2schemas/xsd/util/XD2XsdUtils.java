@@ -7,7 +7,10 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,6 +72,24 @@ public class XD2XsdUtils {
         return stringBuilder.toString();
     }
 
+    public static Pair<String, String> xPathSplitByAttr(final String xdPos) {
+        final int paramPos = xdPos.lastIndexOf("/@");
+        if (paramPos != -1) {
+            return new Pair(xdPos.substring(0, paramPos), xdPos.substring(paramPos + 1));
+        }
+
+        return null;
+    }
+
+    public static String relativeXPath(final String xPath, final String xPathNode) {
+        final int pos = xPath.indexOf(xPathNode);
+        if (pos != -1) {
+            return xPath.substring(pos + xPathNode.length() + 1);
+        }
+
+        return xPath;
+    }
+
     public static boolean isAnyElement(final XElement xElem) {
         return "$any".equals(xElem.getName());
     }
@@ -121,7 +142,7 @@ public class XD2XsdUtils {
 
     public static Set<XD2XsdFeature> defaultFeatures() {
         Set<XD2XsdFeature> features = new HashSet<XD2XsdFeature>();
-        features.addAll(XD2XsdFeature.POSTPROCESSING_FEATURES);
+        features.addAll(XD2XsdFeature.DEFAULT_POSTPROCESSING_FEATURES);
         return features;
     }
 }

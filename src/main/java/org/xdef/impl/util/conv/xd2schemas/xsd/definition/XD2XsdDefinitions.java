@@ -41,4 +41,12 @@ public interface XD2XsdDefinitions {
     String XD_FACET_SEPARATOR = "separator";
     String XD_INTERNAL_FACET_OUTFORMAT = "outFormat";
 
+    /**
+     * X-definition uniqueSet types
+     */
+
+    String XD_UNIQUE_ID = "ID";
+    String XD_UNIQUE_IDREF = "IDREF";
+    String XD_UNIQUE_IDREFS = "IDREFS";
+    String XD_UNIQUE_CHKID = "CHKID";
 }

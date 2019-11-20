@@ -9,7 +9,6 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
-import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaAll;
@@ -116,8 +115,14 @@ public class XsdElementFactory {
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type no-top");
-        final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
+        final XmlSchemaSimpleType itemType = creatSimpleTypeWithoutName(xData, nodeName, isAttr);
         itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
+        return itemType;
+    }
+
+    public XmlSchemaSimpleType creatSimpleTypeWithoutName(final XData xData, final String nodeName, boolean isAttr) {
+        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type without name no-top");
+        final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setContent(createSimpleTypeContent(xData, nodeName, isAttr));
         return itemType;
     }
