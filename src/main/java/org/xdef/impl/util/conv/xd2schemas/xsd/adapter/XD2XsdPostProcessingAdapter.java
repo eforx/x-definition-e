@@ -29,6 +29,17 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XS
 
 public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 
+    /**
+     * Set of post processing algorithms
+     */
+    private XsdPostProcessor postProcessor;
+
+    /**
+     * Run post processing on pool of x-definitions
+     * Post processing features can be enabled by calling {@link #setFeatures(Set)} or {@link #addFeature(XD2XsdFeature)}
+     *
+     * @param xdPool    pool of x-definitions to be processed
+     */
     public void process(final XDPool xdPool) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING)) {
             return;
@@ -36,6 +47,7 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"*** Post-processing XDPool ***");
 
+        postProcessor = new XsdPostProcessor(adapterCtx);
         final Set<String> updatedNamespaces = new HashSet<String>();
         processNodes(xdPool, updatedNamespaces);
         processReferences();
@@ -43,12 +55,20 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         createKeysAndRefs(xdPool);
     }
 
+    /**
+     * Run post processing on x-definition
+     * Post processing features can be enabled by calling {@link #setFeatures(Set)} or {@link #addFeature(XD2XsdFeature)}
+     *
+     * @param xDef  x-definition to be processed
+     */
     public void process(final XDefinition xDef) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING)) {
             return;
         }
 
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"*** Post-processing XDefinition ***");
+
+        postProcessor = new XsdPostProcessor(adapterCtx);
         final Set<String> updatedNamespaces = new HashSet<String>();
         if (!adapterCtx.getNodesToBePostProcessed().isEmpty() && !adapterCtx.getExtraSchemaLocationsCtx().isEmpty()) {
             processNodes(xDef, updatedNamespaces);
@@ -66,6 +86,11 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         }
     }
 
+    /**
+     * Creates XSD nodes which are originally located in different x-definition namespace
+     * @param xDef                  x-definition source of XSD nodes
+     * @param updatedNamespaces     processed namespaces
+     */
     private void processNodes(final XDefinition xDef, final Set<String> updatedNamespaces) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_EXTRA_SCHEMAS)) {
             return;
@@ -79,16 +104,21 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         updatedNamespaces.addAll(postProcessingAdapter.transformNodes(adapterCtx.getNodesToBePostProcessed()));
     }
 
+    /**
+     * Updates XSD references which are breaking XSD schema rules
+     */
     private void processReferences() {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_REFS)) {
             return;
         }
 
-        XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing reference nodes ...");
-        final XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx);
         postProcessor.processRefs();
     }
 
+    /**
+     * Updates XSD attributes and elements QNames of schemas created by post processing
+     * @param updatedNamespaces
+     */
     private void processQNames(final Set<String> updatedNamespaces) {
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing qualified names ...");
         for (String schemaNs : updatedNamespaces) {
@@ -119,6 +149,10 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         }
     }
 
+    /**
+     * Creates xs:unique, xs:key and xs:keyref XSD elements based on gathered uniqueSet data
+     * @param xDef    input x-definition where XSD elements should be inserted
+     */
     private void createKeysAndRefs(final XDefinition xDef) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_UNIQUE) && !adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_KEYS_AND_REFS)) {
             return;

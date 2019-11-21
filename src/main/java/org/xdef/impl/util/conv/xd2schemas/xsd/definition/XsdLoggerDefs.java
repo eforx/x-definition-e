@@ -1,5 +1,8 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.definition;
 
+/**
+ * Logging definitions
+ */
 public interface XsdLoggerDefs {
 
     int LOG_NONE = 0;

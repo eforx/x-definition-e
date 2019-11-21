@@ -1,5 +1,8 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.definition;
 
+/**
+ * Definitions of constant used in x-definition -> XSD transform algorithm
+ */
 public interface XD2XsdDefinitions {
 
     String XSD_NAMESPACE_PREFIX_EMPTY = "";

@@ -2,6 +2,9 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.definition;
 
 import java.util.EnumSet;
 
+/**
+ * Features of x-definition -> XSD transform algorithm
+ */
 public enum XD2XsdFeature {
     XSD_ANNOTATION,                 // Output xsd schema will contain additional annotations
     XSD_DECIMAL_ANY_SEPARATOR,      // Output xsd schema will convert dec parser to string regular pattern if decimal separator is not dot

@@ -38,7 +38,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     }
 
     /**
-     * Set original (x-definition source) namespace context
+     * Set original (x-definition) namespace context
      * @param namespaceCtx
      * @param xsdTargetPrefix
      */
@@ -48,7 +48,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     }
 
     /**
-     * Transform given nodes {@paramref allNodesToResolve} into xsd nodes and then insert them into related schemas
+     * Transform given x-definition nodes {@paramref allNodesToResolve} into XSD nodes and then insert them into related XSD schemas
      * @param allNodesToResolve     nodes to be transformed
      */
     protected Set<String> transformNodes(final Map<String, Map<String, XNode>> allNodesToResolve) {
@@ -71,12 +71,12 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                     continue;
                 }
 
-                Map<String, XNode> nodesInSchemaToResolve = allNodesToResolve.get(schemaTargetNsUri);
+                final Map<String, XNode> nodesInSchemaToResolve = allNodesToResolve.get(schemaTargetNsUri);
 
                 if (nodesInSchemaToResolve != null) {
                     // Filter nodes which should be resolved by current x-definition
-                    ArrayList<XNode> nodesToResolve = new ArrayList<XNode>(nodesInSchemaToResolve.values());
-                    Iterator<XNode> itr2 = nodesToResolve.iterator();
+                    final ArrayList<XNode> nodesToResolve = new ArrayList<XNode>(nodesInSchemaToResolve.values());
+                    final Iterator<XNode> itr2 = nodesToResolve.iterator();
                     XNode n;
                     while (itr2.hasNext()) {
                         n = itr2.next();
@@ -86,7 +86,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                     }
 
                     if (!nodesToResolve.isEmpty()) {
-                        SchemaAdapter adapter = new SchemaAdapter(sourceXDefinition);
+                        final SchemaAdapter adapter = new SchemaAdapter(sourceXDefinition);
                         adapter.setAdapterCtx(adapterCtx);
                         adapter.createOrUpdateSchema(new NamespaceMap((HashMap) sourceNamespaceCtx.clone()), nodesToResolve, schemaTargetNsUri, schemaToResolve.getValue());
                         updatedNamespaces.add(schemaTargetNsUri);
@@ -109,6 +109,9 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         return updatedNamespaces;
     }
 
+    /**
+     * Internal class for transformation of given x-definition nodes into related XSD schema
+     */
     class SchemaAdapter extends AbstractXd2XsdAdapter {
 
         /**
@@ -125,6 +128,13 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             this.sourceXDefinition = xDefinition;
         }
 
+        /**
+         * Creates or updates XSD schema and then inserts into it given nodes
+         * @param namespaceCtx              X-definition namespace context
+         * @param nodesInSchemaToResolve    Nodes to be created
+         * @param targetNsUri               XSD schema target namespace URI
+         * @param importLocation            XSD schema location
+         */
         protected void createOrUpdateSchema(final NamespaceMap namespaceCtx,
                                             final ArrayList<XNode> nodesInSchemaToResolve,
                                             final String targetNsUri,
@@ -133,7 +143,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
 
-            final String schemaName = createXsdSchema(namespaceCtx, targetNsUri, importLocation);
+            final String schemaName = createOrGetXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
             final XsdElementFactory xsdFactory = new XsdElementFactory(schema, adapterCtx);
             final XD2XsdTreeAdapter treeAdapter = new XD2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
@@ -147,16 +157,16 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         }
 
         /**
-         * Creates and initialize XSD schema
+         * Creates or find XSD schema. Then initialize XSD schema
          *
          * @param namespaceCtx
          * @param targetNsUri
          * @param importLocation
          * @return  instance of xml schema
          */
-        private String createXsdSchema(final NamespaceMap namespaceCtx,
-                                       final String targetNsUri,
-                                       final XsdSchemaImportLocation importLocation) {
+        private String createOrGetXsdSchema(final NamespaceMap namespaceCtx,
+                                            final String targetNsUri,
+                                            final XsdSchemaImportLocation importLocation) {
             final String schemaName = importLocation.getFileName();
             if (adapterCtx.existsSchemaLocation(targetNsUri)) {
                 schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
@@ -167,17 +177,16 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
 
             // TODO: based on top attributes/elements ... if attr -> then only attr qualified?
             initSchemaFormDefault();
-
             return schemaName;
         }
 
         /**
-         * Creates XSD schema
-         * If schema already exists, return value is reference to already exists schema.
+         * Creates or find XSD schema
+         * If schema already exists, return value is reference to already existing schema.
          *
          * @param targetNsUri   target namespace Uri
          * @param schemaName    xsd schema name
-         * @return  instance of xml schema
+         * @return instance of xml schema
          */
         private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
             XmlSchema schema = adapterCtx.getSchema(schemaName, false, POSTPROCESSING);
@@ -198,10 +207,10 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
          *
          * If schema namespace context already exist, then merge it with {@paramref namespaceCtx)
          *
-         * @param schemaName
-         * @param namespaceCtx      current namespace context
-         * @param targetNsUri
-         * @param importLocation
+         * @param schemaName        XSD schema name
+         * @param namespaceCtx      current x-definition namespace context
+         * @param targetNsUri       XSD schema target namespace URI
+         * @param importLocation    XSD schema location
          * @return
          */
         private void initSchemaNamespace(final String schemaName,
@@ -242,7 +251,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             XsdLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "*** Transformation of x-definition tree to schema ***");
 
             for (XNode n : nodes) {
-                XmlSchemaObject xsdNode = treeAdapter.convertTree(n);
+                final XmlSchemaObject xsdNode = treeAdapter.convertTree(n);
                 if (xsdNode instanceof XmlSchemaElement) {
                     XsdLogger.printP(LOG_INFO, POSTPROCESSING, n, "Add top-level element.");
                 } else if (xsdNode instanceof XmlSchemaAttribute) {

@@ -51,11 +51,12 @@ public class XD2XsdReferenceAdapter {
     }
 
     /**
-     * Creates following nodes from x-definition:
-     *      simpleType      - attribute type
-     *      complexType     - element type
+     * Creates following XSD nodes from x-definition nodes:
+     *      simpleType      - attribute, text
+     *      complexType     - element
+     *      group           - mixed
      *      import          - used namespaces in reference of attributes and elements
-     * @param xDef
+     * @param xDef  input x-definition
      */
     public void createRefsAndImports(XDefinition xDef) {
         simpleTypeReferences = new HashSet<String>();
@@ -64,7 +65,13 @@ public class XD2XsdReferenceAdapter {
         extractRefsAndImports(xDef);
     }
 
-    public void extractRefsAndImports(ArrayList<XNode> nodes) {
+    /**
+     * Creates following XSD nodes from x-definition nodes:
+     *      simpleType      - attribute, text
+     *      import          - used namespaces in reference of attributes and elements
+     * @param nodes list of x-definition nodes
+     */
+    public void extractRefsAndImports(final ArrayList<XNode> nodes) {
         simpleTypeReferences = new HashSet<String>();
         namespaceImports = new HashSet<String>();
         namespaceIncludes = new HashSet<String>();
@@ -92,6 +99,10 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Extracts references and imports from given x-definition
+     * @param xDef  input x-definition
+     */
     private void extractRefsAndImports(final XDefinition xDef) {
         XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "*** Creating definition of references and schemas import/include ***");
 
@@ -108,12 +119,16 @@ public class XD2XsdReferenceAdapter {
         final Set<String> rootNodeNames = adapterCtx.getSchemaRootNodeNames(schemaName);
         for (XElement elem : xDef.getXElements()) {
             if (rootNodeNames == null || !rootNodeNames.contains(elem.getName())) {
-                extractTopLevelElementRefs(elem);
+                transformTopLevelElem(elem);
             }
         }
     }
 
-    private void extractTopLevelElementRefs(final XNode xNode) {
+    /**
+     * Transform top-level x-definition element node into XSD node (element, complex-type, simple-type, group)
+     * @param xNode
+     */
+    private void transformTopLevelElem(final XNode xNode) {
         XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
 
         final XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
@@ -122,14 +137,15 @@ public class XD2XsdReferenceAdapter {
         if (elementType == null) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Name=" + xsdElem.getName());
         } else if (elementType instanceof XmlSchemaType) {
-            // Convert xd:mixed to group
             if (xNode.getName().endsWith("$mixed") && elementType instanceof XmlSchemaComplexType) {
-                final XmlSchemaGroup schemaGroup = xsdFactory.createGroup(xsdElem.getName());
+                // Convert xd:mixed to group
+                final XmlSchemaGroup schemaGroup = xsdFactory.createEmptyGroup(xsdElem.getName());
                 schemaGroup.setParticle((XmlSchemaGroupParticle)((XmlSchemaComplexType)elementType).getParticle());
                 adapterCtx.updateNode(xNode, schemaGroup);
                 XD2XsdUtils.removeItem(schema, xsdElem);
                 XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of group. Name=" + xsdElem.getName());
             } else {
+                // Move schema type (complex-type/simple-type) to top-level and remove original element
                 elementType.setName(xsdElem.getName());
                 adapterCtx.updateNode(xNode, elementType);
                 XD2XsdUtils.addSchemaType(schema, elementType);
@@ -139,21 +155,27 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
-    private void extractSimpleRefsAndImports(XNode xn, final Set<XMNode> processed, boolean parentRef) {
-        if (!processed.add(xn)) {
-            XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Already processed. This node is reference probably");
+    /**
+     * Extract simple-type references and schema imports from x-definition tree.
+     * @param xNode         root of x-definition tree
+     * @param processed     already processed nodes
+     * @param parentRef     flag if parent is node using reference
+     */
+    private void extractSimpleRefsAndImports(final XNode xNode, final Set<XMNode> processed, boolean parentRef) {
+        if (!processed.add(xNode)) {
+            XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Already processed. This node is reference probably");
             return;
         }
 
-        switch (xn.getKind()) {
+        switch (xNode.getKind()) {
             case XMATTRIBUTE: {
-                addSimpleTypeReference((XData)xn);
+                processSimpleTypeReference((XData)xNode);
                 break;
             }
             case XNode.XMELEMENT: {
-                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XMElement node. Node=" + xn.getName());
+                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Processing XMElement node. Node=" + xNode.getName());
 
-                final XElement xElem = (XElement)xn;
+                final XElement xElem = (XElement)xNode;
                 boolean isRef = false;
                 treeAdapter.loadElementUniqueSets(xElem);
 
@@ -212,13 +234,13 @@ public class XD2XsdReferenceAdapter {
                 if (isRef == false) {
                     XMNode[] attrs = xElem.getXDAttrs();
                     for (int i = 0; i < attrs.length; i++) {
-                        addSimpleTypeReference((XData)attrs[i]);
+                        processSimpleTypeReference((XData)attrs[i]);
                     }
 
                     int childrenCount = xElem._childNodes.length;
                     for (XNode xChild : xElem._childNodes) {
                         if (xChild.getKind() == XNode.XMTEXT && (childrenCount > 1 || ((XData) xChild).getRefTypeName() != null)) {
-                            addSimpleTypeReference((XData) xChild);
+                            processSimpleTypeReference((XData) xChild);
                         } else {
                             extractSimpleRefsAndImports(xChild, processed, xElem.isReference() || XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xElem, schema));
                         }
@@ -228,9 +250,9 @@ public class XD2XsdReferenceAdapter {
                 break;
             }
             case XNode.XMDEFINITION: {
-                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xn, "Processing XDefinition node. Node=" + xn.getName());
+                XsdLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Processing XDefinition node. Node=" + xNode.getName());
 
-                XDefinition def = (XDefinition)xn;
+                XDefinition def = (XDefinition)xNode;
                 XElement[] elems = def.getXElements();
                 for (int i = 0; i < elems.length; i++){
                     extractSimpleRefsAndImports(elems[i], processed, false);
@@ -240,7 +262,13 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
-    private void addSimpleTypeReference(final XData xData) {
+    /**
+     * Process simple-type XSD reference.
+     * Insert x-definition node into post processing queue if it is using different namespace.
+     *
+     * @param xData attribute/text node using reference
+     */
+    private void processSimpleTypeReference(final XData xData) {
         // Element is not reference but name contains different namespace prefix -> we will have to create reference in new namespace in post-processing
         if (XsdNamespaceUtils.isNodeInDifferentNamespacePrefix(xData, schema) && isPostProcessingPhase == false) {
             final String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xData.getName());
@@ -272,7 +300,7 @@ public class XD2XsdReferenceAdapter {
             }
 
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                xsdFactory.createSimpleTypeTop(xData, refTypeName, isAttrRef);
+                xsdFactory.createSimpleTypeTop(xData, refTypeName);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition of reference. Name=" + refTypeName);
                 return;
             }
@@ -280,7 +308,7 @@ public class XD2XsdReferenceAdapter {
             if (!isAttrRef && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx) == null && xData.getValueTypeName() != null) {
                 refTypeName = XsdNameUtils.createRefNameFromParser(xData, adapterCtx);
                 if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                    xsdFactory.createSimpleTypeTop(xData, refTypeName, isAttrRef);
+                    xsdFactory.createSimpleTypeTop(xData, refTypeName);
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
                     return;
                 }
@@ -293,6 +321,10 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Add XSD schema include.
+     * @param refPos    reference position of x-definition node
+     */
     private void addSchemaInclude(final String refPos) {
         final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refPos);
 
@@ -308,6 +340,11 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Add XSD schema import based on x-definition element node.
+     * @param nsUri     x-definition node namespace URI
+     * @param refPos    x-definition reference position
+     */
     private void addSchemaImportFromElem(final String nsUri, final String refPos) {
         if (nsUri == null || !namespaceImports.add(nsUri)) {
             return;
@@ -321,6 +358,11 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Add XSD schema import based on attribute/text x-definition node
+     * @param nsPrefix  x-definition node namespace prefix
+     * @param nsUri     x-definition node namespace URI
+     */
     private void addSchemaImportFromSimpleType(final String nsPrefix, final String nsUri) {
         if (nsUri == null || !namespaceImports.add(nsUri)) {
             return;
@@ -339,6 +381,11 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Add XSD schema import of post processed schema
+     * @param nsPrefix  schema namespace prefix
+     * @param nsUri     schema namespace URI
+     */
     private void addPostProcessingSchemaImport(final String nsPrefix, final String nsUri) {
         if (nsUri == null || !namespaceImports.add(nsUri)) {
             return;
@@ -347,6 +394,11 @@ public class XD2XsdReferenceAdapter {
         addPostProcessingSchemaImportInt(nsPrefix, nsUri);
     }
 
+    /**
+     * Add XSD schema import of post processed schema
+     * @param nsPrefix  schema namespace prefix
+     * @param nsUri     schema namespace URI
+     */
     private void addPostProcessingSchemaImportInt(final String nsPrefix, final String nsUri) {
         if (adapterCtx.getExtraSchemaLocationsCtx() != null) {
             if (!adapterCtx.getExtraSchemaLocationsCtx().containsKey(nsUri)) {
@@ -361,6 +413,11 @@ public class XD2XsdReferenceAdapter {
         }
     }
 
+    /**
+     * Insert schema namespace into post processing queue
+     * @param nsUri                     schema namespace URI
+     * @param schemaImportLocation      schema location
+     */
     private void addPostProcessingSchema(final String nsUri, final XsdSchemaImportLocation schemaImportLocation) {
         if (adapterCtx.getExtraSchemaLocationsCtx().containsKey(nsUri)) {
             return;

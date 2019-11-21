@@ -141,9 +141,9 @@ public class XsdPostProcessor {
         // Creating complex content with extension to original reference
         XmlSchemaType schemaType = null;
         if (xsdElem.getRef().getTargetQName() != null) {
-            schemaType = xsdFactory.createTopComplexTypeWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
+            schemaType = xsdFactory.createComplexTypeWithComplexExtensionTop(newRefLocalName, xsdElem.getRef().getTargetQName());
         } else if (xsdElem.getSchemaTypeName() != null) {
-            schemaType = xsdFactory.createTopComplexTypeWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName());
+            schemaType = xsdFactory.createComplexTypeWithSimpleExtensionTop(newRefLocalName, xsdElem.getSchemaTypeName());
         }
 
         // If element does not contain schema type, create new empty complex type
