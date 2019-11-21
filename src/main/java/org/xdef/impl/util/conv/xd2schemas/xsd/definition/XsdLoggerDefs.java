@@ -18,4 +18,5 @@ public interface XsdLoggerDefs {
     String XSD_UTILS = "XsdUtils";
     String XSD_ADAPTER_CTX = "XsdAdapterCtx";
     String XSD_REFERENCE = "SchemaNode";
+    String XSD_NAME_FACTORY = "NameFactory";
 }

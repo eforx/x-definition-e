@@ -54,7 +54,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     protected Set<String> transformNodes(final Map<String, Map<String, XNode>> allNodesToResolve) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, sourceXDefinition, "Transforming gathered nodes into extra schemas ...");
 
-        final String sourceSystemId = XsdNamespaceUtils.getReferenceSystemId(sourceXDefinition.getXDPosition());
+        final String sourceSystemId = XsdNamespaceUtils.getSystemIdFromXPos(sourceXDefinition.getXDPosition());
         final Set<String> updatedNamespaces = new HashSet<String>();
 
         Map<String, XsdSchemaImportLocation> schemasToResolve = (HashMap)((HashMap)adapterCtx.getExtraSchemaLocationsCtx()).clone();
@@ -80,7 +80,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                     XNode n;
                     while (itr2.hasNext()) {
                         n = itr2.next();
-                        if (!sourceSystemId.equals(XsdNamespaceUtils.getReferenceSystemId(n.getXDPosition()))) {
+                        if (!sourceSystemId.equals(XsdNamespaceUtils.getSystemIdFromXPos(n.getXDPosition()))) {
                             itr2.remove();
                         }
                     }

@@ -76,10 +76,11 @@ public class XsdPostProcessor {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
 
         final XmlSchemaElement xsdElem = node.toXsdElem();
-        final XElement xDefEl = node.toXdElem();
+        final XElement xElem = node.toXdElem();
         final String localName = xsdElem.getName();
-        final String newLocalName = XsdNameUtils.newRootElemName(localName, xsdElem.getSchemaType());
-        final String elemNsUri = xsdElem.getParent().getNamespaceContext().getNamespaceURI(XsdNamespaceUtils.getNamespacePrefix(xDefEl.getName()));
+        String newLocalName = XsdNameUtils.newRootElemName(localName, xsdElem.getSchemaType());
+        newLocalName = adapterCtx.getNameFactory().generateTopLevelName(xElem, newLocalName);
+        final String elemNsUri = xsdElem.getParent().getNamespaceContext().getNamespaceURI(XsdNamespaceUtils.getNamespacePrefix(xElem.getName()));
 
         // Move element's schema type to top
         XmlSchemaType schemaType = null;
@@ -91,7 +92,7 @@ public class XsdPostProcessor {
 
             xsdElem.setSchemaType(null);
             xsdElem.setSchemaTypeName(new QName(elemNsUri, newLocalName));
-            SchemaNode newSchemaNode = SchemaNodeFactory.createElementNode(xsdElem, xDefEl);
+            SchemaNode newSchemaNode = SchemaNodeFactory.createElementNode(xsdElem, xElem);
             newSchemaNode = adapterCtx.addOrUpdateNode(newSchemaNode);
             SchemaNode.createBinding(newSchemaNode, node);
         }
@@ -115,7 +116,7 @@ public class XsdPostProcessor {
         elementTopToComplex(node, xsdFactory);
 
         if (isTopElement(refNode)) {
-            final String systemId = XsdNamespaceUtils.getReferenceSystemId(refNode.getXdNode().getXDPosition());
+            final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(refNode.getXdNode().getXDPosition());
             final XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
             final XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
             if (refNode.toXsdElem().isRef()) {
@@ -130,20 +131,27 @@ public class XsdPostProcessor {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting top-level element to complex-type ...");
 
         final XmlSchemaElement xsdElem = node.toXsdElem();
-        final XElement xDefEl = node.toXdElem();
-        String newRefLocalName = XsdNameUtils.newTopLocalRefName(xDefEl.getName());
+        final XElement xElem = node.toXdElem();
+        String newRefLocalName = adapterCtx.getNameFactory().findTopLevelName(xElem);
+        if (newRefLocalName == null) {
+            newRefLocalName = XsdNameUtils.newTopLocalRefName(xElem.getName());
+            newRefLocalName = adapterCtx.getNameFactory().generateTopLevelName(xElem, newRefLocalName);
+        }
 
         // Creating complex content with extension to original reference
         XmlSchemaType schemaType = null;
         if (xsdElem.getRef().getTargetQName() != null) {
-            schemaType = xsdFactory.createComplexTypeWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
+            schemaType = xsdFactory.createTopComplexTypeWithComplexExtension(newRefLocalName, xsdElem.getRef().getTargetQName());
         } else if (xsdElem.getSchemaTypeName() != null) {
-            schemaType = xsdFactory.createComplextTypeWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName(), true);
+            schemaType = xsdFactory.createTopComplexTypeWithSimpleExtension(newRefLocalName, xsdElem.getSchemaTypeName());
         }
 
         // If element does not contain schema type, create new empty complex type
         if (schemaType == null) {
             schemaType = xsdFactory.createEmptyComplexType(true);
+            if (schemaType.isTopLevel()) {
+
+            }
             schemaType.setName(newRefLocalName);
         }
 

@@ -194,7 +194,9 @@ public class XsdSimpleContentFactory {
             restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + value.parserName(), adapterCtx));
         }
 
-        final String refName = XsdNameUtils.newUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());
+        String refName = XsdNameUtils.newUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());
+        refName = adapterCtx.getNameFactory().generateTopLevelName(xData, refName);
+
         if (!refNames.add(refName)) {
             XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Union reference name already exists! RefName=" + refName);
         } else {

@@ -7,6 +7,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdParserMapping;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
@@ -74,7 +75,9 @@ public class XsdAdapterCtx {
      * Value:   xpath to uniqueSet, unique info
      */
     private Map<String, Map<String, List<UniqueConstraints>>> uniqueRestrictions;
-    
+
+    private XsdNameFactory nameFactory;
+
     /**
      * Enabled algorithm features
      */
@@ -93,30 +96,35 @@ public class XsdAdapterCtx {
         nodesToBePostProcessed = new HashMap<String, Map<String, XNode>>();
         rootNodeNames = new HashMap<String, Set<String>>();
         uniqueRestrictions = new HashMap<String, Map<String, List<UniqueConstraints>>>();
+        nameFactory = new XsdNameFactory(this);
     }
 
-    public final Set<String> getSchemaNames() {
+    public Set<String> getSchemaNames() {
         return schemaNames;
     }
 
-    public final Map<String, XsdSchemaImportLocation> getSchemaLocationsCtx() {
+    public Map<String, XsdSchemaImportLocation> getSchemaLocationsCtx() {
         return schemaLocationsCtx;
     }
 
-    public final Map<String, XsdSchemaImportLocation> getExtraSchemaLocationsCtx() {
+    public Map<String, XsdSchemaImportLocation> getExtraSchemaLocationsCtx() {
         return extraSchemaLocationsCtx;
     }
 
-    public final XmlSchemaCollection getXmlSchemaCollection() {
+    public XmlSchemaCollection getXmlSchemaCollection() {
         return xmlSchemaCollection;
     }
 
-    public final Map<String, Map<String, SchemaNode>> getNodes() {
+    public Map<String, Map<String, SchemaNode>> getNodes() {
         return nodes;
     }
 
     public Map<String, Map<String, XNode>> getNodesToBePostProcessed() {
         return nodesToBePostProcessed;
+    }
+
+    public XsdNameFactory getNameFactory() {
+        return nameFactory;
     }
 
     /**
@@ -242,7 +250,7 @@ public class XsdAdapterCtx {
 
     public SchemaNode addOrUpdateNode(SchemaNode node) {
         final String xPos = node.getXdNode().getXDPosition();
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xPos);
         final String nodePath = XsdNameUtils.getXNodePath(xPos);
         return addOrUpdateNode(systemId, nodePath, node);
     }
@@ -284,7 +292,7 @@ public class XsdAdapterCtx {
 
     public void updateNode(final XNode xNode, final XmlSchemaNamed newXsdNode) {
         final String xPos = xNode.getXDPosition();
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xPos);
         final String nodePath = XsdNameUtils.getXNodePath(xPos);
         updateNode(systemId, nodePath, newXsdNode);
     }
@@ -324,7 +332,7 @@ public class XsdAdapterCtx {
 
     public void removeNode(final XNode xNode) {
         final String xPos = xNode.getXDPosition();
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xPos);
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xPos);
         final String nodePath = XsdNameUtils.getXNodePath(xPos);
         removeNode(systemId, nodePath);
     }
@@ -425,7 +433,7 @@ public class XsdAdapterCtx {
     public UniqueConstraints findUniqueInfo(final XData xData) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xData, "Finding unique set. Name=" + xData.getValueTypeName());
 
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xData.getXDPosition());
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xData.getXDPosition());
         final String uniqueInfoName = XsdNameUtils.getUniqueSetName(xData.getValueTypeName());
         final String uniquestSetPath = "/" + XsdNameUtils.getXNodePath(xData.getXDPosition());
         UniqueConstraints uniqueInfo = findUniqueInfo(uniqueInfoName, systemId, uniquestSetPath);

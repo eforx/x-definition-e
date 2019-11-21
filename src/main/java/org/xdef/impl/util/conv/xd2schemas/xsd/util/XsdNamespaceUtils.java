@@ -72,8 +72,8 @@ public class XsdNamespaceUtils {
      * @return
      */
     public static boolean isRefInDifferentSystem(final String nodeRefPos, final String xdPos) {
-        final String nodeSystemId = getReferenceSystemId(xdPos);
-        final String refSystemId = getReferenceSystemId(nodeRefPos);
+        final String nodeSystemId = getSystemIdFromXPos(xdPos);
+        final String refSystemId = getSystemIdFromXPos(nodeRefPos);
         return !nodeSystemId.equals(refSystemId);
     }
 
@@ -81,7 +81,7 @@ public class XsdNamespaceUtils {
         return name.indexOf(':') != -1;
     }
 
-    public static String getReferenceSystemId(final String refPos) {
+    public static String getSystemIdFromXPos(final String refPos) {
         int systemSeparatorPos = refPos.indexOf('#');
         if (systemSeparatorPos != -1) {
             return refPos.substring(0, systemSeparatorPos);
@@ -213,7 +213,7 @@ public class XsdNamespaceUtils {
 
     public static String getNodeNamespaceUri(final XNode xData, final XsdAdapterCtx adapterCtx, final AlgPhase phase) {
         final String xDefPos = xData.getXDPosition();
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xDefPos);
         XmlSchema refSchema = adapterCtx.getSchema(systemId, true, phase);
         final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);

@@ -1,0 +1,18 @@
+<xd:def xmlns:xd      =  "http://www.xdef.org/xdef/3.2"
+         xd:name      =  "schemaTypeTest3"
+         xd:root      =  "Root" >
+
+     <Root>
+         <a>
+             <xd:mixed>
+                 <Test1 xd:script="occurs *">union(%item=[int(%minInclusive='1', %maxInclusive='10'), string(%enumeration=['A', 'B', 'C'])])</Test1>
+             </xd:mixed>
+         </a>
+         <b>
+              <xd:mixed>
+                  <Test1 xd:script="occurs *">union(%item=[int(%minInclusive='5', %maxInclusive='15'), string(%enumeration=['A', 'D'])])</Test1>
+              </xd:mixed>
+          </b>
+     </Root>
+
+</xd:def>

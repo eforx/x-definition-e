@@ -163,7 +163,7 @@ public class XD2XsdReferenceAdapter {
                     if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), nodeNsUri, schema)) {
                         addSchemaImportFromElem(nodeNsUri, refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
-                        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
+                        final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refPos);
                         XmlSchema refSchema = adapterCtx.getSchema(refSystemId, true, PREPROCESSING);
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
@@ -265,10 +265,14 @@ public class XD2XsdReferenceAdapter {
                 }
             }
 
-            String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+            String refTypeName = adapterCtx.getNameFactory().findTopLevelName(xData, false);
+            if (refTypeName == null) {
+                refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+                adapterCtx.getNameFactory().saveTopLevelName(xData, refTypeName);
+            }
 
             if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);
+                xsdFactory.createSimpleTypeTop(xData, refTypeName, isAttrRef);
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type definition of reference. Name=" + refTypeName);
                 return;
             }
@@ -276,7 +280,7 @@ public class XD2XsdReferenceAdapter {
             if (!isAttrRef && refTypeName == null && XD2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx) == null && xData.getValueTypeName() != null) {
                 refTypeName = XsdNameUtils.createRefNameFromParser(xData, adapterCtx);
                 if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
-                    xsdFactory.creatSimpleTypeTop(xData, refTypeName, isAttrRef);
+                    xsdFactory.createSimpleTypeTop(xData, refTypeName, isAttrRef);
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type reference from parser. Name=" + refTypeName);
                     return;
                 }
@@ -290,7 +294,7 @@ public class XD2XsdReferenceAdapter {
     }
 
     private void addSchemaInclude(final String refPos) {
-        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refPos);
+        final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refPos);
 
         if (refSystemId == null || !namespaceIncludes.add(refSystemId)) {
             return;
@@ -311,7 +315,7 @@ public class XD2XsdReferenceAdapter {
 
         if (adapterCtx.getSchemaLocationsCtx().containsKey(nsUri)) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.getSchemaLocationsCtx().get(nsUri).buildLocalition(XsdNamespaceUtils.getReferenceSystemId(refPos)));
+            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.getSchemaLocationsCtx().get(nsUri).buildLocalition(XsdNamespaceUtils.getSystemIdFromXPos(refPos)));
         } else {
             XsdLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
         }

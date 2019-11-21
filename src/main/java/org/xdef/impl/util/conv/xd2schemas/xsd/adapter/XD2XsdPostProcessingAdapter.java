@@ -105,7 +105,7 @@ public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
                         XsdNameUtils.resolveAttributeQName(schema, n.toXsdAttr(), n.getXdName());
                         XsdNameUtils.resolveAttributeSchemaTypeQName(schema, n);
                     } else if (n.isXsdElem()) {
-                        XsdNameUtils.resolveElementQName(schema, n.toXsdElem());
+                        XsdNameUtils.resolveElementQName(schema, n.toXdElem(), n.toXsdElem(), adapterCtx);
                         XsdNameUtils.resolveElementSchemaTypeQName(schema, n);
                     }
                 }

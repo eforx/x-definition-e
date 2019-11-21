@@ -6,6 +6,7 @@ public enum XD2XsdFeature {
     XSD_ANNOTATION,                 // Output xsd schema will contain additional annotations
     XSD_DECIMAL_ANY_SEPARATOR,      // Output xsd schema will convert dec parser to string regular pattern if decimal separator is not dot
     XSD_ALL_UNBOUNDED,              // Output xsd schema will contain only unbounded xs:choice element, if source of the element is xd:mixed
+    XSD_NAME_COLISSION_DETECTOR,    // Generate new name if collision of names has been found on top-level of schema
 
     POSTPROCESSING,                 // Transform algorithm will execute additional processing of output nodes
     POSTPROCESSING_EXTRA_SCHEMAS,   // Transform algorithm will execute additional processing of nodes that is in different namespace than x-definition using

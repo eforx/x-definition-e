@@ -24,7 +24,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
 
 public class TestXd2Xsd extends XDTester {
 
@@ -50,7 +50,7 @@ public class TestXd2Xsd extends XDTester {
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_WARN);
+        XsdLogger.setLogLevel(LOG_INFO);
     }
 
     private File initFolder(final File dataDir, final String folderPath) {
@@ -122,6 +122,7 @@ public class TestXd2Xsd extends XDTester {
         final XDef2XsdAdapter adapter = new XDef2XsdAdapter();
         final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
         features.add(XD2XsdFeature.XSD_ANNOTATION);
+        features.add(XD2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
         if (additionalFeatures != null) {
             features.addAll(additionalFeatures);
         }
@@ -133,6 +134,7 @@ public class TestXd2Xsd extends XDTester {
         final XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
         final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
         features.add(XD2XsdFeature.XSD_ANNOTATION);
+        features.add(XD2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
         if (additionalFeatures != null) {
             features.addAll(additionalFeatures);
         }
@@ -479,7 +481,6 @@ public class TestXd2Xsd extends XDTester {
     public void test() {
         init();
 
-
         // ============ XDef ============
 
         convertXdDef2Xsd("t000", Arrays.asList(new String[] {"t000"}), null);
@@ -522,6 +523,8 @@ public class TestXd2Xsd extends XDTester {
         convertXdPool2XsdNoRef("namespaceTest4", Arrays.asList(new String[] {"namespaceTest4_valid_1"}), null);
 
         convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
+        convertXdDef2XsdNoRef ("schemaTypeTest2", Arrays.asList(new String[] {"schemaTypeTest2_valid_1"}), null);
+        convertXdDef2XsdNoRef ("schemaTypeTest3", Arrays.asList(new String[] {"schemaTypeTest3_valid_1"}), null);
         convertXdDef2XsdNoRef ("simpleModelTest",
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", //"simpleModelTest_valid_3",
         "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
@@ -594,6 +597,7 @@ public class TestXd2Xsd extends XDTester {
 
         convertXdDef2XsdNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
         convertXdDef2XsdNoRef ("defaultValue2", Arrays.asList(new String[] {"defaultValue2_valid_1"}), null);
+
         // ============ UniqueSets ============
 
         convertXdDef2XsdNoRef ("keyAndRef1", Arrays.asList(new String[] {"keyAndRef1_valid_1"}), null);

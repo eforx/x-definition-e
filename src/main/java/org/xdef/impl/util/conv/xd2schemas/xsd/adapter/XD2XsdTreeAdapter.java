@@ -78,7 +78,7 @@ public class XD2XsdTreeAdapter {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Loading unique sets of x-definition");
             for (XMVariable xmVariable : varTable.toArray()) {
                 if ((xmVariable.getType() == UNIQUESET_M_VALUE || xmVariable.getType() == UNIQUESET_VALUE) && xmVariable.getOffset() != -1) {
-                    adapterCtx.addUniqueInfo(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getReferenceSystemId(xmVariable.getName()), uniqueSetPath);
+                    adapterCtx.addUniqueInfo(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getSystemIdFromXPos(xmVariable.getName()), uniqueSetPath);
                 }
             }
         }
@@ -158,7 +158,12 @@ public class XD2XsdTreeAdapter {
             QName qName;
 
             if (xData.getRefTypeName() != null && uniqueConstraints == null) {
-                final String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+                String refTypeName = adapterCtx.getNameFactory().findTopLevelName(xData, false);
+                if (refTypeName == null) {
+                    refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xData);
+                    adapterCtx.getNameFactory().saveTopLevelName(xData, refTypeName);
+                }
+
                 String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
                 if (topLevel && isPostProcessingPhase && XSD_NAMESPACE_PREFIX_EMPTY.equals(nsPrefix) && XsdNamespaceUtils.containsNsPrefix(xData.getName())) {
                     nsPrefix = schema.getSchemaNamespacePrefix();
@@ -188,7 +193,7 @@ public class XD2XsdTreeAdapter {
                     qName = XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
                     attr.setSchemaTypeName(qName);
                 } else {
-                    final XmlSchemaSimpleType simpleType = xsdFactory.creatSimpleType(xData, attr.getName(), true);
+                    final XmlSchemaSimpleType simpleType = xsdFactory.createSimpleType(xData, attr.getName(), true);
                     if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
                         postProcessor.simpleTypeRestrictionToAttr((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), attr);
                     }
@@ -252,7 +257,7 @@ public class XD2XsdTreeAdapter {
                     XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Any element cannot be root element of xsd!");
                 }
 
-                createElement(xElem, xsdElem, topLevel);
+                fillXsdElement(xElem, xsdElem, topLevel);
             }
         }
 
@@ -265,7 +270,7 @@ public class XD2XsdTreeAdapter {
         final String refXPos = xElem.getReferencePos();
         final String xPos = xElem.getXDPosition();
 
-        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refXPos);
+        final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refXPos);
         final String refLocalName = XsdNameUtils.getReferenceName(refXPos);
 
         if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), xElem.getNSUri(), schema)) {
@@ -284,7 +289,7 @@ public class XD2XsdTreeAdapter {
         } else {
             xsdElem.setName(xElem.getName());
             xsdElem.setSchemaTypeName(refQName);
-            XsdNameUtils.resolveElementQName(schema, xsdElem);
+            XsdNameUtils.resolveElementQName(schema, xElem, xsdElem, adapterCtx);
             XsdLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Element referencing to same namespace/x-definition. Name=" + refLocalName);
         }
 
@@ -300,7 +305,7 @@ public class XD2XsdTreeAdapter {
         boolean usingExtension = false;
 
         xsdElem.setName(xElem.getName());
-        XsdNameUtils.resolveElementQName(schema, xsdElem);
+        XsdNameUtils.resolveElementQName(schema, xElem, xsdElem, adapterCtx);
 
         if (xdPool == null) {
             XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "XDPool is not set!");
@@ -366,14 +371,14 @@ public class XD2XsdTreeAdapter {
                     xsdElem.setSchemaType(complexType);
 
                     final String refNodePath = XsdNameUtils.getXNodePath(refXPos);
-                    final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refXPos);
+                    final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refXPos);
                     SchemaNodeFactory.createComplexExtRefAndDef(xElem, complexContentExtension, refSystemId, refXPos, refNodePath, adapterCtx);
                 }
             }
         }
 
         if (!usingExtension) {
-            createElement(xElem, xsdElem, topLevel);
+            fillXsdElement(xElem, xsdElem, topLevel);
         }
     }
 
@@ -401,7 +406,7 @@ public class XD2XsdTreeAdapter {
             nsUri = XsdNamespaceUtils.getNodeNamespaceUri(xElem, adapterCtx, TRANSFORMATION);
 
             if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
-                final String systemId = XsdNamespaceUtils.getReferenceSystemId(xDefPos);
+                final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xDefPos);
                 xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
                 SchemaNodeFactory.createElemRefAndDef(xElem, xsdElem, schemaName, nodePath, systemId, xDefPos, nodePath, adapterCtx);
             } else {
@@ -411,9 +416,9 @@ public class XD2XsdTreeAdapter {
         }
     }
 
-    private void createElement(final XElement xElem, final XmlSchemaElement xsdElem, boolean topLevel) {
+    private void fillXsdElement(final XElement xElem, final XmlSchemaElement xsdElem, boolean topLevel) {
         xsdElem.setName(XsdNameUtils.getName(xElem));
-        XsdNameUtils.resolveElementQName(schema, xsdElem);
+        XsdNameUtils.resolveElementQName(schema, xElem, xsdElem, adapterCtx);
 
         // If element contains only data, we dont have to create complexType
         if (xElem._attrs.size() == 0 && xElem._childNodes.length == 1 && xElem._childNodes[0].getKind() == XNode.XMTEXT) {
@@ -448,7 +453,7 @@ public class XD2XsdTreeAdapter {
         final String refXPos = xElem.getReferencePos();
         final String xPos = xElem.getXDPosition();
 
-        final String refSystemId = XsdNamespaceUtils.getReferenceSystemId(refXPos);
+        final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refXPos);
         final String refLocalName = XsdNameUtils.getReferenceName(refXPos);
 
         if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), xElem.getNSUri(), schema)) {
@@ -496,7 +501,7 @@ public class XD2XsdTreeAdapter {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xd, "Content of element contains only XSD datatype" +
                     "Element=" + xsdElem.getName() + ", DataType=" + qName.getLocalPart());
         } else {
-            xsdElem.setType(xsdFactory.creatSimpleType(xd, xsdElem.getName(), false));
+            xsdElem.setType(xsdFactory.createSimpleType(xd, xsdElem.getName(), false));
         }
     }
 
@@ -621,7 +626,7 @@ public class XD2XsdTreeAdapter {
                                                    final Stack<XmlSchemaParticle> groups,
                                                    final XElement defEl) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, defEl, "Creating group reference");
-        final String systemId = XsdNamespaceUtils.getReferenceSystemId(xChildrenNodes[0].getXDPosition());
+        final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xChildrenNodes[0].getXDPosition());
         String refNodePath = XsdNameUtils.getXNodePath(xChildrenNodes[0].getXDPosition());
         if (refNodePath.endsWith("/$mixed")) {
             refNodePath = refNodePath.substring(0, refNodePath.lastIndexOf("/"));

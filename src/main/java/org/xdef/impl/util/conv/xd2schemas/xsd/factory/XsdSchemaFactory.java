@@ -112,7 +112,7 @@ public class XsdSchemaFactory {
                     XElement defEl = (XElement)xn;
                     String tmpNs = XsdNamespaceUtils.getNamespacePrefix(defEl.getName());
                     if (tmpNs == null && defEl.getReferencePos() != null) {
-                        tmpNs = XsdNamespaceUtils.getReferenceSystemId(defEl.getReferencePos());
+                        tmpNs = XsdNamespaceUtils.getSystemIdFromXPos(defEl.getReferencePos());
                     }
                     if (tmpNs != null && tmpNs.equals(targetNsPrefix)) {
                         XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Some of root element has different namespace prefix. Element default form will be Qualified. ExpectedPrefix=" + targetNsPrefix);

@@ -85,13 +85,19 @@ public class XsdNameUtils {
         }
     }
 
-    public static void resolveElementQName(final XmlSchema schema, final XmlSchemaElement elem) {
+    public static void resolveElementQName(final XmlSchema schema, final XElement xElem, final XmlSchemaElement elem, final XsdAdapterCtx adapterCtx) {
         if (elem.isRef()) {
             return;
         }
 
         if (elem.isTopLevel()) {
-            elem.setName(getNodeNameWithoutPrefix(elem.getName()));
+            String name = adapterCtx.getNameFactory().findTopLevelName(xElem);
+            if (name == null) {
+                name = getNodeNameWithoutPrefix(elem.getName());
+                name = adapterCtx.getNameFactory().generateTopLevelName(xElem, name);
+            }
+
+            elem.setName(name);
             return;
         }
 

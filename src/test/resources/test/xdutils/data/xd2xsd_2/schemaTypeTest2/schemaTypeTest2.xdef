@@ -1,0 +1,16 @@
+<xd:def xmlns:xd      =  "http://www.xdef.org/xdef/3.2"
+         xd:name      =  "schemaTypeTest2"
+         xd:root      =  "Root" >
+
+     <Root>
+         <xd:mixed>
+             <Test1 xd:script="occurs *">string(%minLength='1', %maxLength='10', %pattern=['[A-Z][a-z]*', '[A-Z]*'])</Test1>
+             <Test2 xd:script="occurs *">list(%item=int(%minInclusive='1', %maxInclusive='10'))</Test2>
+             <Test3 xd:script="occurs *">list(%item=int(%minInclusive='1', %maxInclusive='10'), %length='3')</Test3>
+             <Test4 xd:script="occurs *">union(%item=[int(%minInclusive='1', %maxInclusive='10'), string(%enumeration=['A', 'B', 'C'])])</Test4>
+             <Test5 xd:script="occurs *">union(%item=[int(%minInclusive='1', %maxInclusive='20'), string(%enumeration=['A', 'B', 'C'])])</Test5>
+             <Test6 xd:script="occurs *">list(%item=string(%enumeration=['A', 'B', 'C']), %length='3')</Test6>
+         </xd:mixed>
+     </Root>
+
+</xd:def>

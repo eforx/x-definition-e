@@ -106,14 +106,14 @@ public class XsdElementFactory {
         return any;
     }
 
-    public void creatSimpleTypeTop(final XData xData, final String name, boolean isAttr) {
+    public void createSimpleTypeTop(final XData xData, final String name, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type top. Name=" + name);
         final XmlSchemaSimpleType itemType = createEmptySimpleType(true);
         itemType.setName(name);
         itemType.setContent(createSimpleTypeContent(xData, name, isAttr));
     }
 
-    public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName, boolean isAttr) {
+    public XmlSchemaSimpleType createSimpleType(final XData xData, final String nodeName, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type no-top");
         final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setContent(createSimpleTypeContent(xData, nodeName, isAttr));
@@ -204,7 +204,7 @@ public class XsdElementFactory {
         return groupRef;
     }
 
-    public XmlSchemaComplexType createComplexTypeWithComplexExtension(final String name, final QName qName) {
+    public XmlSchemaComplexType createTopComplexTypeWithComplexExtension(final String name, final QName qName) {
         final XmlSchemaComplexType complexType = createEmptyComplexType(true);
         final XmlSchemaComplexContent complexContent = createComplexContentWithComplexExtension(qName);
         complexType.setContentModel(complexContent);
@@ -218,8 +218,8 @@ public class XsdElementFactory {
         return complexContent;
     }
 
-    public XmlSchemaComplexType createComplextTypeWithSimpleExtension(final String name, final QName qName, boolean topLevel) {
-        final XmlSchemaComplexType complexType = createEmptyComplexType(topLevel);
+    public XmlSchemaComplexType createTopComplexTypeWithSimpleExtension(final String name, final QName qName) {
+        final XmlSchemaComplexType complexType = createEmptyComplexType(true);
         final XmlSchemaSimpleContentExtension simpleContentExtension = createSimpleContentExtension(qName);
         final XmlSchemaSimpleContent simpleContent = createSimpleContent(simpleContentExtension);
         complexType.setContentModel(simpleContent);
