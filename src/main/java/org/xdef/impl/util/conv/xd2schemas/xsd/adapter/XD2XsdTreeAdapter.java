@@ -37,6 +37,7 @@ public class XD2XsdTreeAdapter {
     final private String schemaName;
     final private XsdElementFactory xsdFactory;
     final private XsdAdapterCtx adapterCtx;
+    final private XsdPostProcessor postProcessor;
 
     private boolean isPostProcessingPhase = false;
     private Set<XMNode> xdProcessedNodes = null;
@@ -46,6 +47,7 @@ public class XD2XsdTreeAdapter {
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
         this.adapterCtx = adapterCtx;
+        this.postProcessor = new XsdPostProcessor(adapterCtx);
     }
 
     public void setPostProcessing() {
@@ -179,14 +181,20 @@ public class XD2XsdTreeAdapter {
                 XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains datatype with fixed value. " +
                         "Element=" + xData.getName() + ", Type=" + qName + ", FixedValue=" + fixedValue);
             } else {
-                XmlSchemaSimpleType simpleType;
                 // Attributes using unique set should not contain simple-type with name
                 if (uniqueConstraints != null) {
-                    simpleType = xsdFactory.creatSimpleTypeWithoutName(xData, attr.getName(), true);
+                    final String parserName = xData.getParserName();
+                    qName = XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
+                    attr.setSchemaTypeName(qName);
                 } else {
-                    simpleType = xsdFactory.creatSimpleType(xData, attr.getName(), true);
+                    final XmlSchemaSimpleType simpleType = xsdFactory.creatSimpleType(xData, attr.getName(), true);
+                    if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                        postProcessor.simpleTypeRestrictionToAttr((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), attr);
+                    }
+                    if (attr.getSchemaTypeName() == null) {
+                        attr.setSchemaType(simpleType);
+                    }
                 }
-                attr.setSchemaType(simpleType);
             }
 
             final String defaultValue = xData.getDefaultValue();
@@ -584,7 +592,7 @@ public class XD2XsdTreeAdapter {
             complexType.setParticle(currParticle instanceof CXmlSchemaGroupParticle ? ((CXmlSchemaGroupParticle) currParticle).xsd() : currParticle);
         }
 
-        new XsdPostProcessor(adapterCtx).elementComplexType(complexType, xElem);
+        postProcessor.elementComplexType(complexType, xElem);
 
         if (complexType.getContentModel() == null) {
             XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add attributes to complex content of element");
@@ -637,7 +645,7 @@ public class XD2XsdTreeAdapter {
                 addNodeToParticleGroup(currGroup, groupRef);
 
                 if (group.getParticle() instanceof XmlSchemaAll) {
-                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XsdPostProcessor(adapterCtx).groupParticleAllToChoice((XmlSchemaAll)group.getParticle(), false));
+                    final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(postProcessor.groupParticleAllToChoice((XmlSchemaAll)group.getParticle(), false));
                     if (newGroupChoice != null) {
                         group.setParticle(newGroupChoice.xsd());
                         // We have to use occurence on groupRef element
@@ -682,13 +690,13 @@ public class XD2XsdTreeAdapter {
                     cCurr.addItems(cPrev.getItems());
                     merge = true;
                 } else {
-                    final CXmlSchemaChoice newGroupChoice = new XsdPostProcessor(adapterCtx).groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.BOTTOM_UP);
+                    final CXmlSchemaChoice newGroupChoice = postProcessor.groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.BOTTOM_UP);
                     if (newGroupChoice != null) {
                         replaceLastGroupParticle(particleStack, newGroupChoice);
                     }
                 }
             } else if (cPrev.xsd() instanceof XmlSchemaAll) {
-                final CXmlSchemaChoice newGroupChoice = new XsdPostProcessor(adapterCtx).groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.TOP_DOWN);
+                final CXmlSchemaChoice newGroupChoice = postProcessor.groupParticleAllToChoice(CXmlSchemaChoice.TransformDirection.TOP_DOWN);
                 if (newGroupChoice != null) {
                     particleStack.pop();
                     replaceLastGroupParticle(particleStack, newGroupChoice);

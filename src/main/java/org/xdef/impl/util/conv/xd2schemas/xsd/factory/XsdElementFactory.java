@@ -115,15 +115,9 @@ public class XsdElementFactory {
 
     public XmlSchemaSimpleType creatSimpleType(final XData xData, final String nodeName, boolean isAttr) {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type no-top");
-        final XmlSchemaSimpleType itemType = creatSimpleTypeWithoutName(xData, nodeName, isAttr);
-        itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
-        return itemType;
-    }
-
-    public XmlSchemaSimpleType creatSimpleTypeWithoutName(final XData xData, final String nodeName, boolean isAttr) {
-        XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type without name no-top");
         final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setContent(createSimpleTypeContent(xData, nodeName, isAttr));
+        itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
         return itemType;
     }
 

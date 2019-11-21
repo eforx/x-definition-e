@@ -381,21 +381,6 @@ public class XsdAdapterCtx {
         return uniqueInfo;
     }
 
-    public void addVarToUniqueInfo(final String uniqueSetName, final String systemId, final String uniqueSetPath, final String variableName, final QName qName) {
-        XsdLogger.printP(LOG_INFO, INITIALIZATION, "Add variable to unique set. UniqueName=" + uniqueSetName + ", VariableName=" + variableName + ", QName=" + qName);
-
-        final Map<String, List<UniqueConstraints>> uniqueInfoMap = getOrCreateSchemUniqueInfo(systemId);
-        UniqueConstraints uniqueInfo = getUniqueConstraints(uniqueInfoMap, uniqueSetName, uniqueSetPath);
-        if (uniqueInfo == null) {
-            XsdLogger.printP(LOG_WARN, INITIALIZATION, "Unique set does not exist! UniqueName=" + uniqueSetName + ", System=" + systemId);
-            return;
-        }
-
-        if (uniqueInfo.addVar(variableName, qName)) {
-            XsdLogger.printP(LOG_WARN, INITIALIZATION, "Rewriting of unique variable! UniqueName=" + uniqueSetName + ", VariableName=" + variableName);
-        }
-    }
-
     public void addVarToUniqueInfo(final XData xData, final UniqueConstraints uniqueConstraints) {
         final String varName = XsdNameUtils.getUniqueSetVarName(xData.getValueTypeName());
         final String nodePath = XsdNameUtils.getXNodePath(xData.getXDPosition());

@@ -329,6 +329,26 @@ public class XsdPostProcessor {
         return newGroupChoice;
     }
 
+    /**
+     * Transform simple-type node content with empty restriction to attribute
+     * @param simpleTypeRestriction
+     * @param attr
+     * @return
+     */
+    public void simpleTypeRestrictionToAttr(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final XmlSchemaAttribute attr) {
+        if (simpleTypeRestriction.getFacets().isEmpty()) {
+            attr.setSchemaTypeName(simpleTypeRestriction.getBaseTypeName());
+            if (attr.getAnnotation() != null) {
+                final List<XmlSchemaAnnotationItem> annotationItems = simpleTypeRestriction.getAnnotation().getItems();
+                if (annotationItems != null && !annotationItems.isEmpty()) {
+                    attr.getAnnotation().getItems().addAll(annotationItems);
+                }
+            } else {
+                attr.setAnnotation(simpleTypeRestriction.getAnnotation());
+            }
+        }
+    }
+
     private void copyAllMembersToChoice(final XmlSchemaAll groupParticleAll, final XmlSchemaChoice schemaChoice) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle's members of xsd:all to xsd:choice");
         for (XmlSchemaAllMember member : groupParticleAll.getItems()) {

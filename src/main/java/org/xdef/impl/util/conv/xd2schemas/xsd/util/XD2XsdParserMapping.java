@@ -150,13 +150,16 @@ public class XD2XsdParserMapping {
     public static QName getDefaultSimpleParserQName(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
-
         final QName defaultQName = getDefaultParserQName(parserName, adapterCtx);
 
-        if (defaultQName != null && parseMethod instanceof XDParser) {
-            XDParser parser = ((XDParser)parseMethod);
-            XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-            if (parameters.length == 0 && getCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
+        if (defaultQName != null) {
+            if (parseMethod instanceof XDParser) {
+                final XDParser parser = ((XDParser) parseMethod);
+                final XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
+                if (parameters.length == 0 && getCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
+                    return defaultQName;
+                }
+            } else {
                 return defaultQName;
             }
         }

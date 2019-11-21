@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name="keyAndRef3">
+    <xd:declaration>
+        type p QName();
+        uniqueSet u p;
+    </xd:declaration>
+    <a>
+        <b z='SET'> u.IDREFS </b>
+        <c x='u.ID' y='u.ID'/>
+    </a>
+</xd:def>
+
