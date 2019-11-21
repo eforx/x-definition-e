@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='A' name="keyAndRef5">
+    <xd:declaration scope='local'>
+      type flt float(1,6);
+      uniqueSet u {x: flt; y : optional flt;}
+    </xd:declaration>
+    <A xd:script='var uniqueSet v {x: u.x}'>
+      <b xd:script='+' a='v.x.ID(u.x.ID())'/>
+      <c xd:script='+' a='v.x.IDREF(u.x.IDREF())'/>
+    </A>
+</xd:def>
+

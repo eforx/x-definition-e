@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='A' name="keyAndRef7">
+    <xd:declaration>
+      uniqueSet u{x: int();}
+    </xd:declaration>
+    <A>
+      <a xd:script='?' a='u.x()'/>
+      <b xd:script='+' a='u.x.ID()'/>
+      <c xd:script='?' a='u.x.IDREF()'/>
+      <d xd:script='?' a='u.x.CHKID()'/>
+      <e xd:script='?' a='u.x.SET()'/>
+    </A>
+</xd:def>
+

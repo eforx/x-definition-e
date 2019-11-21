@@ -600,7 +600,10 @@ public class TestXd2Xsd extends XDTester {
         convertXdDef2XsdNoRef ("keyAndRef2", Arrays.asList(new String[] {"keyAndRef2_valid_1", "keyAndRef2_valid_2"}), null);
         convertXdDef2XsdNoRef ("keyAndRef3", Arrays.asList(new String[] {"keyAndRef3_valid_1"}), null);
         convertXdDef2XsdNoRef ("keyAndRef4", Arrays.asList(new String[] {"keyAndRef4_valid_1"}), null);
-        
+        convertXdDef2XsdNoRef ("keyAndRef5", Arrays.asList(new String[] {"keyAndRef5_valid_1"}), null);
+        convertXdDef2XsdNoRef ("keyAndRef6", Arrays.asList(new String[] {"keyAndRef6_valid_1"}), null);
+        convertXdDef2XsdNoRef ("keyAndRef7", Arrays.asList(new String[] {"keyAndRef7_valid_1"}), null);
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////

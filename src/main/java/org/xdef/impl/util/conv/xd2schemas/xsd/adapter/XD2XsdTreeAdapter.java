@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.xdef.impl.compile.CompileBase.UNIQUESET_M_VALUE;
+import static org.xdef.impl.compile.CompileBase.UNIQUESET_VALUE;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
@@ -76,7 +77,7 @@ public class XD2XsdTreeAdapter {
         if (varTable != null && varTable.size() > 0) {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Loading unique sets of x-definition");
             for (XMVariable xmVariable : varTable.toArray()) {
-                if (xmVariable.getType() == UNIQUESET_M_VALUE && xmVariable.getOffset() != -1) {
+                if ((xmVariable.getType() == UNIQUESET_M_VALUE || xmVariable.getType() == UNIQUESET_VALUE) && xmVariable.getOffset() != -1) {
                     adapterCtx.addUniqueInfo(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getReferenceSystemId(xmVariable.getName()), uniqueSetPath);
                 }
             }
