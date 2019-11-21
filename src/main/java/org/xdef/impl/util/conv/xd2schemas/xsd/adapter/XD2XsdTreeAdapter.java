@@ -77,7 +77,7 @@ public class XD2XsdTreeAdapter {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Loading unique sets of x-definition");
             for (XMVariable xmVariable : varTable.toArray()) {
                 if (xmVariable.getType() == UNIQUESET_M_VALUE && xmVariable.getOffset() != -1) {
-                    adapterCtx.addUniqueInfo(xmVariable.getName(), xDef.getName(), uniqueSetPath);
+                    adapterCtx.addUniqueInfo(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getReferenceSystemId(xmVariable.getName()), uniqueSetPath);
                 }
             }
         }
@@ -151,7 +151,7 @@ public class XD2XsdTreeAdapter {
         } else {
             final UniqueConstraints uniqueConstraints = adapterCtx.findUniqueInfo(xData);
             if (uniqueConstraints != null) {
-                attr.setAnnotation(XsdElementFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraints.getName(), adapterCtx));
+                attr.setAnnotation(XsdElementFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraints.getPath(), adapterCtx));
             }
             attr.setName(xData.getName());
             QName qName;

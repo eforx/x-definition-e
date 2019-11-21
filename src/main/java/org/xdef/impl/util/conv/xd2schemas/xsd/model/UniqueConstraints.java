@@ -9,6 +9,7 @@ import java.util.Set;
 public class UniqueConstraints {
 
     private final String name;
+    private final String systemId;
 
     /**
      *
@@ -19,11 +20,24 @@ public class UniqueConstraints {
     private Set<String> references = new HashSet<String>();
     private Set<String> keys = new HashSet<String>();
 
-    public UniqueConstraints(String name) {
+    public UniqueConstraints(String name, String systemId) {
         this.name = name;
+        this.systemId = systemId;
     }
 
     public String getName() {
+        return name;
+    }
+
+    public String getSystemId() {
+        return systemId;
+    }
+
+    public String getPath() {
+        if (systemId != null && !"".equals(systemId)) {
+            return systemId + '#' + name;
+        }
+
         return name;
     }
 

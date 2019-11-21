@@ -357,7 +357,11 @@ public class XsdAdapterCtx {
         return features.contains(feature);
     }
 
-    public UniqueConstraints addUniqueInfo(final String name, final String systemId, String path) {
+    public UniqueConstraints addUniqueInfo(final String name, String systemId, String path) {
+        if (systemId == null) {
+            systemId = "";
+        }
+
         final Map<String, List<UniqueConstraints>> uniqueInfoMap = getOrCreateSchemUniqueInfo(systemId);
         if (!path.isEmpty()) {
             path = "/" + path;
@@ -372,7 +376,7 @@ public class XsdAdapterCtx {
                 uniqueInfoMap.put(path, uniqueInfoList);
             }
 
-            uniqueInfo = new UniqueConstraints(name);
+            uniqueInfo = new UniqueConstraints(name, systemId);
             uniqueInfoList.add(uniqueInfo);
         } else {
             XsdLogger.printP(LOG_DEBUG, PREPROCESSING, "Creating unique set - already exists. Name=" + name + ", Path=" + path + ", System=" + systemId);
@@ -387,7 +391,7 @@ public class XsdAdapterCtx {
         final String parserName = xData.getParserName();
         final QName qName = XD2XsdParserMapping.getDefaultParserQName(parserName, this);
 
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Add variable to unique set. UniqueName=" + uniqueConstraints.getName() + ", VarName=" + varName + ", QName=" + qName);
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Add variable to unique set. Unique=" + uniqueConstraints.getPath() + ", VarName=" + varName + ", QName=" + qName);
 
         if (qName != null) {
             uniqueConstraints.addVar(varName, qName);
@@ -423,11 +427,20 @@ public class XsdAdapterCtx {
 
         final String systemId = XsdNamespaceUtils.getReferenceSystemId(xData.getXDPosition());
         final String uniqueInfoName = XsdNameUtils.getUniqueSetName(xData.getValueTypeName());
+        final String uniquestSetPath = "/" + XsdNameUtils.getXNodePath(xData.getXDPosition());
+        UniqueConstraints uniqueInfo = findUniqueInfo(uniqueInfoName, systemId, uniquestSetPath);
+        if (uniqueInfo == null) {
+            uniqueInfo = findUniqueInfo(uniqueInfoName, "", uniquestSetPath);
+        }
+        return uniqueInfo;
+    }
 
-        final Map<String, List<UniqueConstraints>> uniqueInfoMap = getOrCreateSchemUniqueInfo(systemId);
+    public UniqueConstraints findUniqueInfo(final String uniqueInfoName, final String systemId, String uniquestSetPath) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Finding unique set. UniqueName=" + uniqueInfoName + ", SystemId=" + systemId);
+
         UniqueConstraints uniqueInfo = null;
-        String uniquestSetPath = "/" + XsdNameUtils.getXNodePath(xData.getXDPosition());
         int slashPos;
+        final Map<String, List<UniqueConstraints>> uniqueInfoMap = getOrCreateSchemUniqueInfo(systemId);
 
         if (!uniqueInfoMap.isEmpty()) {
             while (uniqueInfo == null && !"".equals(uniquestSetPath)) {
