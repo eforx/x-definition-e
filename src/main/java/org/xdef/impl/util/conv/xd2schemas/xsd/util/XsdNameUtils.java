@@ -175,38 +175,6 @@ public class XsdNameUtils {
         return varTypeName;
     }
 
-    public static String newTopLocalRefName(final String name) {
-        return name;
-    }
-
-    public static String newRootElemName(final String name, final XmlSchemaType schemaType) {
-        return newElemenPrefix(schemaType) + "root_" + name;
-    }
-
-    public static String newLocalScopeRefTypeName(final XData xData) {
-        return xData.isLocalType() ? "refLoc_" + xData.getRefTypeName() : xData.getRefTypeName();
-    }
-
-    public static String newUnionRefTypeName(final String nodeName, final String localPartName) {
-        return nodeName + "_union_" + localPartName;
-    }
-
-    private static String newElemenPrefix(XmlSchemaType schemaType) {
-        if (schemaType != null) {
-            return newElemenPrefix(schemaType instanceof XmlSchemaComplexType);
-        }
-
-        return "";
-    }
-
-    private static String newElemenPrefix(boolean isComplexType) {
-        if (isComplexType) {
-            return "ct_";
-        } else {
-            return "st_";
-        }
-    }
-
     public static String createRefNameFromParser(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();

@@ -2,30 +2,36 @@ package org.xdef.impl.util.conv.xd2schemas.xsd.model;
 
 import java.util.Arrays;
 
+/**
+ * Definition of XSD schema import.
+ *
+ * Source data model for creating XSD xs:import node.
+ */
 public class XsdSchemaImportLocation {
-    private String namespaceUri;
-    private String path;
+
     /**
-     * If fileName is not set, then building of XML namespace location will use name of referenced x-definition
+     * XSD schema namespace URI
+     */
+    private String namespaceUri;
+
+    /**
+     * XSD schema path
+     */
+    private String path;
+
+    /**
+     * XSD schema file name
      */
     private String fileName;
-    private String fileExt = ".xsd";
 
-    public XsdSchemaImportLocation(String namespaceUri) {
-        this.namespaceUri = namespaceUri;
-    }
+    /**
+     * XSD schema file extension
+     */
+    private String fileExt = ".xsd";
 
     public XsdSchemaImportLocation(String namespaceUri, String fileName) {
         this.namespaceUri = namespaceUri;
         this.fileName = fileName;
-    }
-
-    public String getNamespaceUri() {
-        return namespaceUri;
-    }
-
-    public void setNamespaceUri(String namespaceUri) {
-        this.namespaceUri = namespaceUri;
     }
 
     public String getPath() {
@@ -40,19 +46,12 @@ public class XsdSchemaImportLocation {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileExt() {
-        return fileExt;
-    }
-
-    public void setFileExt(String fileExt) {
-        this.fileExt = fileExt;
-    }
-
-    public String buildLocalition(final String schemaName) {
+    /**
+     * Creates XSD import path based on internal variable state
+     * @param schemaName    XSD schema name which will be used if fileName is not set
+     * @return XSD schema import path
+     */
+    public String buildLocation(final String schemaName) {
         String res = "";
         if (path != null && !path.trim().isEmpty()) {
             res += path + "\\";

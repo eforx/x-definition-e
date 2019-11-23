@@ -8,7 +8,6 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
-import org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.IXsdFacetFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.ListFacetFactory;
@@ -16,7 +15,6 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.xdef.UnionFacetFacto
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdParserMapping;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
@@ -27,17 +25,33 @@ import java.util.Set;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
+/**
+ * Creates multiple types of XSD simple content node
+ */
 public class XsdSimpleContentFactory {
 
     private final XsdElementFactory xsdFactory;
     private final XsdAdapterCtx adapterCtx;
+    /**
+     * Source x-definition node
+     */
     private final XData xData;
+    /**
+     * X-definition node parser name
+     */
     private final String parserName;
+    /**
+     * X-definition node parser parameters
+     */
     private XDNamedValue[] parameters = null;
 
+    /**
+     * @param xsdFactory    XSD element factory
+     * @param adapterCtx    XSD adapter context
+     * @param xData         source x-definition node
+     */
     public XsdSimpleContentFactory(XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx, XData xData) {
         this.xsdFactory = xsdFactory;
         this.adapterCtx = adapterCtx;
@@ -49,8 +63,16 @@ public class XsdSimpleContentFactory {
         this.parameters = parameters;
     }
 
+    /**
+     * Create XSD simple content node
+     * @param nodeName  node name (required for <xs:union/> node)
+     * @param isAttr    flag if x-definition node is attribute
+     * @return based on x-definition node parser
+     *          <xs:restriction base="...">...</xs:restriction>
+     *          <xs:list itemType="...">...</xs:list>
+     *          <xs:union memberTypes="...">...</xs:union>
+     */
     public XmlSchemaSimpleTypeContent createSimpleContent(final String nodeName, boolean isAttr) {
-
         boolean customParser = true;
         boolean unknownParser = false;
 
@@ -95,11 +117,22 @@ public class XsdSimpleContentFactory {
         return res;
     }
 
-    public XmlSchemaSimpleTypeRestriction createDefaultRestriction(final QName qName) {
+    /**
+     * Creates XSD simple type string restriction node without any facet
+     * @return <xs:restriction base="xs:string"/>
+     */
+    public XmlSchemaSimpleTypeRestriction createDefaultRestriction() {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating restrictions of simple content (default facet factory will be used) ...");
-        return simpleTypeRestriction(qName, new DefaultFacetFactory(), parameters);
+        return simpleTypeRestriction(Constants.XSD_STRING, new DefaultFacetFactory(), null);
     }
 
+    /**
+     * Creates XSD simple type restriction node with facet based on input parameters
+     * @param qName             XSD restriction base
+     * @param facetBuilder      XSD restriction facet builder
+     * @param parameters        source x-definition parameters for facets building
+     * @return <xs:restriction base="{@paramref qName}">...</xs:restriction>
+     */
     private XmlSchemaSimpleTypeRestriction simpleTypeRestriction(final QName qName, final IXsdFacetFactory facetBuilder, final XDNamedValue[] parameters) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type restriction. Type=" + qName);
         facetBuilder.setAdapterCtx(adapterCtx);
@@ -111,6 +144,13 @@ public class XsdSimpleContentFactory {
         return restriction;
     }
 
+    /**
+     * Creates XSD simple type list node and restriction node with facets
+     * @param qName             XSD list item type and XSD restriction base
+     * @param facetBuilder      XSD restriction facet builder
+     * @return  <xs:list itemType="{@paramref qName}">...</xs:list> if restriction has no facets
+     *          <xs:restriction>...</xs:restriction> otherwise
+     */
     private XmlSchemaSimpleTypeContent simpleTypeList(final QName qName, final IXsdFacetFactory facetBuilder) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type list. Type=" + qName);
         final XmlSchemaSimpleTypeList list = simpleTypeList(qName);
@@ -118,6 +158,11 @@ public class XsdSimpleContentFactory {
         return wrapUpSimpleTypeContent(restriction, list);
     }
 
+    /**
+     * Creates XSD simple type list node
+     * @param qName     XSD list item type
+     * @return <xs:list itemType="{@paramref qName}">...</xs:list>
+     */
     private XmlSchemaSimpleTypeList simpleTypeList(final QName qName) {
         final XmlSchemaSimpleTypeList list = new XmlSchemaSimpleTypeList();
         final XmlSchemaSimpleType simpleType = xsdFactory.createEmptySimpleType(false);
@@ -140,6 +185,13 @@ public class XsdSimpleContentFactory {
         return list;
     }
 
+    /**
+     * Creates XSD simple type union node and restriction node with facets optionally
+     * @param facetBuilder      XSD restriction facet builder
+     * @param nodeName          source x-definition node name
+     * @return  <xs:union memberTypes="...">...</xs:union> if restriction has no facets
+     *          <xs:restriction><xs:union memberTypes="...">...</xs:union>...</xs:restriction> otherwise
+     */
     private XmlSchemaSimpleTypeContent simpleTypeUnion(final IXsdFacetFactory facetBuilder, final String nodeName) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating simple type union." );
         final XmlSchemaSimpleTypeUnion union = simpleTypeUnion(nodeName);
@@ -147,6 +199,11 @@ public class XsdSimpleContentFactory {
         return wrapUpSimpleTypeContent(restriction, union);
     }
 
+    /**
+     * Creates XSD simple type union node
+     * @param nodeName      source x-definition node name
+     * @return <xs:union memberTypes="...">...</xs:union>
+     */
     private XmlSchemaSimpleTypeUnion simpleTypeUnion(final String nodeName) {
         final XmlSchemaSimpleTypeUnion union = new XmlSchemaSimpleTypeUnion();
 
@@ -180,25 +237,31 @@ public class XsdSimpleContentFactory {
         return union;
     }
 
-    private void simpleTypeUnionTopReference(final XDParser value, final Set<String> refNames, final String nodeName) {
+    /**
+     * Creates top level simple type node which contains union member type reference
+     * @param xParser   x-definition parser
+     * @param refNames  used reference names
+     * @param nodeName  source x-definition node name
+     */
+    private void simpleTypeUnionTopReference(final XDParser xParser, final Set<String> refNames, final String nodeName) {
         boolean unknownParser = false;
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(value.parserName(), adapterCtx);
+        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdParserMapping.getDefaultFacetFactory(xParser.parserName(), adapterCtx);
         if (parserInfo == null) {
-            XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported simple content parser! Parser=" + value.parserName());
+            XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported simple content parser! Parser=" + xParser.parserName());
             parserInfo = new Pair(Constants.XSD_STRING, new DefaultFacetFactory());
             unknownParser = true;
         }
 
-        final XmlSchemaSimpleTypeRestriction restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue(), value.getNamedParams().getXDNamedItems());
+        final XmlSchemaSimpleTypeRestriction restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue(), xParser.getNamedParams().getXDNamedItems());
         if (unknownParser) {
-            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + value.parserName(), adapterCtx));
+            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + xParser.parserName(), adapterCtx));
         }
 
-        String refName = XsdNameUtils.newUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());
+        String refName = XsdNameFactory.createUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());
         refName = adapterCtx.getNameFactory().generateTopLevelName(xData, refName);
 
         if (!refNames.add(refName)) {
-            XsdLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Union reference name already exists! RefName=" + refName);
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xData, "Union reference name already exists! RefName=" + refName);
         } else {
             final XmlSchemaSimpleType simpleType = xsdFactory.createEmptySimpleType(true);
             simpleType.setName(refName);
@@ -206,6 +269,13 @@ public class XsdSimpleContentFactory {
         }
     }
 
+    /**
+     * Wrap xs:list or xs:union node to xs:simpleType if input XSD restriction node has any facet
+     * @param restriction   XSD restriction node
+     * @param content       XSD list or union node
+     * @return  {@paramref content} if {@paramref restriction} has no facet
+     *          {@paramref restriction} containing <xs:simpleType>{@paramref content}</xs:simpleType>
+     */
     private XmlSchemaSimpleTypeContent wrapUpSimpleTypeContent(final XmlSchemaSimpleTypeRestriction restriction, final XmlSchemaSimpleTypeContent content) {
         // If exists some other restrictions for list, then wrap up list inside
         if (!restriction.getFacets().isEmpty()) {
@@ -219,6 +289,13 @@ public class XsdSimpleContentFactory {
         return content;
     }
 
+    /**
+     * Creates XSD facet nodes based on input {@paramref parameters} by {@paramref facetBuilder}
+     * @param qName             XSD restriction base
+     * @param facetBuilder      XSD restriction facet builder
+     * @param parameters        source x-definition parameters for facets building
+     * @return
+     */
     private List<XmlSchemaFacet> buildFacets(final QName qName, final IXsdFacetFactory facetBuilder, final XDNamedValue[] parameters) {
         if (qName != null && ("double".equals(qName.getLocalPart()) || "float".equals(qName.getLocalPart()))) {
             facetBuilder.setValueType(IXsdFacetFactory.ValueType.DECIMAL_FLOATING);
@@ -230,25 +307,5 @@ public class XsdSimpleContentFactory {
 
         return facetBuilder.build(parameters);
     }
-
-    /*
-    public static List<XmlSchemaFacet> buildFacets(final String parserName, final XDNamedValue[] parameters) {
-        List<XmlSchemaFacet> facets = null;
-
-        Pair<QName, IXsdFacetFactory> parserInfo = XD2XsdUtils.getCustomFacetFactory(parserName, parameters);
-        if (parserInfo == null) {
-            parserInfo = XD2XsdUtils.getDefaultFacetFactory(parserName);
-        }
-
-        if (parserInfo != null) {
-            facets = buildFacets(parserInfo.getKey(), parserInfo.getValue(), parameters);
-        }
-
-        if (facets == null) {
-            throw new RuntimeException("Unknown reference type parser: " + parserName);
-        }
-
-        return facets;
-    }*/
 
 }

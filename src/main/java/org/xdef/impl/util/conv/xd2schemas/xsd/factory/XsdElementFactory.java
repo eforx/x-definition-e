@@ -148,7 +148,7 @@ public class XsdElementFactory {
         XsdLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type. NodeName=" + nodeName);
         final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setContent(createSimpleTypeContent(xData, nodeName));
-        itemType.setName(XsdNameUtils.newLocalScopeRefTypeName(xData));
+        itemType.setName(XsdNameFactory.createLocalSimpleTypeName(xData));
         return itemType;
     }
 
@@ -163,7 +163,7 @@ public class XsdElementFactory {
 
         QName qName;
         if (xDataText.getRefTypeName() != null) {
-            final String refTypeName = XsdNameUtils.newLocalScopeRefTypeName(xDataText);
+            final String refTypeName = XsdNameFactory.createLocalSimpleTypeName(xDataText);
             final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
             final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
             qName = new QName(nsUri, refTypeName);
@@ -376,7 +376,7 @@ public class XsdElementFactory {
             return simpleContentFactory.createSimpleContent(nodeName, xData.getKind() == XMATTRIBUTE);
         }
 
-        return simpleContentFactory.createDefaultRestriction(Constants.XSD_STRING);
+        return simpleContentFactory.createDefaultRestriction();
     }
 
     /**

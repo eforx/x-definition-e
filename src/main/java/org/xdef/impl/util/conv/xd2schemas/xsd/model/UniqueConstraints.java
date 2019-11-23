@@ -6,18 +6,39 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Model containing information gathered from x-definition uniqueSet.
+ *
+ * Stores information about internal variables of uniqueSet.
+ * Stores position of ID and REF attributes using uniqueSet.
+ */
 public class UniqueConstraints {
 
+    /**
+     * UniqueSet name
+     */
     private final String name;
+
+    /**
+     * XSD schema name, where uniqueSet should be placed
+     */
     private final String systemId;
 
     /**
-     *
+     * Storage of variables inside uniqueSet
      * key:     variable name
      * value:   variable type
      */
     private Map<String, QName> variables = new HashMap<String, QName>();
+
+    /**
+     * Storage of attribute's path ID using uniqueSet
+     */
     private Set<String> references = new HashSet<String>();
+
+    /**
+     * Storage of attribute's path REF, CHKID using uniqueSet
+     */
     private Set<String> keys = new HashSet<String>();
 
     public UniqueConstraints(String name, String systemId) {

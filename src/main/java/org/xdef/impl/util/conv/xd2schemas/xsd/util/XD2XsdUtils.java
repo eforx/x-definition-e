@@ -20,19 +20,19 @@ public class XD2XsdUtils {
 
     static private final Pattern ciPattern = Pattern.compile("[a-zA-Z]");
 
-    public static void addElement(final XmlSchema schema, final XmlSchemaElement element) {
+    public static void addElementNode2TopLevel(final XmlSchema schema, final XmlSchemaElement element) {
         schema.getItems().add(element);
     }
 
-    public static void addAttr(final XmlSchema schema, final XmlSchemaAttribute attr) {
+    public static void addAttrNode2TopLevel(final XmlSchema schema, final XmlSchemaAttribute attr) {
         schema.getItems().add(attr);
     }
 
-    public static void addSchemaType(final XmlSchema schema, final XmlSchemaType schemaType) {
+    public static void addSchemaTypeNode2TopLevel(final XmlSchema schema, final XmlSchemaType schemaType) {
         schema.getItems().add(schemaType);
     }
 
-    public static void removeItem(final XmlSchema schema, final XmlSchemaObject xmlObj) {
+    public static void removeNode(final XmlSchema schema, final XmlSchemaObject xmlObj) {
         schema.getItems().remove(xmlObj);
     }
 

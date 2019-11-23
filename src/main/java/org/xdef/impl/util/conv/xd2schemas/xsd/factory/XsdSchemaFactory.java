@@ -19,6 +19,9 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.INITIAL
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
+/**
+ * Creates and initialize XSD schema
+ */
 public class XsdSchemaFactory {
 
     private final XsdAdapterCtx adapterCtx;
@@ -27,6 +30,12 @@ public class XsdSchemaFactory {
         this.adapterCtx = adapterCtx;
     }
 
+    /**
+     * Creates and initialize XSD schema
+     * @param xDef              source x-definition
+     * @param targetNamespace   target namespace (prefix, URI) of input x-definition
+     * @return empty initialized XSD schema
+     */
     public XmlSchema createXsdSchema(final XDefinition xDef, Pair<String, String> targetNamespace) {
         XsdLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Initialize xsd schema.");
 
@@ -40,15 +49,17 @@ public class XsdSchemaFactory {
 
         adapterCtx.addSchemaName(xDef.getName());
 
-        XmlSchema xmlSchema = new XmlSchema(targetNamespace.getValue(), xDef.getName(), adapterCtx.getXmlSchemaCollection());
-
+        final XmlSchema xmlSchema = new XmlSchema(targetNamespace.getValue(), xDef.getName(), adapterCtx.getXmlSchemaCollection());
         initSchemaNamespace(xmlSchema, xDef, targetNamespace);
         initSchemaFormDefault(xmlSchema, xDef, targetNamespace);
         return xmlSchema;
     }
 
     /**
-     * Initialize xsd schema namespace
+     * Initialize XSD schema namespace context
+     * @param xmlSchema         XSD schema to be initialized
+     * @param xDef              source x-definition
+     * @param targetNamespace   XSD schema target namespace (prefix, URI)
      */
     private void initSchemaNamespace(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
         XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Initializing namespace context ...");
@@ -87,19 +98,28 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Sets attributeFormDefault and elementFormDefault
+     * Sets attributeFormDefault and elementFormDefault to XSD schema
+     * @param xmlSchema         XSD schema to be initialized
+     * @param xDef              source x-definition
+     * @param targetNamespace   XSD schema target namespace (prefix, URI)
      */
     private void initSchemaFormDefault(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
-        XmlSchemaForm elemSchemaForm = getElemDefaultForm(xDef, targetNamespace.getKey());
+        final XmlSchemaForm elemSchemaForm = getElemDefaultForm(xDef, targetNamespace.getKey());
         xmlSchema.setElementFormDefault(elemSchemaForm);
 
-        XmlSchemaForm attrSchemaForm = getAttrDefaultForm(xDef, targetNamespace.getKey());
+        final XmlSchemaForm attrSchemaForm = getAttrDefaultForm(xDef, targetNamespace.getKey());
         xmlSchema.setAttributeFormDefault(attrSchemaForm);
 
         XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Setting element default schema form. Form=" + elemSchemaForm);
         XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Setting attribute default schema form. Form=" + attrSchemaForm);
     }
 
+    /**
+     * Determines default element schema form for XSD schema
+     * @param xDef              input x-definition
+     * @param targetNsPrefix    x-definition target namespace prefix
+     * @return schema form
+     */
     private XmlSchemaForm getElemDefaultForm(final XDefinition xDef, final String targetNsPrefix) {
         if (targetNsPrefix != null && targetNsPrefix.trim().isEmpty()) {
             XsdLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Target namespace prefix is empty. Element default form will be Qualified");
@@ -126,6 +146,12 @@ public class XsdSchemaFactory {
         return XmlSchemaForm.UNQUALIFIED;
     }
 
+    /**
+     * Determines default attribute schema form for XSD schema
+     * @param xDef              input x-definition
+     * @param targetNsPrefix    x-definition target namespace prefix
+     * @return schema form
+     */
     private XmlSchemaForm getAttrDefaultForm(final XDefinition xDef, final String targetNsPrefix) {
         if (xDef._rootSelection != null && xDef._rootSelection.size() > 0) {
             for (XNode xn : xDef._rootSelection.values()) {

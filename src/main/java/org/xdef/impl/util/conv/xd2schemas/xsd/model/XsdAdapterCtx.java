@@ -149,7 +149,7 @@ public class XsdAdapterCtx {
             return;
         }
 
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocalition(null));
+        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocation(null));
         schemaLocationsCtx.put(nsUri, importLocation);
     }
 
@@ -374,6 +374,7 @@ public class XsdAdapterCtx {
         if (!path.isEmpty()) {
             path = "/" + path;
         }
+
         UniqueConstraints uniqueInfo = getUniqueConstraints(uniqueInfoMap, name, path);
 
         if (uniqueInfo == null) {

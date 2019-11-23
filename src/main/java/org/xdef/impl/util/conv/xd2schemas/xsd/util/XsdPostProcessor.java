@@ -8,6 +8,7 @@ import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
@@ -68,7 +69,7 @@ public class XsdPostProcessor {
 
         for (SchemaNode node : nodesToRemove) {
             adapterCtx.removeNode((XNode)node.getXdNode());
-            XD2XsdUtils.removeItem(node.toXsdElem().getParent(), node.toXsdElem());
+            XD2XsdUtils.removeNode(node.toXsdElem().getParent(), node.toXsdElem());
         }
     }
 
@@ -76,31 +77,30 @@ public class XsdPostProcessor {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
 
         final XmlSchemaElement xsdElem = node.toXsdElem();
+
+        if (xsdElem.getSchemaType() == null) {
+            XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Schema type has been expected!");
+            return;
+        }
+
+        final XmlSchemaType schemaType = xsdElem.getSchemaType();
         final XElement xElem = node.toXdElem();
         final String localName = xsdElem.getName();
-        String newLocalName = XsdNameUtils.newRootElemName(localName, xsdElem.getSchemaType());
+        String newLocalName = XsdNameFactory.createRootElemName(localName, schemaType);
         newLocalName = adapterCtx.getNameFactory().generateTopLevelName(xElem, newLocalName);
         final String elemNsUri = xsdElem.getParent().getNamespaceContext().getNamespaceURI(XsdNamespaceUtils.getNamespacePrefix(xElem.getName()));
 
         // Move element's schema type to top
-        XmlSchemaType schemaType = null;
-        if (xsdElem.getSchemaType() != null) {
-            schemaType = xsdElem.getSchemaType();
-            schemaType.setName(newLocalName);
-            XD2XsdUtils.addSchemaType(xsdElem.getParent(), schemaType);
-            node.setXsdNode(schemaType);
+        schemaType.setName(newLocalName);
+        XD2XsdUtils.addSchemaTypeNode2TopLevel(xsdElem.getParent(), schemaType);
+        node.setXsdNode(schemaType);
 
-            xsdElem.setSchemaType(null);
-            xsdElem.setSchemaTypeName(new QName(elemNsUri, newLocalName));
-            SchemaNode newSchemaNode = SchemaNodeFactory.createElementNode(xsdElem, xElem);
-            newSchemaNode = adapterCtx.addOrUpdateNode(newSchemaNode);
-            SchemaNode.createBinding(newSchemaNode, node);
-        }
+        xsdElem.setSchemaType(null);
+        xsdElem.setSchemaTypeName(new QName(elemNsUri, newLocalName));
 
-        if (schemaType == null) {
-            XsdLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Schema type has been expected!");
-            return;
-        }
+        SchemaNode newSchemaNode = SchemaNodeFactory.createElementNode(xsdElem, xElem);
+        newSchemaNode = adapterCtx.addOrUpdateNode(newSchemaNode);
+        SchemaNode.createBinding(newSchemaNode, node);
 
         updatePointers(node, newLocalName);
     }
@@ -134,7 +134,7 @@ public class XsdPostProcessor {
         final XElement xElem = node.toXdElem();
         String newRefLocalName = adapterCtx.getNameFactory().findTopLevelName(xElem);
         if (newRefLocalName == null) {
-            newRefLocalName = XsdNameUtils.newTopLocalRefName(xElem.getName());
+            newRefLocalName = XsdNameFactory.createComplexRefName(xElem.getName());
             newRefLocalName = adapterCtx.getNameFactory().generateTopLevelName(xElem, newRefLocalName);
         }
 
@@ -158,7 +158,7 @@ public class XsdPostProcessor {
         node.setXsdNode(schemaType);
 
         // Remove original element from schema
-        XD2XsdUtils.removeItem(xsdElem.getParent(), xsdElem);
+        XD2XsdUtils.removeNode(xsdElem.getParent(), xsdElem);
 
         updatePointers(node, newRefLocalName);
     }
