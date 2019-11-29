@@ -12,7 +12,7 @@ import java.util.Set;
  * Stores information about internal variables of uniqueSet.
  * Stores position of ID and REF attributes using uniqueSet.
  */
-public class UniqueConstraints {
+public class UniqueConstraint {
 
     /**
      * UniqueSet name
@@ -41,7 +41,7 @@ public class UniqueConstraints {
      */
     private Set<String> keys = new HashSet<String>();
 
-    public UniqueConstraints(String name, String systemId) {
+    public UniqueConstraint(String name, String systemId) {
         this.name = name;
         this.systemId = systemId;
     }
@@ -54,14 +54,6 @@ public class UniqueConstraints {
         return systemId;
     }
 
-    public String getPath() {
-        if (systemId != null && !"".equals(systemId)) {
-            return systemId + '#' + name;
-        }
-
-        return name;
-    }
-
     public Set<String> getReferences() {
         return references;
     }
@@ -70,6 +62,24 @@ public class UniqueConstraints {
         return keys;
     }
 
+    /**
+     * Build unique constraint path
+     * @return path
+     */
+    public String getPath() {
+        if (systemId != null && !"".equals(systemId)) {
+            return systemId + '#' + name;
+        }
+
+        return name;
+    }
+
+    /**
+     * Add variable of unique constraint
+     * @param name  variable name
+     * @param qName variable QName
+     * @return true if variable with given name already exists and it has different QName
+     */
     public boolean addVar(final String name, final QName qName) {
         final QName prev = variables.put(name, qName);
         return prev != null && !prev.equals(qName);

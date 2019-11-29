@@ -76,7 +76,7 @@ public class XsdSchemaFactory {
         namespaceCtx.add(XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX, Constants.URI_2001_SCHEMA_XSD);
 
         if (targetNsPrefix != null && targetNsUri != null) {
-            XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, xDef.getName(), targetNsPrefix, targetNsUri, INITIALIZATION);
+            XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, targetNsPrefix, targetNsUri, xDef.getName(), INITIALIZATION);
         }
 
         for (Map.Entry<String, String> entry : xDef._namespaces.entrySet()) {
@@ -88,7 +88,7 @@ public class XsdSchemaFactory {
             }
 
             if (!namespaceCtx.containsKey(nsPrefix)) {
-                XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, xDef.getName(), nsPrefix, nsUri, INITIALIZATION);
+                XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, nsPrefix, nsUri, xDef.getName(), INITIALIZATION);
             } else {
                 XsdLogger.printP(LOG_WARN, INITIALIZATION, xDef, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
             }

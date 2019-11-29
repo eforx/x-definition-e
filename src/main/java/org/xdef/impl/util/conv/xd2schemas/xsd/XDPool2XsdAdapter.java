@@ -24,7 +24,7 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.PREPROC
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
 /**
- * Tra
+ * Transformation of given x-definition pool to collection of XSD schemas
  */
 public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2SchemaAdapter<XmlSchemaCollection> {
 
@@ -69,6 +69,9 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         return adapterCtx.getXmlSchemaCollection();
     }
 
+    /**
+     * Initializes transformation algorithm
+     */
     private void init() {
         XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER, "*** Initialize ***");
 
@@ -78,7 +81,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
     }
 
     /**
-     * Find target namespaces for all x-definitions from XPool
+     * Gathers target namespaces for all x-definitions from source x-definition pool
      */
     private void initTargetNamespaces() {
         XsdLogger.print(LOG_INFO, PREPROCESSING, XSD_DPOOL_ADAPTER, "Initialize target namespaces ...");
@@ -88,9 +91,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
 
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {
             final String xDefName = xDef.getName();
-            Boolean targetNamespaceError = false;
-
-            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef, targetNamespaceError);
+            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef);
             if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
                 if (xDefTargetNs.containsKey(xDefName)) {
                     XsdLogger.print(LOG_WARN, PREPROCESSING, XSD_DPOOL_ADAPTER,"Target namespace of x-definition is already defined. XDefinition=" + xDefName);
@@ -106,6 +107,9 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
         }
     }
 
+    /**
+     * Initializes all XSD schemas based on source x-definition from x-definition pool
+     */
     private void initXsdSchemas() {
         XsdLogger.print(LOG_INFO, INITIALIZATION, XSD_DPOOL_ADAPTER,"Initialize xsd schemas ...");
 
@@ -127,7 +131,7 @@ public class XDPool2XsdAdapter extends AbstractXd2XsdAdapter implements XDPool2S
             adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
         }
 
-        for (String xDefName: xDefsWithoutNs) {
+        for (String xDefName : xDefsWithoutNs) {
             final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
             adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
             XsdLogger.print(LOG_DEBUG, PREPROCESSING, XSD_DPOOL_ADAPTER,"Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);

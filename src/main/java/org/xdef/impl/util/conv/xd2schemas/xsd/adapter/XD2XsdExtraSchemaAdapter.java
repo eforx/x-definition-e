@@ -169,7 +169,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                                             final XsdSchemaImportLocation importLocation) {
             final String schemaName = importLocation.getFileName();
             if (adapterCtx.existsSchemaLocation(targetNsUri)) {
-                schema = adapterCtx.getSchema(schemaName, true, POSTPROCESSING);
+                schema = adapterCtx.findSchema(schemaName, true, POSTPROCESSING);
             } else {
                 schema = createOrGetXsdSchema(targetNsUri, schemaName);
                 initSchemaNamespace(schemaName, namespaceCtx, targetNsUri, importLocation);
@@ -189,7 +189,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
          * @return instance of xml schema
          */
         private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
-            XmlSchema schema = adapterCtx.getSchema(schemaName, false, POSTPROCESSING);
+            XmlSchema schema = adapterCtx.findSchema(schemaName, false, POSTPROCESSING);
 
             if (schema == null) {
                 adapterCtx.addSchemaName(schemaName);
@@ -221,7 +221,7 @@ public class XD2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
 
             // Namespace initialization
             final String targetNsPrefix = XsdNamespaceUtils.getNsPrefixFromExtraSchemaName(importLocation.getFileName());
-            XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, schemaName, targetNsPrefix, targetNsUri, POSTPROCESSING);
+            XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, targetNsPrefix, targetNsUri, schemaName, POSTPROCESSING);
             schema.setSchemaNamespacePrefix(targetNsPrefix);
 
             NamespaceMap currNamespaceCtx = (NamespaceMap)schema.getNamespaceContext();

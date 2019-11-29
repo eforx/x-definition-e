@@ -23,7 +23,7 @@ public class ContainsFacetFactory extends AbstractXsdFacetFactory {
     @Override
     public boolean customFacet(List<XmlSchemaFacet> facets, XDNamedValue param) {
         if (XD_FACET_ARGUMENT.equals(param.getName())) {
-            final String pattern = isCaseSensitive ? param.getValue().stringValue() : XD2XsdUtils.caseSensitiveValue2CIPattern(param.getValue().stringValue());
+            final String pattern = isCaseSensitive ? param.getValue().stringValue() : XD2XsdUtils.regex2CaseInsensitive(param.getValue().stringValue());
             facets.add(pattern(".*" + pattern + ".*"));
             return true;
         }

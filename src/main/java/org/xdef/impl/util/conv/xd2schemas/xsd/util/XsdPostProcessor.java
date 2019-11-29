@@ -23,6 +23,9 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.POSTPRO
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
+/**
+ * All partial transforming algorithms for post processing of nodes structures and linking
+ */
 public class XsdPostProcessor {
 
     private final XsdAdapterCtx adapterCtx;
@@ -31,6 +34,9 @@ public class XsdPostProcessor {
         this.adapterCtx = adapterCtx;
     }
 
+    /**
+     * Updates XSD references which are currently breaking XSD schema rules
+     */
     public void processRefs() {
         XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"*** Updating references ***");
 
@@ -39,7 +45,7 @@ public class XsdPostProcessor {
         for (Map.Entry<String, Map<String, SchemaNode>> systemRefEntry : adapterCtx.getNodes().entrySet()) {
             XsdLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
 
-            final XmlSchema xmlSchema = adapterCtx.getSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
+            final XmlSchema xmlSchema = adapterCtx.findSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
             final XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
             final Set<String> schemaRootNodeNames = adapterCtx.getSchemaRootNodeNames(systemRefEntry.getKey());
 
@@ -73,6 +79,10 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Decomposition of XSD top-level qualified root element which is referenced by unqualified node
+     * @param node  node to be decomposed
+     */
     private void elementRootDecomposition(final SchemaNode node) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
 
@@ -105,8 +115,13 @@ public class XsdPostProcessor {
         updatePointers(node, newLocalName);
     }
 
+    /**
+     * Transform XSD top-level element node using reference to XSD complex type
+     * @param node          node to be transformed
+     * @param xsdFactory    XSD element factory
+     */
     private void elementRootRef(final SchemaNode node, final XsdElementFactory xsdFactory) {
-        SchemaNode refNode = node.getReference();
+        final SchemaNode refNode = node.getReference();
         if (refNode == null || (refNode.isXsdComplexType() && !node.hasAnyPointer())) {
             return;
         }
@@ -117,7 +132,7 @@ public class XsdPostProcessor {
 
         if (isTopElement(refNode)) {
             final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(refNode.getXdNode().getXDPosition());
-            final XmlSchema xmlSchema = adapterCtx.getSchema(systemId, true, POSTPROCESSING);
+            final XmlSchema xmlSchema = adapterCtx.findSchema(systemId, true, POSTPROCESSING);
             final XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
             if (refNode.toXsdElem().isRef()) {
                 elementRootRef(refNode, refXsdFactory);
@@ -127,6 +142,11 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Transform XSD element node to XSD complex type
+     * @param node          node to be transformed
+     * @param xsdFactory    XSD element factory
+     */
     private void elementTopToComplex(final SchemaNode node, final XsdElementFactory xsdFactory) {
         XsdLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting top-level element to complex-type ...");
 
@@ -163,6 +183,11 @@ public class XsdPostProcessor {
         updatePointers(node, newRefLocalName);
     }
 
+    /**
+     * Update all elements referencing to given node which has been transformed previously
+     * @param node              transformed node (be referenced)
+     * @param newLocalName      new name of transformed node
+     */
     private static void updatePointers(final SchemaNode node, final String newLocalName) {
         // Update all pointers to element
         if (node.getPointers() != null) {
@@ -195,14 +220,29 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Check if given node is XSD top-level element node
+     * @param node  XSD element node
+     * @return  true if given node is XSD top-level element node
+     */
     private static boolean isTopElement(final SchemaNode node) {
         return node.isXsdElem() && node.toXsdElem().isTopLevel();
     }
 
+    /**
+     * Check if given node is XSD top-level element node and has any pointer
+     * @param node  XSD element node
+     * @return  true if given node is XSD top-level element node and has any pointer
+     */
     private static boolean isTopElementWithPtr(final SchemaNode node) {
         return node.isXsdElem() && node.toXsdElem().isTopLevel() && node.hasAnyPointer();
     }
 
+    /**
+     * Check if given node is XSD top-level qualified element node with any pointer from unqualified XSD node
+     * @param node  XSD element node
+     * @return  true if given node is XSD top-level qualified element node with any pointer from unqualified XSD node
+     */
     private static boolean isQualifiedTopElementWithUnqualifiedPtr(final SchemaNode node) {
         if (isTopElementWithPtr(node)) {
             final XmlSchemaForm nodeSchema = node.toXsdElem().getForm();
@@ -225,6 +265,10 @@ public class XsdPostProcessor {
         return false;
     }
 
+    /**
+     * Updates reference type if necessary
+     * @param node  XSD node
+     */
     private static void updateRefType(final SchemaNode node) {
         if (node.getReference() != null) {
             if (node.getReference().isXsdElem() && node.isXsdElem() && node.toXsdElem().getRef().getTargetQName() == null) {
@@ -243,6 +287,11 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Transform XSD complex type of XSD element node to be valid
+     * @param complexType   XSD complex type
+     * @param defEl         x-definition element node
+     */
     public void elementComplexType(final XmlSchemaComplexType complexType, final XElement defEl) {
         XsdLogger.printP(LOG_DEBUG, POSTPROCESSING, defEl, "Updating complex content of element");
 
@@ -277,7 +326,12 @@ public class XsdPostProcessor {
         }
     }
 
-    public XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll) {
+    /**
+     * Transform given XSD group particle all to XSD group particle choice
+     * @param groupParticleAll      XSD group particle all
+     * @return XSD group particle choice node
+     */
+    private XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
             return null;
         }
@@ -303,6 +357,12 @@ public class XsdPostProcessor {
         return null;
     }
 
+    /**
+     * Transform given XSD group particle all to XSD group particle choice
+     * @param groupParticleAll      XSD group particle all
+     * @param unbounded             flag, if member's occurrence should be calculated (otherwise will be unbounded)
+     * @return  XSD group particle choice node
+     */
     public XmlSchemaChoice groupParticleAllToChoice(final XmlSchemaAll groupParticleAll, boolean unbounded) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
             return null;
@@ -338,10 +398,9 @@ public class XsdPostProcessor {
     }
 
     /**
-     * Transform simple-type node content with empty restriction to attribute
-     * @param simpleTypeRestriction
-     * @param attr
-     * @return
+     * Transform XSD simple-type node content with empty restriction to given XSD attribute node
+     * @param simpleTypeRestriction     XSD simple-type restriction node
+     * @param attr                      XSD attribute node
      */
     public void simpleTypeRestrictionToAttr(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final XmlSchemaAttribute attr) {
         if (simpleTypeRestriction.getFacets().isEmpty()) {
@@ -357,6 +416,11 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Copy all XSD group all members to XSD group choice
+     * @param groupParticleAll      XSD group all node
+     * @param schemaChoice          XSD group choice node
+     */
     private void copyAllMembersToChoice(final XmlSchemaAll groupParticleAll, final XmlSchemaChoice schemaChoice) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle's members of xsd:all to xsd:choice");
         for (XmlSchemaAllMember member : groupParticleAll.getItems()) {
@@ -365,6 +429,10 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Additional transformation of XSD choice member node, which has been originally transformed from XSD group all member node
+     * @param member    XSD choice member node
+     */
     public void allMemberToChoiceMember(final XmlSchemaObjectBase member) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
             return;
@@ -383,6 +451,11 @@ public class XsdPostProcessor {
         }
     }
 
+    /**
+     * Transform XSD group all node to XSD group choice node
+     * @param transformDirection    direction of transformation
+     * @return XSD group choice node
+     */
     public CXmlSchemaChoice groupParticleAllToChoice(final CXmlSchemaChoice.TransformDirection transformDirection) {
         if (!adapterCtx.hasEnableFeature(XD2XsdFeature.POSTPROCESSING_ALL_TO_CHOICE)) {
             return null;

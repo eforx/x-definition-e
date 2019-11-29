@@ -7,6 +7,9 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
 import static org.xdef.model.XMNode.XMTEXT;
 
+/**
+ * Simple XSD logging helper
+ */
 public class XsdLogger {
 
     private static int LOG_LEVEL = LOG_WARN;

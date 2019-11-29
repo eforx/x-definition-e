@@ -6,6 +6,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdNameUtils;
 import org.xdef.model.XMNode;
 
 import javax.xml.namespace.QName;
@@ -75,6 +76,10 @@ public class SchemaNode {
         return xsdNode;
     }
 
+    /**
+     * Sets XSD node and updates x-definition position
+     * @param xsdNode   XSD node
+     */
     public void setXsdNode(XmlSchemaObjectBase xsdNode) {
         this.xsdNode = xsdNode;
 
@@ -110,43 +115,51 @@ public class SchemaNode {
         return reference;
     }
 
-    public void setReference(SchemaNode reference) {
-        this.reference = reference;
-    }
-
     public List<SchemaNode> getPointers() {
         return pointers;
     }
 
-    public void addRef(SchemaNode ref) {
-        if (pointers == null) {
-            pointers = new LinkedList<SchemaNode>();
-        }
-
-        pointers.add(ref);
-    }
-
-    public void copy(SchemaNode src) {
+    public void copyNodes(SchemaNode src) {
         this.xsdNode = src.xsdNode;
         this.xdNode = src.xdNode;
     }
 
+    /**
+     *
+     * @return true if XSD node is element
+     */
     public boolean isXsdElem() {
         return (xsdNode instanceof XmlSchemaElement);
     }
 
+    /**
+     *
+     * @return true if XSD node is attribute
+     */
     public boolean isXsdAttr() {
         return (xsdNode instanceof XmlSchemaAttribute);
     }
 
+    /**
+     *
+     * @return true if XSD node is complex type
+     */
     public boolean isXsdComplexType() {
         return (xsdNode instanceof XmlSchemaComplexType);
     }
 
+    /**
+     *
+     * @return true if XSD node is complex content extension
+     */
     public boolean isXsdComplexExt() {
         return (xsdNode instanceof XmlSchemaComplexContentExtension);
     }
 
+    /**
+     *
+     * @return true if XSD node is group
+     */
     public boolean isXsdGroup() {
         return (xsdNode instanceof XmlSchemaGroup);
     }
@@ -171,10 +184,18 @@ public class SchemaNode {
         return (XmlSchemaGroup)xsdNode;
     }
 
+    /**
+     *
+     * @return true if x-definition node is element
+     */
     public boolean isXdElem() {
         return xdNode != null && xdNode.getKind() == XNode.XMELEMENT;
     }
 
+    /**
+     *
+     * @return true if x-definition node is attribute
+     */
     public boolean isXdAttr() {
         return xdNode != null && xdNode.getKind() == XNode.XMATTRIBUTE;
     }
@@ -183,22 +204,83 @@ public class SchemaNode {
         return (XElement)xdNode;
     }
 
+    /**
+     * @return x-definition node name
+     */
     public String getXdName() {
         return xdNode.getName();
     }
 
+    /**
+     *
+     * @return true if any node is referencing to current node
+     */
     public boolean hasAnyPointer() {
         return pointers != null && !pointers.isEmpty();
     }
 
+    /**
+     *
+     * @return true if node has reference
+     */
     public boolean hasReference() {
         return reference != null;
     }
 
-    public static void createBinding(SchemaNode ref, SchemaNode def) {
-        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating binding between nodes. From=" + ref.getXdPosition() + ", To=" + def.getXdPosition());
+    /**
+     * Add node which refers to current instance
+     * @param ptr referencing node
+     */
+    private void addPointer(final SchemaNode ptr) {
+        if (pointers == null) {
+            pointers = new LinkedList<SchemaNode>();
+        }
 
-        ref.setReference(def);
-        def.addRef(ref);
+        pointers.add(ptr);
+    }
+
+    /**
+     * Set reference definition
+     * @param reference reference definition
+     */
+    private void setReference(final SchemaNode reference) {
+        this.reference = reference;
+    }
+
+    /**
+     * Creates binding between referencing node and reference definition
+     * @param ptr
+     * @param ref
+     */
+    public static void createBinding(final SchemaNode ptr, final SchemaNode ref) {
+        XsdLogger.printG(LOG_INFO, XSD_REFERENCE, "Creating binding between nodes. From=" + ptr.getXdPosition() + ", To=" + ref.getXdPosition());
+
+        ptr.setReference(ref);
+        ref.addPointer(ptr);
+    }
+
+
+    /**
+     * Get x-definition reference node path for post processing
+     * @param refPos    x-definition reference node position
+     * @return  position for post processing
+     */
+    public static String getPostProcessingReferenceNodePath(final String refPos) {
+        int xdefSystemSeparatorPos = refPos.indexOf('/');
+        if (xdefSystemSeparatorPos != -1) {
+            return refPos.substring(xdefSystemSeparatorPos + 1);
+        }
+
+        return XsdNameUtils.getXNodePath(refPos);
+    }
+
+    /**
+     * Get x-definition reference node position for post processing
+     * @param systemId  XSD schema name
+     * @param path
+     * @return
+     */
+    public static String getPostProcessingNodePos(final String systemId, final String path) {
+        return systemId + "#" + path;
     }
 }

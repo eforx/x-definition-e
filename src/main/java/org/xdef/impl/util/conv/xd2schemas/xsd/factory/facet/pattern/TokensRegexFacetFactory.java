@@ -1,18 +1,14 @@
 package org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern;
 
 import org.apache.ws.commons.schema.XmlSchemaFacet;
-import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
-import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.facet.pattern.types.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
 
 public class TokensRegexFacetFactory extends AbstractArrayFacetFactory {
@@ -24,7 +20,7 @@ public class TokensRegexFacetFactory extends AbstractArrayFacetFactory {
     @Override
     public boolean customFacet(List<XmlSchemaFacet> facets, XDNamedValue param) {
         regex = EnumerationRegexFactory.containerValuesToPattern(param.getValue().toString().split("\\s*\\|\\s*"));
-        regex = XD2XsdUtils.caseSensitiveValue2CIPattern(regex);
+        regex = XD2XsdUtils.regex2CaseInsensitive(regex);
         return true;
     }
 

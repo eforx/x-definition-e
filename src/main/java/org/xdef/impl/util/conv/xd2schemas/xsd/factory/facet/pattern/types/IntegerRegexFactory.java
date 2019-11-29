@@ -43,9 +43,9 @@ public class IntegerRegexFactory implements RegexFactory {
 
         try {
             // Build regular expression for list of integers
-            RangeRegexGenerator rangeRegexGenerator = new RangeRegexGenerator();
-            List<String> regex = rangeRegexGenerator.getRegex(rangeMin, rangeMax);
-            pattern = XD2XsdUtils.regexCollectionToSingleRegex(regex);
+            final RangeRegexGenerator rangeRegexGenerator = new RangeRegexGenerator();
+            final List<String> regex = rangeRegexGenerator.getRegex(rangeMin, rangeMax);
+            pattern = XD2XsdUtils.regexCollectionToSingle(regex);
         } catch (NumberFormatException ex) {
             XsdLogger.print(LOG_ERROR, TRANSFORMATION, this.getClass().getSimpleName(),"Exception occurs while converting range to regex. Error=" + ex.getMessage());
         }

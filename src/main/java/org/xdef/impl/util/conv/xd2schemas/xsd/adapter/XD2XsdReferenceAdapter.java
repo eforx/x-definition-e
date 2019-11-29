@@ -7,7 +7,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdNameFactory;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.UniqueConstraints;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.UniqueConstraint;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.*;
@@ -187,7 +187,7 @@ public class XD2XsdReferenceAdapter {
                         addSchemaImportFromElem(nodeNsUri, refPos);
                     } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refPos, schema)) {
                         final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refPos);
-                        XmlSchema refSchema = adapterCtx.getSchema(refSystemId, true, PREPROCESSING);
+                        XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, PREPROCESSING);
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                         if (!XsdNamespaceUtils.isValidNsUri(nsUri)) {
@@ -286,10 +286,10 @@ public class XD2XsdReferenceAdapter {
             final boolean isAttrRef = xData.getKind() == XMATTRIBUTE;
 
             if (isAttrRef == true) {
-                final UniqueConstraints uniqueConstraints = adapterCtx.findUniqueInfo(xData);
+                final UniqueConstraint uniqueConstraint = adapterCtx.findUniqueConst(xData);
                 // Do not create reference if attribute is using unique set
-                if (uniqueConstraints != null) {
-                    adapterCtx.addVarToUniqueInfo(xData, uniqueConstraints);
+                if (uniqueConstraint != null) {
+                    adapterCtx.addVarToUniqueConst(xData, uniqueConstraint);
                     return;
                 }
             }

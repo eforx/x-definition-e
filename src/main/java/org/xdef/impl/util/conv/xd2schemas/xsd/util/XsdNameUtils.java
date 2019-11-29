@@ -16,6 +16,11 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinition
 
 public class XsdNameUtils {
 
+    /**
+     * Parse x-definition reference node name from given x-definition reference position
+     * @param refPos    x-definition reference position
+     * @return x-definition reference node name
+     */
     public static String getReferenceName(final String refPos) {
         int xdefNamespaceSeparatorPos = refPos.indexOf(':');
         if (xdefNamespaceSeparatorPos != -1) {
@@ -30,6 +35,11 @@ public class XsdNameUtils {
         return refPos;
     }
 
+    /**
+     * Get x-definition node position without x-definition name
+     * @param nodePos   x-definition node position
+     * @return  position without x-definition name
+     */
     public static String getXNodePath(final String nodePos) {
         int xdefSystemSeparatorPos = nodePos.indexOf('#');
         if (xdefSystemSeparatorPos != -1) {
@@ -39,24 +49,11 @@ public class XsdNameUtils {
         return nodePos;
     }
 
-    public static String getPostProcessingReferenceNodePath(final String refPos) {
-        int xdefSystemSeparatorPos = refPos.indexOf('/');
-        if (xdefSystemSeparatorPos != -1) {
-            return refPos.substring(xdefSystemSeparatorPos + 1);
-        }
-
-        return getXNodePath(refPos);
-    }
-
-    public static String getPostProcessingNodePos(final String systemId, final String path) {
-        return systemId + "#" + path;
-    }
-
     /**
-     * Returns name without target namespace
-     * @param schema
-     * @param name
-     * @return
+     * Parse x-definition node name without target namespace (if using it)
+     * @param schema    XSD schema
+     * @param name      x-definition node name
+     * @return  x-definition node name
      */
     public static String resolveName(final XmlSchema schema, final String name) {
         // Element's name contains target namespace prefix, we can remove this prefix
@@ -67,6 +64,12 @@ public class XsdNameUtils {
         return name;
     }
 
+    /**
+     * Resolve XSD attribute node name and schema form
+     * @param schema    XSD schema
+     * @param attr      XSD attribute node
+     * @param xName     x-definition node name
+     */
     public static void resolveAttributeQName(final XmlSchema schema, final XmlSchemaAttribute attr, final String xName) {
         if (attr.isRef()) {
             return;
@@ -85,6 +88,13 @@ public class XsdNameUtils {
         }
     }
 
+    /**
+     * Resolve XSD element node name and schema form
+     * @param schema        XSD schema
+     * @param xElem         x-definition element node
+     * @param elem          XSD element node
+     * @param adapterCtx    XSD adapter context
+     */
     public static void resolveElementQName(final XmlSchema schema, final XElement xElem, final XmlSchemaElement elem, final XsdAdapterCtx adapterCtx) {
         if (elem.isRef()) {
             return;
@@ -111,29 +121,49 @@ public class XsdNameUtils {
         }
     }
 
-    public static void resolveAttributeSchemaTypeQName(final XmlSchema schema, final SchemaNode schemaNode) {
+    /**
+     * Resolve XSD attribute node type
+     * @param schema        XSD schema
+     * @param xsdAttr       XSD attribute node
+     */
+    public static void resolveAttributeSchemaTypeQName(final XmlSchema schema, final XmlSchemaAttribute xsdAttr) {
         if (XmlSchemaForm.QUALIFIED.equals(schema.getAttributeFormDefault())) {
-            final QName schemaTypeName = schemaNode.toXsdAttr().getSchemaTypeName();
+            final QName schemaTypeName = xsdAttr.getSchemaTypeName();
             if (schemaTypeName != null && !Constants.URI_2001_SCHEMA_XSD.equals(schemaTypeName.getNamespaceURI())) {
-                schemaNode.toXsdAttr().setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
+                xsdAttr.setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
             }
         }
     }
 
-    public static void resolveElementSchemaTypeQName(final XmlSchema schema, final SchemaNode schemaNode) {
+    /**
+     * Resolve XSD element node type
+     * @param schema        XSD schema
+     * @param xsdElem       XSD attribute node
+     */
+    public static void resolveElementSchemaTypeQName(final XmlSchema schema, final XmlSchemaElement xsdElem) {
         if (XmlSchemaForm.QUALIFIED.equals(schema.getElementFormDefault())) {
-            final QName schemaTypeName = schemaNode.toXsdElem().getSchemaTypeName();
+            final QName schemaTypeName = xsdElem.getSchemaTypeName();
             if (schemaTypeName != null && !Constants.URI_2001_SCHEMA_XSD.equals(schemaTypeName.getNamespaceURI())) {
-                schemaNode.toXsdElem().setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
+                xsdElem.setSchemaTypeName(new QName(schema.getTargetNamespace(), schemaTypeName.getLocalPart()));
             }
         }
     }
 
+    /**
+     * Check if x-definition node name is not using namespace prefix while XSD schema is using target namespace prefix
+     * @param schema    XSD schema
+     * @param name      x-definition node name
+     * @return true if x-definition node name is not using namespace prefix while XSD schema yes
+     */
     public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
-        // Element's name without namespace prefix, while xml is using target namespace
         return !XsdNamespaceUtils.containsNsPrefix(name) && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());
     }
 
+    /**
+     * Parse x-definition node name without prefix
+     * @param nodeName  x-definition node name
+     * @return  x-definition node name
+     */
     public static String getNodeNameWithoutPrefix(final String nodeName) {
         int nsPos = nodeName.indexOf(':');
         if (nsPos != -1) {
@@ -143,6 +173,11 @@ public class XsdNameUtils {
         return nodeName;
     }
 
+    /**
+     * Parse x-definition element node name without x-definition type
+     * @param xElem     x-definition element node
+     * @return  x-definition element node name
+     */
     public static String getName(final XElement xElem) {
         int typeSepPos = xElem.getName().indexOf('$');
         if (typeSepPos <= 0) {
@@ -152,6 +187,11 @@ public class XsdNameUtils {
         return xElem.getName().substring(0, typeSepPos);
     }
 
+    /**
+     * Parse x-definition unique set variable name
+     * @param varTypeName   x-definition unique set variable type
+     * @return  x-definition unique set variable name
+     */
     public static String getUniqueSetVarName(final String varTypeName) {
         final int pos = varTypeName.lastIndexOf('.');
         if (pos != -1) {
@@ -166,6 +206,11 @@ public class XsdNameUtils {
         return null;
     }
 
+    /**
+     * Parse x-definition unique set name
+     * @param varTypeName   x-definition unique set variable type
+     * @return  x-definition unique set name
+     */
     public static String getUniqueSetName(final String varTypeName) {
         final int pos = varTypeName.indexOf('.');
         if (pos != -1) {
@@ -175,6 +220,12 @@ public class XsdNameUtils {
         return varTypeName;
     }
 
+    /**
+     * Creates reference name from given x-definition node
+     * @param xData         x-definition node
+     * @param adapterCtx    XSD adapter context
+     * @return  reference name
+     */
     public static String createRefNameFromParser(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();

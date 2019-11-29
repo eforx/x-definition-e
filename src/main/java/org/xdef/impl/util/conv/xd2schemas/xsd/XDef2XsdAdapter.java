@@ -25,6 +25,9 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFO
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.XSD_XDEF_ADAPTER;
 
+/**
+ * Transformation of given x-definition or x-definition pool to collection of XSD schemas
+ */
 public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> {
 
     /**
@@ -64,7 +67,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
             schema = createXsdSchema();
             poolPostProcessing = false;
         } else {
-            schema = adapterCtx.getSchema(xDef.getName(), false, INITIALIZATION);
+            schema = adapterCtx.findSchema(xDef.getName(), false, INITIALIZATION);
         }
 
         final XsdElementFactory xsdFactory = new XsdElementFactory(schema, adapterCtx);
@@ -108,9 +111,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Creates and initialize XSD schema
      */
     private XmlSchema createXsdSchema() {
-        // Target namespace
-        Boolean targetNamespaceError = false;
-        Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition, targetNamespaceError);
+        Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition);
 
         XsdLogger.printP(LOG_INFO, INITIALIZATION, xDefinition, "Creating XSD schema. " +
                 "systemName=" + xDefinition.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());

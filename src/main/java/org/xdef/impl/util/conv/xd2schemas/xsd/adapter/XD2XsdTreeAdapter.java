@@ -11,7 +11,7 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.SchemaNode;
-import org.xdef.impl.util.conv.xd2schemas.xsd.model.UniqueConstraints;
+import org.xdef.impl.util.conv.xd2schemas.xsd.model.UniqueConstraint;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.xd2schemas.xsd.model.xsd.CXmlSchemaChoice;
@@ -126,7 +126,7 @@ public class XD2XsdTreeAdapter {
             XsdLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Loading unique sets of x-definition");
             for (XMVariable xmVariable : varTable.toArray()) {
                 if ((xmVariable.getType() == UNIQUESET_M_VALUE || xmVariable.getType() == UNIQUESET_VALUE) && xmVariable.getOffset() != -1) {
-                    adapterCtx.addUniqueInfo(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getSystemIdFromXPos(xmVariable.getName()), varTablePath);
+                    adapterCtx.addOrGetUniqueConst(XsdNameUtils.getReferenceName(xmVariable.getName()), XsdNamespaceUtils.getSystemIdFromXPos(xmVariable.getName()), varTablePath);
                 }
             }
         }
@@ -215,14 +215,14 @@ public class XD2XsdTreeAdapter {
                 adapterCtx.addOrUpdateNode(node);
             }
         } else {
-            final UniqueConstraints uniqueConstraints = adapterCtx.findUniqueInfo(xData);
-            if (uniqueConstraints != null) {
-                attr.setAnnotation(XsdElementFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraints.getPath(), adapterCtx));
+            final UniqueConstraint uniqueConstraint = adapterCtx.findUniqueConst(xData);
+            if (uniqueConstraint != null) {
+                attr.setAnnotation(XsdElementFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath(), adapterCtx));
             }
             attr.setName(xData.getName());
             QName qName;
 
-            if (xData.getRefTypeName() != null && uniqueConstraints == null) {
+            if (xData.getRefTypeName() != null && uniqueConstraint == null) {
                 String refTypeName = adapterCtx.getNameFactory().findTopLevelName(xData, false);
                 if (refTypeName == null) {
                     refTypeName = XsdNameFactory.createLocalSimpleTypeName(xData);
@@ -253,7 +253,7 @@ public class XD2XsdTreeAdapter {
                         "Element=" + xData.getName() + ", Type=" + qName + ", FixedValue=" + fixedValue);
             } else {
                 // Attributes using unique set should not contain simple-type with name
-                if (uniqueConstraints != null) {
+                if (uniqueConstraint != null) {
                     final String parserName = xData.getParserName();
                     qName = XD2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
                     attr.setSchemaTypeName(qName);
@@ -482,8 +482,8 @@ public class XD2XsdTreeAdapter {
             if (importLocation != null) {
                 final String refSystemId = importLocation.getFileName();
                 adapterCtx.addNodeToPostProcessing(nsUri, xElem);
-                final String refNodePath = XsdNameUtils.getPostProcessingReferenceNodePath(xElem.getXDPosition());
-                final String refNodePos = XsdNameUtils.getPostProcessingNodePos(refSystemId, refNodePath);
+                final String refNodePath = SchemaNode.getPostProcessingReferenceNodePath(xElem.getXDPosition());
+                final String refNodePos = SchemaNode.getPostProcessingNodePos(refSystemId, refNodePath);
                 SchemaNodeFactory.createElemRefAndDefDiffNamespace(xElem, xsdElem, schemaName, nodePath, refSystemId, refNodePos, refNodePath, adapterCtx);
             } else {
                 XsdLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element is in different namespace which is not marked for post-processing! Namespace=" + nsUri);
@@ -557,19 +557,19 @@ public class XD2XsdTreeAdapter {
             final String nsUri = xElem.getNSUri();
             final String nsPrefix = schema.getNamespaceContext().getPrefix(nsUri);
             if (nsPrefix == null) {
-                final XmlSchema refSchema = adapterCtx.getSchema(refSystemId, true, TRANSFORMATION);
+                final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
                 final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
                 final String refNsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                 if (!XsdNamespaceUtils.isValidNsUri(refNsUri)) {
                     XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                 } else {
-                    XsdNamespaceUtils.addNamespaceToCtx((NamespaceMap) schema.getNamespaceContext(), null, refNsPrefix, refNsUri, POSTPROCESSING);
+                    XsdNamespaceUtils.addNamespaceToCtx((NamespaceMap) schema.getNamespaceContext(), refNsPrefix, refNsUri, refSystemId, POSTPROCESSING);
                 }
             }
 
             return new QName(nsUri, xElem.getName());
         } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refXPos, schema)) {
-            final XmlSchema refSchema = adapterCtx.getSchema(refSystemId, true, TRANSFORMATION);
+            final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
             final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
             final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
             return new QName(nsUri, refLocalName);

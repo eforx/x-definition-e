@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schemas.xsd.util;
+package test.xdutils;
 
 import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
 import org.xml.sax.SAXException;
@@ -10,6 +10,9 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 
+/**
+ * Simple XML validator used only for testing purposes
+ */
 public class XmlValidator {
 
     private Source xmlSource;
@@ -17,22 +20,6 @@ public class XmlValidator {
 
     public XmlValidator(Source xmlSource, Source schemaSource) {
         this.xmlSource = xmlSource;
-        this.schemaSource = schemaSource;
-    }
-
-    public Source getXmlSource() {
-        return xmlSource;
-    }
-
-    public void setXmlSource(Source xmlSource) {
-        this.xmlSource = xmlSource;
-    }
-
-    public Source getSchemaSource() {
-        return schemaSource;
-    }
-
-    public void setSchemaSource(Source schemaSource) {
         this.schemaSource = schemaSource;
     }
 

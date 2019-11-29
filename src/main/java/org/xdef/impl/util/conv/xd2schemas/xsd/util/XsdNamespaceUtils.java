@@ -20,45 +20,45 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 public class XsdNamespaceUtils {
 
     /**
-     * Add new namespace to namespace context
+     * Add new namespace info to namespace context
      * @param namespaceMap  namespace storage
-     * @param category
      * @param nsPrefix      namespace prefix
      * @param nsUri         namespace URI
-     * @param phase
+     * @param systemId      XSD schema identifier (just for logging purposes)
+     * @param phase         transformation algorithm phase (just for logging purposes)
      */
-    public static void addNamespaceToCtx(final NamespaceMap namespaceMap, final String category, final String nsPrefix, final String nsUri, final AlgPhase phase) {
+    public static void addNamespaceToCtx(final NamespaceMap namespaceMap, final String nsPrefix, final String nsUri, final String systemId, final AlgPhase phase) {
         namespaceMap.add(nsPrefix, nsUri);
-        XsdLogger.print(LOG_DEBUG, phase, category, "Add namespace. Prefix=" + nsPrefix + ", Uri=" + nsUri);
+        XsdLogger.print(LOG_DEBUG, phase, systemId, "Add namespace. Prefix=" + nsPrefix + ", Uri=" + nsUri);
     }
 
     /**
-     * Returns true if node name is using different namespace than schema
-     * @param nodeName
-     * @param namespaceUri
-     * @param schema
-     * @return
+     * Checks if x-definition node name is using different namespace than given XSD schema (target namespace)
+     * @param nodeName          x-definition node name
+     * @param namespaceUri      x-definition node namespace URI
+     * @param schema            target XSD schema
+     * @return  true is x-definition node is inside different namespace
      */
     public static boolean isNodeInDifferentNamespace(final String nodeName, final String namespaceUri, final XmlSchema schema) {
         return containsNsPrefix(nodeName) && (namespaceUri != null && !namespaceUri.equals(schema.getTargetNamespace()));
     }
 
     /**
-     * Returns true if node name is using different namespace prefix than schema target namespace
-     * @param xNode
-     * @param schema
-     * @return
+     * Checks if node name is using different namespace prefix than given XSD schema (target namespace)
+     * @param xNode     x-definition node
+     * @param schema    target XSD schema
+     * @return  true if node name is using different namespace prefix
      */
     public static boolean isNodeInDifferentNamespacePrefix(final XMNode xNode, final XmlSchema schema) {
-        String nodeNsPrefix = getNamespacePrefix(xNode.getName());
+        final String nodeNsPrefix = getNamespacePrefix(xNode.getName());
         return nodeNsPrefix != null && !nodeNsPrefix.equals(schema.getSchemaNamespacePrefix());
     }
 
     /**
-     * Return true if reference is using different namespace prefix than schema target namespace
-     * @param nodeRefPos
-     * @param schema
-     * @return
+     * Checks if reference is using different namespace prefix than given XSD schema (target namespace prefix)
+     * @param nodeRefPos    x-definition reference node position
+     * @param schema        target XSD schema
+     * @return  true if reference is using different namespace prefix
      */
     public static boolean isRefInDifferentNamespacePrefix(final String nodeRefPos, final XmlSchema schema) {
         final String refNsPrefix = getReferenceNamespacePrefix(nodeRefPos);
@@ -66,10 +66,10 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Return true if reference is in different x-definition
-     * @param nodeRefPos
-     * @param xdPos
-     * @return
+     * Checks if reference is in different x-definition
+     * @param nodeRefPos    x-definition reference node position
+     * @param xdPos         x-definition source node position
+     * @return  true if reference is in different x-definition
      */
     public static boolean isRefInDifferentSystem(final String nodeRefPos, final String xdPos) {
         final String nodeSystemId = getSystemIdFromXPos(xdPos);
@@ -77,19 +77,34 @@ public class XsdNamespaceUtils {
         return !nodeSystemId.equals(refSystemId);
     }
 
+    /**
+     * Checks if x-definition node name contains prefix
+     * @param name  x-definition node name
+     * @return  true if x-definition node name contains prefix
+     */
     public static boolean containsNsPrefix(final String name) {
         return name.indexOf(':') != -1;
     }
 
-    public static String getSystemIdFromXPos(final String refPos) {
-        int systemSeparatorPos = refPos.indexOf('#');
+    /**
+     * Parse x-definition name (XSD system identifier) from given x-definition node position
+     * @param xPos  x-definition node pos
+     * @return  x-definition name if it is part of name, otherwise null
+     */
+    public static String getSystemIdFromXPos(final String xPos) {
+        int systemSeparatorPos = xPos.indexOf('#');
         if (systemSeparatorPos != -1) {
-            return refPos.substring(0, systemSeparatorPos);
+            return xPos.substring(0, systemSeparatorPos);
         }
 
         return null;
     }
 
+    /**
+     * Parse namespace prefix from given x-definition node name
+     * @param name  x-definition node name
+     * @return  namespace prefix if it is part of name, otherwise null
+     */
     public static String getNamespacePrefix(final String name) {
         int nsPos = name.indexOf(':');
         if (nsPos != -1) {
@@ -99,6 +114,11 @@ public class XsdNamespaceUtils {
         return null;
     }
 
+    /**
+     * Parse namespace prefix from given x-definition reference node position
+     * @param refPos    x-definition reference node position
+     * @return  namespace prefix if it is part of reference node position, otherwise empty string
+     */
     public static String getReferenceNamespacePrefix(final String refPos) {
         int xdefNamespaceSeparatorPos = refPos.indexOf(':');
         if (xdefNamespaceSeparatorPos == -1) {
@@ -113,6 +133,11 @@ public class XsdNamespaceUtils {
         return refPos.substring(xdefSystemSeparatorPos + 1, xdefNamespaceSeparatorPos);
     }
 
+    /**
+     * Checks if given namespace prefix is default for x-definition
+     * @param prefix    namespace prefix
+     * @return  return true if if given namespace prefix is default
+     */
     public static boolean isDefaultNamespacePrefix(final String prefix) {
         return Constants.XML_NS_PREFIX.equals(prefix)
                 || Constants.XMLNS_ATTRIBUTE.equals(prefix)
@@ -120,23 +145,34 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Returns true if node name is using schema target namespace
-     * @param schema
-     * @param name
-     * @return
+     * Checks if node name is using XSD schema target namespace
+     * @param schema    XSD schema
+     * @param name      x-definition node name
+     * @return true if node name is using XSD schema target namespace
      */
     public static boolean usingTargetNamespace(final XmlSchema schema, final String name) {
         return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
     }
 
+    /**
+     * Checks if given namespace URI is valid
+     * @param uri   namespace URI
+     * @return  true if given namespace URI is valid
+     */
     public static boolean isValidNsUri(final String uri) {
         return uri != null && !uri.isEmpty();
     }
 
-    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, Boolean targetNamespaceError) {
+    /**
+     * Determines target namespace of given x-definition
+     * @param xDef  x-definition
+     * @return target namespace prefix, target namespace URI
+     */
+    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
         boolean onlyRefs = false;
+        boolean targetNamespaceError = false;
 
         // Get target namespace prefix based on root elements
         if (xDef._rootSelection != null) {
@@ -194,27 +230,49 @@ public class XsdNamespaceUtils {
         return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
     }
 
+    /**
+     * Creates namespace URI based on x-definition name
+     * @param name  x-definition name
+     * @return  namespace URI
+     */
     public static String createNsUriFromXDefName(final String name) {
         return name;
     }
 
+    /**
+     * Creates XSD schema name based on namespace prefix
+     * @param nsPrefix  namespace prefix
+     * @return
+     */
     public static String createExtraSchemaNameFromNsPrefix(final String nsPrefix) {
         return "external_" + nsPrefix;
     }
 
-    public static String getNsPrefixFromExtraSchemaName(final String nsPrefix) {
-        int pos = nsPrefix.lastIndexOf('_');
+    /**
+     * Parse namespace prefix from XSD schema name
+     * @param schemaName    XSD schema name
+     * @return namespace prefix
+     */
+    public static String getNsPrefixFromExtraSchemaName(final String schemaName) {
+        int pos = schemaName.lastIndexOf('_');
         if (pos != -1) {
-            return nsPrefix.substring(pos + 1);
+            return schemaName.substring(pos + 1);
         }
 
-        return nsPrefix;
+        return schemaName;
     }
 
+    /**
+     * Determines x-definition node namespace URI of given x-definition node based on XSD adapter context
+     * @param xData         x-definition node
+     * @param adapterCtx    XSD adapter context
+     * @param phase         transformation algorithm phase (just for logging purposes)
+     * @return namespace URI
+     */
     public static String getNodeNamespaceUri(final XNode xData, final XsdAdapterCtx adapterCtx, final AlgPhase phase) {
         final String xDefPos = xData.getXDPosition();
         final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xDefPos);
-        XmlSchema refSchema = adapterCtx.getSchema(systemId, true, phase);
+        final XmlSchema refSchema = adapterCtx.findSchema(systemId, true, phase);
         final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
         return nsUri;

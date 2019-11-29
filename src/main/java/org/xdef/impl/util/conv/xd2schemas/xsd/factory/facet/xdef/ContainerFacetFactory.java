@@ -38,7 +38,7 @@ public class ContainerFacetFactory extends DefaultFacetFactory {
             separators.add(" ");
         }
 
-        final String separatorPatten = XD2XsdUtils.regexCollectionToSingleRegex(separators);
+        final String separatorPatten = XD2XsdUtils.regexCollectionToSingle(separators);
         final String pattern = regex + "[" + separatorPatten + "]" + "(" + regex + ")*";
         facets.add(pattern(pattern));
     }

@@ -9,7 +9,6 @@ import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XmlValidator;
 import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.proc.XXNode;

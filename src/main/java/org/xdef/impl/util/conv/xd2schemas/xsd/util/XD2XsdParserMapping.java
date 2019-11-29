@@ -25,9 +25,20 @@ import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.AlgPhase.TRANSFO
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.*;
 
+/**
+ * Definition of transformation x-definition data types to XSD data types
+ */
 public class XD2XsdParserMapping {
 
+    /**
+     * Transformation map of x-definition data types to XSD QNames using XSD default facet factory
+     */
     private static final Map<String, QName> defaultQNameMap = new HashMap<String, QName>();
+
+    /**
+     * Transformation map of x-definition parsers to XSD QNames and custom implementation of XSD facet factory
+     * Some x-definition types requires specific way how to create simpleType and restrictions
+     */
     private static final Map<String, Pair<QName, IXsdFacetFactory>> customFacetMap = new HashMap<String, Pair<QName, IXsdFacetFactory>>();
 
     static {
@@ -94,9 +105,9 @@ public class XD2XsdParserMapping {
     }
 
     /**
-     * Convert xd parser name to xsd QName
-     * @param parserName
-     * @return
+     * Convert x-definition parser name to XSD QName
+     * @param parserName    x-definition parser name
+     * @return  XSD QName if mapping exists, otherwise null
      */
     public static QName getDefaultParserQName(final String parserName, final XsdAdapterCtx adapterCtx) {
         QName qName = defaultQNameMap.get(parserName);
@@ -110,10 +121,10 @@ public class XD2XsdParserMapping {
     }
 
     /**
-     * Some xd types requires specific way how to create simpleType and restrictions
-     * @param parserName x-definition parser name
-     * @return  QName - qualified XML name
-     *          Boolean - use also default facet facets factory
+     * Get XSD QName and XSD facet factory for specific x-definition parser
+     * @param parserName    x-definition parser name
+     * @return  XSD data type with XSD facets factory if transformation exists
+     *          otherwise null
      */
     public static Pair<QName, IXsdFacetFactory> getCustomFacetFactory(final String parserName, final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
         Pair<QName, IXsdFacetFactory> res = customFacetMap.get(parserName);
@@ -138,6 +149,13 @@ public class XD2XsdParserMapping {
         return res;
     }
 
+    /**
+     * Convert given x-definition parser name to XSD QName
+     * @param parserName    x-definition parser name
+     * @param adapterCtx    XSD adapter context
+     * @return  XSD QName with default facet factory if conversion of x-definition parser name to XSD QName exists
+     *          otherwise null
+     */
     public static Pair<QName, IXsdFacetFactory> getDefaultFacetFactory(final String parserName, final XsdAdapterCtx adapterCtx) {
         final QName qName = getDefaultParserQName(parserName, adapterCtx);
         if (qName != null) {
@@ -147,6 +165,12 @@ public class XD2XsdParserMapping {
         return null;
     }
 
+    /**
+     * Get QName for x-definition parser which can be transformed by default XSD facet factory and has no facets
+     * @param xData         x-definition node
+     * @param adapterCtx    XSD adapter context
+     * @return XSD QName if transformation without facets exists, otherwise null
+     */
     public static QName getDefaultSimpleParserQName(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
@@ -167,6 +191,14 @@ public class XD2XsdParserMapping {
         return null;
     }
 
+    /**
+     * Determine XSD list's QName by its values (given by x-definition {@paramref parameters})
+     * @param parameters    x-definition parser parameters
+     * @param adapterCtx    XSD adapter context
+     * @return  if all parameters are using same known parser, then its QName
+     *          if parameters are using different known parser, then string QName
+     *          if parameters are using unknown parser, then exception will be raised
+     */
     private static QName determineListBaseType(final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "Determination of list QName ...");
 
@@ -181,7 +213,10 @@ public class XD2XsdParserMapping {
                 if (parserName == null) {
                     parserName = ((XDParser) xVal).parserName();
                 } else {
-                    allParsersSame = checkParser((XDParser) xVal, parserName);
+                    if (allParsersSame == true && !parserName.equals(((XDParser) xVal).parserName())) {
+                        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "List/Union - parsers are not same!");
+                        allParsersSame = false;
+                    }
                 }
             }
         }
@@ -200,12 +235,4 @@ public class XD2XsdParserMapping {
         return res;
     }
 
-    private static boolean checkParser(final XDParser parser, final String parserName) {
-        if (!parserName.equals(parser.parserName())) {
-            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, "List/Union - parsers are not same!");
-            return false;
-        }
-
-        return true;
-    }
 }

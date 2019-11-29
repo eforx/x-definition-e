@@ -61,8 +61,9 @@ public class CXmlSchemaChoice extends CXmlSchemaGroupParticle<XmlSchemaChoice, X
             xsdNode.setMinOccurs(elementMinOccursSum);
         }
 
+        final XsdPostProcessor postProcessor = new XsdPostProcessor(adapterCtx);
         for (XmlSchemaObjectBase member : xsdNode.getItems()) {
-            new XsdPostProcessor(adapterCtx).allMemberToChoiceMember(member);
+            postProcessor.allMemberToChoiceMember(member);
         }
     }
 }
