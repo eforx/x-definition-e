@@ -5,11 +5,11 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.*;
-import org.xdef.impl.util.conv.xd2schemas.xsd.XDPool2XsdAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.XDef2XsdAdapter;
-import org.xdef.impl.util.conv.xd2schemas.xsd.definition.XD2XsdFeature;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schemas.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.xd2schema.xsd.XDPool2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schema.xsd.XDef2XsdAdapter;
+import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
+import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdUtils;
+import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
@@ -23,7 +23,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schemas.xsd.definition.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_INFO;
 
 public class TestXd2Xsd extends XDTester {
 
