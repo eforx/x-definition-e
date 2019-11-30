@@ -334,9 +334,10 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t003", Arrays.asList(new String[] {"t003"}),  Arrays.asList(new String[] {"t003_1e"}));
         convertXsd2XDefNoRef("t004", Arrays.asList(new String[] {"t004"}),  Arrays.asList(new String[] {"t004_1e"}));
         convertXsd2XDefWithFeatures("t005", Arrays.asList(new String[] {"t005"}), null, EnumSet.of(XD_TEXT_OPTIONAL));
-
         convertXsd2XDefNoRef("t006", Arrays.asList(new String[] {"t006", "t006_1"}),  Arrays.asList(new String[] {"t006_2e", "t006_3e"}));
         convertXsd2XDefNoRef("t007", Arrays.asList(new String[] {"t007"}),  Arrays.asList(new String[] {"t007_1e"}));
+        convertXsd2XDefNoRef("t009", Arrays.asList(new String[] {"t009"}), null);
+        convertXsd2XDefNoRef("t010", Arrays.asList(new String[] {"t010"}), null);
     }
 
     /** Run test

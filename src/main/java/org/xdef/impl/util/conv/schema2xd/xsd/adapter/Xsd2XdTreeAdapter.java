@@ -230,7 +230,7 @@ public class Xsd2XdTreeAdapter {
             for (XmlSchemaAttributeOrGroupRef xsdAttrRef : xsdAttrs) {
                 if (xsdAttrRef instanceof XmlSchemaAttribute) {
                     final XmlSchemaAttribute xsdAttr = (XmlSchemaAttribute)xsdAttrRef;
-                    Xsd2XdUtils.addAttribute(xdElem, xsdAttr);
+                    Xsd2XdUtils.addAttribute(xdElem, xsdAttr, xDefName, adapterCtx);
                 }
             }
         }

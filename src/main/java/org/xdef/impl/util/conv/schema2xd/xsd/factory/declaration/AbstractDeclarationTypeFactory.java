@@ -2,7 +2,6 @@ package org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
-import org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase;
 
 import java.util.*;
 
@@ -11,7 +10,6 @@ import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFOR
 
 public abstract class AbstractDeclarationTypeFactory implements IDeclarationTypeFactory {
 
-    // TODO: enumeration?
     // TODO: default/fixed?
     protected static final String MIN_INCLUSIVE = "MIN_INCLUSIVE";
     protected static final String MIN_EXCLUSIVE = "MIN_EXCLUSIVE";
@@ -29,8 +27,8 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     protected String typeName = null;
     protected List<XmlSchemaFacet> facets = null;
 
-    Map<String, String> facetSingleValues = new HashMap<String, String>();
-    Map<String, List<String>> facetMultipleValues = new HashMap<String, List<String>>();
+    final Map<String, String> facetSingleValues = new HashMap<String, String>();
+    final Map<String, List<String>> facetMultipleValues = new HashMap<String, List<String>>();
     protected boolean firstFacet;
 
     @Override

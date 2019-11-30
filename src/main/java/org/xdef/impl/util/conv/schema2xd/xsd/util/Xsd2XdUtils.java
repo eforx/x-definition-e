@@ -1,19 +1,20 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.util;
 
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
-import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
+import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 
+import javax.xml.namespace.QName;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_NAMESPACE_URI;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
 public class Xsd2XdUtils {
@@ -23,7 +24,7 @@ public class Xsd2XdUtils {
         el.setAttribute(attrName, attrValue);
     }
 
-    public static void addAttribute(final Element el, final XmlSchemaAttribute xsdAttr) {
+    public static void addAttribute(final Element el, final XmlSchemaAttribute xsdAttr, final String xDefName, final XdAdapterCtx xdAdapterCtx) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. QName=" + xsdAttr.getQName() + ", SchemaType=" + xsdAttr.getSchemaTypeName());
 
         final StringBuilder valueBuilder = new StringBuilder();
@@ -35,8 +36,10 @@ public class Xsd2XdUtils {
 
         valueBuilder.append(xsdAttr.getSchemaTypeName().getLocalPart() + "()");
 
-        if (xsdAttr.getQName() != null) {
-            el.setAttributeNS(xsdAttr.getQName().getNamespaceURI(), xsdAttr.getName(), valueBuilder.toString());
+        final QName xsdQName = xsdAttr.getQName();
+        if (xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdAttr.getForm())) {
+            final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, xdAdapterCtx);
+            el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, valueBuilder.toString());
         } else {
             el.setAttribute(xsdAttr.getName(), valueBuilder.toString());
         }

@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.schema2xd.xsd.factory;
 
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
@@ -52,11 +53,11 @@ public class XdElementFactory {
 
     public Element createEmptyElement(final XmlSchemaElement xsdElem, final String xDefName) {
         final QName xsdQName = xsdElem.getQName();
-        if (xsdQName.getNamespaceURI() != null) {
+        if (xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdElem.getForm())) {
             final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
             return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
         } else {
-            return doc.createElement(xsdQName.getLocalPart());
+            return doc.createElement(xsdElem.getName());
         }
     }
 
