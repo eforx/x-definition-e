@@ -39,6 +39,11 @@ public class XdAttributeFactory {
             return;
         }
 
+        if (xsdParicle.getMinOccurs() == 0 && xsdParicle.getMaxOccurs() == 1) {
+            Xsd2XdUtils.addXdefAttribute(xdParticle, XD_ATTR_SCRIPT, "occurs ?");
+            return;
+        }
+
         Xsd2XdUtils.addXdefAttribute(xdParticle, XD_ATTR_SCRIPT, "occurs " + xsdParicle.getMinOccurs() + ".." + xsdParicle.getMaxOccurs());
     }
 }

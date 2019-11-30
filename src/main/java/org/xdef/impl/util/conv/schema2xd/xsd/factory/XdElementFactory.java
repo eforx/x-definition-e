@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.factory;
 
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,6 +53,15 @@ public class XdElementFactory {
         final QName xsdQName = xsdElem.getQName();
         if (xsdQName.getNamespaceURI() != null) {
             return doc.createElementNS(xsdQName.getNamespaceURI(), xsdElem.getName());
+        } else {
+            return doc.createElement(xsdQName.getLocalPart());
+        }
+    }
+
+    public Element createEmptyElement(final XmlSchemaComplexType xsdComplex) {
+        final QName xsdQName = xsdComplex.getQName();
+        if (xsdQName.getNamespaceURI() != null) {
+            return doc.createElementNS(xsdQName.getNamespaceURI(), xsdComplex.getName());
         } else {
             return doc.createElement(xsdQName.getLocalPart());
         }

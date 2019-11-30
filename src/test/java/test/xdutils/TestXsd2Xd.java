@@ -17,12 +17,14 @@ import org.xmlunit.diff.Diff;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 
 public class TestXsd2Xd extends TesterXdSchema {
 
@@ -223,6 +225,10 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDef(fileName, validTestingData, invalidTestingData, false, null);
     }
 
+    private void convertXsd2XDefWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<Xsd2XdFeature> features) {
+        convertXsd2XDef(fileName, validTestingData, invalidTestingData, false, features);
+    }
+
     private XmlSchemaCollection compileXsd(final String fileName) throws FileNotFoundException {
         final XmlSchemaCollection inputXmlSchemaCollection = new XmlSchemaCollection();
         inputXmlSchemaCollection.read(createInputFileReader(fileName, ".xsd"));
@@ -322,11 +328,12 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         // ============ XDef ============
 
-//        convertXsd2XDef("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_1e", "t000_2e", "t000_3e"}));
-//        convertXsd2XDefNoRef("t001", Arrays.asList(new String[] {"t001"}),  Arrays.asList(new String[] {"t001_1e", "t001_2e", "t001_3e", "t001_4e", "t001e"}));
-//        convertXsd2XDefNoRef("t002", Arrays.asList(new String[] {"t002"}),  Arrays.asList(new String[] {"t002_1e", "t002_2e"}));
-//        convertXsd2XDefNoRef("t003", Arrays.asList(new String[] {"t003"}),  Arrays.asList(new String[] {"t003_1e"}));
+        convertXsd2XDef("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_1e", "t000_2e", "t000_3e"}));
+        convertXsd2XDefNoRef("t001", Arrays.asList(new String[] {"t001"}),  Arrays.asList(new String[] {"t001_1e", "t001_2e", "t001_3e", "t001_4e", "t001e"}));
+        convertXsd2XDefNoRef("t002", Arrays.asList(new String[] {"t002"}),  Arrays.asList(new String[] {"t002_1e", "t002_2e"}));
+        convertXsd2XDefNoRef("t003", Arrays.asList(new String[] {"t003"}),  Arrays.asList(new String[] {"t003_1e"}));
         convertXsd2XDefNoRef("t004", Arrays.asList(new String[] {"t004"}),  Arrays.asList(new String[] {"t004_1e"}));
+        convertXsd2XDefWithFeatures("t005", Arrays.asList(new String[] {"t005"}), null, EnumSet.of(XD_TEXT_OPTIONAL));
     }
 
     /** Run test

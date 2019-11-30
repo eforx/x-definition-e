@@ -4,12 +4,9 @@ import org.apache.ws.commons.schema.*;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
 public abstract class AbstractDeclarationTypeFactory implements IDeclarationTypeFactory {
@@ -27,11 +24,13 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     protected static final String TOTAL_DIGITS = "TOTAL_DIGITS";
     protected static final String FRACTIONS_DIGITS = "FRACTIONS_DIGITS";
     protected static final String WHITESPACE = "WHITESPACE";
+    protected static final String ENUMERATION = "ENUMERATION";
 
     protected String typeName = null;
     protected List<XmlSchemaFacet> facets = null;
 
-    Map<String, String> facetValues = new HashMap<String, String>();
+    Map<String, String> facetSingleValues = new HashMap<String, String>();
+    Map<String, List<String>> facetMultipleValues = new HashMap<String, List<String>>();
     protected boolean firstFacet;
 
     @Override
@@ -41,12 +40,20 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
 
     @Override
     public String build(final List<XmlSchemaFacet> facets) {
-        XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building Declaration. Type=" + getDataType());
-
         this.facets = facets;
         parseFacets();
 
-        final StringBuilder sb = new StringBuilder("type " + typeName + " " + getDataType());
+        final String type = hasMultipleFacet(ENUMERATION) ? "enum" : getDataType();
+        StringBuilder sb;
+
+        if (typeName != null) {
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building declaration. Type=" + type);
+            sb = new StringBuilder("type " + typeName + " " + type);
+        } else {
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, "", "Building built-in declaration. Type=" + type);
+            sb = new StringBuilder("required " + type);
+        }
+
         sb.append("(");
         buildFacets(sb);
         defaultBuildFacets(sb);
@@ -55,55 +62,75 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     }
 
     protected void parseFacets() {
-        facetValues.clear();
+        facetSingleValues.clear();
+        facetMultipleValues.clear();
         firstFacet = true;
 
         if (facets != null) {
             for (XmlSchemaFacet facet : facets) {
                 if (facet instanceof XmlSchemaFractionDigitsFacet) {
-                    facetValues.put(FRACTIONS_DIGITS, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add fraction digits. Value=" + (facet).getValue());
+                    facetSingleValues.put(FRACTIONS_DIGITS, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add fraction digits. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaLengthFacet) {
-                    facetValues.put(LENGTH, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add length. Value=" + (facet).getValue());
+                    facetSingleValues.put(LENGTH, (String)facet.getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxExclusiveFacet) {
-                    facetValues.put(MAX_EXCLUSIVE, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max exclusive. Value=" + (facet).getValue());
+                    facetSingleValues.put(MAX_EXCLUSIVE, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max exclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxInclusiveFacet) {
-                    facetValues.put(MAX_INCLUSIVE, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max inclusive. Value=" + (facet).getValue());
+                    facetSingleValues.put(MAX_INCLUSIVE, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max inclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxLengthFacet) {
-                    facetValues.put(MAX_LENGTH, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max length. Value=" + (facet).getValue());
+                    facetSingleValues.put(MAX_LENGTH, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinLengthFacet) {
-                    facetValues.put(MIN_LENGTH, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min length. Value=" + (facet).getValue());
+                    facetSingleValues.put(MIN_LENGTH, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinExclusiveFacet) {
-                    facetValues.put(MIN_EXCLUSIVE, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min exclusive. Value=" + (facet).getValue());
+                    facetSingleValues.put(MIN_EXCLUSIVE, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min exclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinInclusiveFacet) {
-                    facetValues.put(MIN_INCLUSIVE, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min inclusive. Value=" + (facet).getValue());
+                    facetSingleValues.put(MIN_INCLUSIVE, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min inclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaPatternFacet) {
-                    facetValues.put(PATTERN, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add pattern. Value=" + (facet).getValue());
+                    facetSingleValues.put(PATTERN, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add pattern. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaTotalDigitsFacet) {
-                    facetValues.put(TOTAL_DIGITS, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add total digits. Value=" + (facet).getValue());
+                    facetSingleValues.put(TOTAL_DIGITS, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add total digits. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaWhiteSpaceFacet) {
-                    facetValues.put(WHITESPACE, (String)(facet).getValue());
-                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add whitespace. Value=" + (facet).getValue());
+                    facetSingleValues.put(WHITESPACE, (String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add whitespace. Value=" + facet.getValue());
+                } else if (facet instanceof XmlSchemaEnumerationFacet) {
+                    List<String> enumeration = facetMultipleValues.get(ENUMERATION);
+                    if (enumeration == null) {
+                        enumeration = new LinkedList<String>();
+                        facetMultipleValues.put(ENUMERATION, enumeration);
+                    }
+
+                    enumeration.add((String)(facet).getValue());
+                    XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add enumeration. Value=" + facet.getValue());
+                } else {
+                    XsdLogger.print(LOG_WARN, TRANSFORMATION, typeName, "Declaration - Unsupported XSD facet! Clazz=" + facet.getClass().getSimpleName());
                 }
             }
         }
     }
 
     protected boolean hasFacet(final String facetName) {
-        return facetValues.containsKey(facetName);
+        return facetSingleValues.containsKey(facetName);
     }
 
     protected String useFacet(final String facetName) {
-        return facetValues.remove(facetName);
+        return facetSingleValues.remove(facetName);
+    }
+
+    protected boolean hasMultipleFacet(final String facetName) {
+        return facetMultipleValues.containsKey(facetName);
+    }
+
+    protected List<String> useMultipleFacet(final String facetName) {
+        return facetMultipleValues.remove(facetName);
     }
 
     protected void buildFacets(final StringBuilder sb) {
@@ -151,6 +178,16 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         }
         if (hasFacet(WHITESPACE)) {
             facetBuilder(sb, "%whiteSpace='" + useFacet(WHITESPACE) + "'");
+        }
+        if (hasMultipleFacet(ENUMERATION)) {
+            final List<String> enumeration = useMultipleFacet(ENUMERATION);
+            if (enumeration != null && !enumeration.isEmpty()) {
+                Iterator<String> enumItr = enumeration.iterator();
+                sb.append("\"" + enumItr.next() + "\"");
+                while (enumItr.hasNext()) {
+                    sb.append(", \"" + enumItr.next() + "\"");
+                }
+            }
         }
     }
 }
