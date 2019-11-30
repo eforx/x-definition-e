@@ -6,6 +6,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 import org.xdef.xml.KXmlUtils;
 
@@ -49,10 +50,11 @@ public class XdElementFactory {
         return res;
     }
 
-    public Element createEmptyElement(final XmlSchemaElement xsdElem) {
+    public Element createEmptyElement(final XmlSchemaElement xsdElem, final String xDefName) {
         final QName xsdQName = xsdElem.getQName();
         if (xsdQName.getNamespaceURI() != null) {
-            return doc.createElementNS(xsdQName.getNamespaceURI(), xsdElem.getName());
+            final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
+            return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
         } else {
             return doc.createElement(xsdQName.getLocalPart());
         }

@@ -50,7 +50,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
             XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building declaration. Type=" + type);
             sb = new StringBuilder("type " + typeName + " " + type);
         } else {
-            XsdLogger.print(LOG_INFO, TRANSFORMATION, "", "Building built-in declaration. Type=" + type);
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, null, "Building built-in declaration. Type=" + type);
             sb = new StringBuilder("required " + type);
         }
 

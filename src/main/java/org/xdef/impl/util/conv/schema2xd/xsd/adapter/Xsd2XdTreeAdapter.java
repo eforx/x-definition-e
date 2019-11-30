@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.adapter;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Document;
@@ -11,7 +12,6 @@ import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdDeclarationFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -53,9 +53,9 @@ public class Xsd2XdTreeAdapter {
     final private XdDeclarationFactory xdDeclarationFactory;
 
     /**
-     * Output x-definition document
+     * X-definition target namespace prefix
      */
-    private Document doc;
+    private String targetNsPrefix;
 
     public Xsd2XdTreeAdapter(String xDefName, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
         this.xDefName = xDefName;
@@ -65,10 +65,6 @@ public class Xsd2XdTreeAdapter {
         xdDeclarationFactory = new XdDeclarationFactory(xdFactory, adapterCtx);
     }
 
-    public void setDoc(Document doc) {
-        this.doc = doc;
-    }
-
     public String loadXsdRootNames(Map<QName, XmlSchemaElement> rootElements) {
         XsdLogger.print(LOG_INFO, PREPROCESSING, xDefName, "Loading root elements of XSD");
 
@@ -76,12 +72,18 @@ public class Xsd2XdTreeAdapter {
             return "";
         }
 
+        targetNsPrefix = "";
+        final Pair<String, String> targetNamespace = adapterCtx.getTargetNamespace(xDefName);
+        if (targetNamespace != null && targetNamespace.getKey() != null && !targetNamespace.getKey().isEmpty()) {
+            targetNsPrefix = targetNamespace.getKey() + ":";
+        }
+
         final StringBuilder rootElemSb = new StringBuilder();
         for (XmlSchemaElement xsdElem : rootElements.values()) {
             if (rootElemSb.length() == 0) {
-                rootElemSb.append(xsdElem.getName());
+                rootElemSb.append(targetNsPrefix + xsdElem.getName());
             } else {
-                rootElemSb.append("|" + xsdElem.getName());
+                rootElemSb.append("|" + targetNsPrefix + xsdElem.getName());
             }
         }
 
@@ -89,7 +91,6 @@ public class Xsd2XdTreeAdapter {
     }
 
     public Node convertTree(final XmlSchemaObjectBase xsdNode, final boolean topLevel) {
-
         if (xsdNode instanceof XmlSchemaElement) {
             return createElement((XmlSchemaElement)xsdNode, topLevel);
         } else if (xsdNode instanceof XmlSchemaType) {
@@ -110,7 +111,7 @@ public class Xsd2XdTreeAdapter {
 
     private Node createElement(final XmlSchemaElement xsdElementNode, final boolean topLevel) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Creating element ...");
-        final Element xdElem = xdFactory.createEmptyElement(xsdElementNode);
+        final Element xdElem = xdFactory.createEmptyElement(xsdElementNode, xDefName);
         final QName xsdElemQName = xsdElementNode.getSchemaTypeName();
         if (xsdElemQName != null && XSD_NAMESPACE_PREFIX_EMPTY.equals(xsdElemQName.getPrefix())) {
             if (xsdElementNode.getSchemaType() != null) {

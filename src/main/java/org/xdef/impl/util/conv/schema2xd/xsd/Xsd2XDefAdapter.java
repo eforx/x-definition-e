@@ -1,9 +1,14 @@
 package org.xdef.impl.util.conv.schema2xd.xsd;
 
+import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.apache.ws.commons.schema.utils.NamespacePrefixList;
+import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -11,19 +16,21 @@ import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.Schema2XDefAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.adapter.AbstractXsd2XdAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.adapter.Xsd2XdTreeAdapter;
-import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNamespaceUtils;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
+import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_NAME;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
@@ -55,6 +62,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
 
         adapterCtx = new XdAdapterCtx(features);
+        adapterCtx.init();
 
         final XdElementFactory elementFactory = new XdElementFactory(adapterCtx);
         final Xsd2XdTreeAdapter treeAdapter = new Xsd2XdTreeAdapter(this.xDefName, elementFactory, adapterCtx);
@@ -66,18 +74,19 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
             return elementFactory.createHeader();
         } else {
             schema = schemas[0];
+            initializeNamespaces();
             final String rootElements = treeAdapter.loadXsdRootNames(schema.getElements());
             // TODO: x-definition name
             doc = elementFactory.createRootXdefinition(this.xDefName, rootElements);
-            treeAdapter.setDoc(doc);
             elementFactory.setDoc(doc);
             final Element xdRootElem = doc.getDocumentElement();
-            transformXSdTree(treeAdapter, xdRootElem);
+            addNamespaces(xdRootElem);
+            transformXsdTree(treeAdapter, xdRootElem);
             return elementFactory.createHeader() + KXmlUtils.nodeToString(xdRootElem, true);
         }
     }
 
-    private void transformXSdTree(final Xsd2XdTreeAdapter treeAdapter, final Element xdElem) {
+    private void transformXsdTree(final Xsd2XdTreeAdapter treeAdapter, final Element xdElem) {
         XsdLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "*** Transformation of XSD tree ***");
 
         final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
@@ -98,6 +107,43 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 if (res != null) {
                     xdElem.appendChild(res);
                 }
+            }
+        }
+    }
+
+    private void initializeNamespaces() {
+        final Pair<String, String> targetNamespace = getTargetNamespace();
+        if (targetNamespace != null) {
+            adapterCtx.addTargetNamespace(xDefName, targetNamespace);
+        }
+
+        final NodeNamespaceContext namespaceCtx = (NodeNamespaceContext)schema.getNamespaceContext();
+        for (String prefix : namespaceCtx.getDeclaredPrefixes()) {
+            if (XdNamespaceUtils.isDefaultNamespacePrefix(prefix)) {
+                continue;
+            }
+
+            final String uri = namespaceCtx.getNamespaceURI(prefix);
+            adapterCtx.addNamespace(xDefName, prefix, uri);
+        }
+    }
+
+
+    private Pair<String, String> getTargetNamespace() {
+        if (schema.getTargetNamespace() == null || schema.getTargetNamespace().isEmpty()) {
+            return null;
+        }
+
+        final NamespacePrefixList namespaceCtx = schema.getNamespaceContext();
+        final String nsPrefix = namespaceCtx.getPrefix(schema.getTargetNamespace());
+        return new Pair<String, String>(nsPrefix, schema.getTargetNamespace());
+    }
+
+    private void addNamespaces(final Element xdRootElem) {
+        Map<String, String> namespaces = adapterCtx.getNamespaces(xDefName);
+        if (namespaces != null && !namespaces.isEmpty()) {
+            for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
+                Xsd2XdUtils.addAttribute(xdRootElem, Constants.XMLNS_ATTRIBUTE + ":" + namespace.getValue(), namespace.getKey());
             }
         }
     }
