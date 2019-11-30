@@ -1,6 +1,6 @@
 package test.xdef;
 
-import builtools.XDTester;
+import buildtools.XDTester;
 import org.xdef.sys.ArrayReporter;
 import org.xdef.sys.Report;
 import org.xdef.sys.ReportPrinter;
@@ -242,8 +242,6 @@ public final class TestInclude extends XDTester {
 		} catch (Exception ex) {fail(ex);}
 		setChkSyntax(chkSyntax);
 		try {
-			setProperty(XDConstants.XDPROPERTY_VALIDATE,
-				XDConstants.XDPROPERTYVALUE_VALIDATE_TRUE);
 			xp = compile(dataDir + "TestInclude_8.xdef");
 			xml = dataDir + "TestInclude_8.xml";
 			parse(xp, "A", xml, reporter);
@@ -252,8 +250,6 @@ public final class TestInclude extends XDTester {
 			parse(xp, "A", xml, reporter);
 			assertNoErrors(reporter);
 		} catch (Exception ex) {fail(ex);}
-		setProperty(XDConstants.XDPROPERTY_VALIDATE,
-				XDConstants.XDPROPERTYVALUE_VALIDATE_FALSE);
 		try {
 			//test Include default (not allowed)
 			xdef =
@@ -309,10 +305,10 @@ public final class TestInclude extends XDTester {
 				reporter.printToString().indexOf("XML309") > 0);
 		} catch (Exception ex) {fail(ex);}
 
-		try { // xd:include='classpath:// ...
+		try { // xd:include='classpath://...
 			xp = compile(
 "<xd:collection xmlns:xd='http://www.xdef.org/xdef/3.2'\n" +
-"xd:include='classpath://test.xdef.data.test.TestInclude.xdef,\n"+
+"xd:include='classpath://test.xdef.data.test.TestInclude.xdef;\n"+
 "            classpath://test.xdef.data.test.TestInclude_10.xdef'/>");
 			xml = "<B b='123'/>";
 			assertEq(xml, parse(xp, "B", xml, reporter));
@@ -328,7 +324,7 @@ public final class TestInclude extends XDTester {
 			assertEq("f", strw.toString());
 			xdef =
 "<xd:def xmlns:xd='" + _xdNS + "' name='A' root='foo'\n"+
-" xd:include='classpath://test.xdef.data.test.TestInclude_10.xdef'>\n"+
+"xd:include='classpath://test.xdef.data.test.TestInclude_10.xdef'>\n"+
 "  <foo>\n"+
 "    <bar xd:script = '*; ref B#B'/>\n"+ // B is from include
 "  </foo>\n"+
