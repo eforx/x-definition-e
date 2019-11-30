@@ -34,14 +34,14 @@ public class XdDeclarationFactory {
         final Element xdDeclaration = xdFactory.createEmptyDeclaration();
         final String name = simpleType.getName();
         if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-            xdDeclaration.setTextContent(create((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name));
+            xdDeclaration.setTextContent(createWithName((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name));
         }
 
         // TODO: list, union
         return xdDeclaration;
     }
 
-    public String create(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name) {
+    public String createWithName(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, simpleTypeRestriction, "Creating declaration content ...");
 
         final QName baseType = simpleTypeRestriction.getBaseTypeName();
@@ -52,6 +52,17 @@ public class XdDeclarationFactory {
         }
 
         xdDeclarationFactory.setName(name);
+        return xdDeclarationFactory.build(simpleTypeRestriction.getFacets());
+    }
+
+    public String createFromBaseType(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final QName baseType) {
+        final IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
+        if (xdDeclarationFactory == null) {
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, simpleTypeRestriction, "Unknown XSD data type! QName=" + baseType);
+            return null;
+        }
+
+        xdDeclarationFactory.setName(null);
         return xdDeclarationFactory.build(simpleTypeRestriction.getFacets());
     }
 

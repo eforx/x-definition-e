@@ -121,7 +121,8 @@ public class Xsd2XdTreeAdapter {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
                     final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
                     if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                        xdElem.setTextContent(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), null));
+                        // TODO: make as reference instead of copying restriction, t005 & t006
+                        xdElem.setTextContent(xdDeclarationFactory.createWithName((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), null));
                     }
                 }
             } else {
@@ -131,7 +132,10 @@ public class Xsd2XdTreeAdapter {
             if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
                 createElementFromComplex(xdElem, (XmlSchemaComplexType)xsdElementNode.getSchemaType());
             } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
-                // TODO: implement
+                final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
+                if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                    xdElem.setTextContent(xdDeclarationFactory.createFromBaseType((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), xsdElemQName));
+                }
             }
         }
 
