@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdElementFactory;
@@ -21,7 +22,7 @@ import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * All partial transforming algorithms for post processing of nodes structures and linking

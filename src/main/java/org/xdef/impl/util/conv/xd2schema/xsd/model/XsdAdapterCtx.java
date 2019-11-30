@@ -9,7 +9,7 @@ import org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdParserMapping;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 
@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * Basic XSD context for transformation x-definition to XSD schema

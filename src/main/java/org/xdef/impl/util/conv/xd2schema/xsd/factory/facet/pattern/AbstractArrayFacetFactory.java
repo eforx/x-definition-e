@@ -10,7 +10,7 @@ import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.pattern.types.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.pattern.types.IntegerRegexFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdParserMapping;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
 

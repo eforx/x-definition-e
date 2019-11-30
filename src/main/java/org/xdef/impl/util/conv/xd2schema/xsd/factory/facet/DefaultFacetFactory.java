@@ -4,7 +4,7 @@ import org.apache.ws.commons.schema.*;
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
 import static org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.IXsdFacetFactory.ValueType.DECIMAL_FLOATING;
 import static org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.IXsdFacetFactory.ValueType.DECIMAL_INTEGER;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 
 /**
  * Used for creation of restrictions

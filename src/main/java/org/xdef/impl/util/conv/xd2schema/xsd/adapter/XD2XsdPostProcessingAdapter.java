@@ -6,7 +6,7 @@ import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.SchemaNode;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.XSD_PP_ADAPTER;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.XSD_PP_ADAPTER;
 
 public class XD2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 

@@ -3,14 +3,14 @@ package org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.pattern.types;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.RangeRegexGenerator;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_ERROR;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_ERROR;
 
 public class IntegerRegexFactory implements RegexFactory {
 

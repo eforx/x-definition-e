@@ -6,6 +6,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.IXsdFacetFactory;
@@ -22,7 +23,7 @@ import java.util.Map;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * Definition of transformation x-definition data types to XSD data types

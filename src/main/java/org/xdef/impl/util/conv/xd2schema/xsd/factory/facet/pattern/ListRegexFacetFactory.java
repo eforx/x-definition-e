@@ -6,13 +6,13 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.pattern.types.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 public class ListRegexFacetFactory extends AbstractArrayFacetFactory {
 

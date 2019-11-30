@@ -14,7 +14,7 @@ import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.xdef.ListFacetFactory
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.xdef.UnionFacetFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdParserMapping;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
@@ -25,7 +25,7 @@ import java.util.Set;
 import static org.xdef.XDValueID.XD_CONTAINER;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * Creates multiple types of XSD simple content node

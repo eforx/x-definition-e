@@ -14,7 +14,7 @@ import org.xdef.impl.util.conv.xd2schema.xsd.adapter.XD2XsdTreeAdapter;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 
@@ -22,8 +22,8 @@ import java.util.Set;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.XSD_XDEF_ADAPTER;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.XSD_XDEF_ADAPTER;
 
 /**
  * Transformation of given x-definition or x-definition pool to collection of XSD schemas

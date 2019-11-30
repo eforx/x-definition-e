@@ -1,4 +1,4 @@
-package org.xdef.impl.util.conv.xd2schema.xsd.definition;
+package org.xdef.impl.util.conv.schema.util;
 
 /**
  * Logging definitions

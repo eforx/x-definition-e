@@ -7,6 +7,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.SchemaNodeFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdNameFactory;
@@ -31,7 +32,7 @@ import static org.xdef.impl.compile.CompileBase.UNIQUESET_VALUE;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 public class XD2XsdTreeAdapter {
 

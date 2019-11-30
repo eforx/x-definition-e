@@ -1,9 +1,14 @@
-package org.xdef.impl.util.conv.xd2schema.xsd.util;
+package org.xdef.impl.util.conv.schema.util;
 
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase;
 
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
 import static org.xdef.model.XMNode.XMTEXT;
 
@@ -19,22 +24,38 @@ public class XsdLogger {
     }
 
     public static void print(int level, final AlgPhase phase, final String group, final String msg) {
-        print(level, phase, group, null, msg);
+        print(level, phase, group, "", msg);
     }
 
     public static void printP(int level, final AlgPhase phase, final XNode node, final String msg) {
         print(level, phase, null, node, msg);
     }
 
+    public static void printP(int level, final AlgPhase phase, final XmlSchemaObjectBase node, final String msg) {
+        print(level, phase, null, node, msg);
+    }
+
+    public static void printP(int level, final AlgPhase phase, final Node node, final String msg) {
+        print(level, phase, null, node, msg);
+    }
+
     public static void printP(int level, final AlgPhase phase, final String msg) {
-        print(level, phase, null, null, msg);
+        print(level, phase, null, "", msg);
     }
 
     public static void printG(int level, final String group, final String msg) {
-        print(level, null, group, null, msg);
+        print(level, null, group, "", msg);
     }
 
     public static void printG(int level, final String group, final XNode node, final String msg) {
+        print(level, null, group, node, msg);
+    }
+
+    public static void printG(int level, final String group, final XmlSchemaObjectBase node, final String msg) {
+        print(level, null, group, node, msg);
+    }
+
+    public static void printG(int level, final String group, final Node node, final String msg) {
         print(level, null, group, node, msg);
     }
 
@@ -43,10 +64,7 @@ public class XsdLogger {
             return;
         }
 
-        final StringBuilder sb = new StringBuilder("[" + levelToString(level) + "]");
-        if (group != null) {
-            sb.append("[" + group + "]");
-        }
+        final StringBuilder sb = new StringBuilder();
         if (node != null) {
             if (node.getXMDefinition() == null) {
                 sb.append("[" + getXNodeName(node) +  "]");
@@ -55,6 +73,52 @@ public class XsdLogger {
             } else {
                 sb.append("[" + node.getXMDefinition().getName() + " - " + getXNodeName(node) +  "]");
             }
+        }
+
+        print(level, phase, group, sb.toString(), msg);
+    }
+
+    public static void print(int level, final AlgPhase phase, final String group, final XmlSchemaObjectBase node, final String msg) {
+        if (level > LOG_LEVEL) {
+            return;
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        if (node != null) {
+            if (node instanceof XmlSchemaNamed) {
+                sb.append("[" + ((XmlSchemaNamed)node).getName() +  "]");
+            }
+        }
+
+        print(level, phase, group, sb.toString(), msg);
+    }
+
+    public static void print(int level, final AlgPhase phase, final String group, final Node node, final String msg) {
+        if (level > LOG_LEVEL) {
+            return;
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        if (node != null) {
+            if (node.getNodeName() != null) {
+                sb.append("[" + node.getNodeName() +  "]");
+            }
+        }
+
+        print(level, phase, group, sb.toString(), msg);
+    }
+
+    public static void print(int level, final AlgPhase phase, final String group, final String nodeInfo, final String msg) {
+        if (level > LOG_LEVEL) {
+            return;
+        }
+
+        final StringBuilder sb = new StringBuilder("[" + levelToString(level) + "]");
+        if (group != null) {
+            sb.append("[" + group + "]");
+        }
+        if (nodeInfo != null) {
+            sb.append(nodeInfo);
         }
         if (phase != null) {
             sb.append(" " + phase.getVal() + ":");

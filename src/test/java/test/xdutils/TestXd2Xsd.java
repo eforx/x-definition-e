@@ -9,7 +9,7 @@ import org.xdef.impl.util.conv.xd2schema.xsd.XDPool2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schema.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.proc.XXElement;
 import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
@@ -23,19 +23,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
 
-public class TestXd2Xsd extends XDTester {
-
-    static private boolean PRINT_SCHEMA_TO_OUTPUT = false;
-    static private boolean WRITE_SCHEMAS_INTO_FILE = true;
-    static private boolean VALIDATE_XML_AGAINST_REF_XSD = true;
-    static private boolean VALIDATE_XML_PRINT_ERRORS = true;
-
-    private File _inputFilesRoot;
-    private File _refFilesRoot;
-    private File _dataFilesRoot;
-    private File _outputFilesRoot;
+public class TestXd2Xsd extends TesterXdSchema {
 
     private void init() {
         File dataDir = new File(getDataDir());
@@ -52,49 +42,15 @@ public class TestXd2Xsd extends XDTester {
         XsdLogger.setLogLevel(LOG_INFO);
     }
 
-    private File initFolder(final File dataDir, final String folderPath) {
-        File folder = new File(dataDir.getAbsolutePath(), folderPath);
-        if (!folder.exists() || !folder.isDirectory()) {
-            throw new RuntimeException("Directory " + folderPath + " does not exists!");
-        }
-
-        return folder;
-    }
-
-    private File getFile(final String path, final String fileName, final String fileExt) throws FileNotFoundException {
-        File xdFile = new File(path, fileName + fileExt);
-        if (xdFile == null || !xdFile.exists() || !xdFile.isFile()) {
-            throw new FileNotFoundException("Path: " + path + "\\" + fileName + fileExt);
-        }
-
-        return xdFile;
-    }
-
-    private File getXDefFile(final String fileName) throws FileNotFoundException {
+    private File getInputXDefFile(final String fileName) throws FileNotFoundException {
         return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xdef");
     }
 
     private XDPool compileXd(final String fileName) throws FileNotFoundException {
-        return compile(getXDefFile(fileName), this.getClass());
+        return compile(getInputXDefFile(fileName), this.getClass());
     }
 
-    private FileReader createFileReader(final String filePath, final String fileName, final String fileExt) throws FileNotFoundException {
-        return new FileReader(filePath + "\\" + fileName + fileExt);
-    }
-
-    private FileReader createRefFileReader(final String fileName, final String fileExt) throws FileNotFoundException {
-        return createFileReader(_refFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, fileExt);
-    }
-
-    private FileReader createOutputFileReader(final String fileName, final String fileExt) throws FileNotFoundException {
-        return createFileReader(_outputFilesRoot.getAbsolutePath(), fileName, fileExt);
-    }
-
-    private File getXmlDataFile(final String testCase, final String fileName) throws FileNotFoundException {
-        return getFile(_dataFilesRoot.getAbsolutePath() + "\\" + testCase + "\\data", fileName, ".xml");
-    }
-
-    private XmlSchemaCollection getRefSchemas(final String fileName) throws FileNotFoundException {
+    private XmlSchemaCollection getRefXsd(final String fileName) throws FileNotFoundException {
         XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
         schemaCollection.setBaseUri(_inputFilesRoot.getAbsolutePath() + "\\" + fileName);
         schemaCollection.read(createRefFileReader(fileName, ".xsd"));
@@ -147,7 +103,7 @@ public class TestXd2Xsd extends XDTester {
 
             assertEq(1, outputSchemas.length, "Multiple schemas of same system name: " + schemaName);
 
-            if (WRITE_SCHEMAS_INTO_FILE == true) {
+            if (WRITE_OUTPUT_INTO_FILE == true) {
                 try {
                     // Output XSD
                     for (int i = 0; i < outputSchemas.length; i++) {
@@ -196,7 +152,7 @@ public class TestXd2Xsd extends XDTester {
         assertEq(outputSchemasAll.length, schemaCount + 1, "Invalid number of output schemas, fileName: " + fileName);
         //assertEq(realRefSchemas + 1, outputSchemasAll.length, "Expected same number of reference and output schemas, fileName: " + fileName);
 
-        if (PRINT_SCHEMA_TO_OUTPUT == true) {
+        if (PRINT_OUTPUT_TO_CONSOLE == true) {
             for (XmlSchema outputSchema : outputSchemasAll) {
                 if (Constants.URI_2001_SCHEMA_XSD.equals(outputSchema.getLogicalTargetNamespace()) == false) {
                     outputSchema.write(System.out);
@@ -230,7 +186,7 @@ public class TestXd2Xsd extends XDTester {
                 assertFalse(mismatch, "Same schema by sourceId, but different content, name: " + schemaName);
             }
 
-            if (WRITE_SCHEMAS_INTO_FILE == true) {
+            if (WRITE_OUTPUT_INTO_FILE == true) {
                 try {
                     // Reference XSD
                     for (int i = 0; i < refSchemas.length; i++) {
@@ -294,7 +250,7 @@ public class TestXd2Xsd extends XDTester {
         if (validTestingData != null) {
             for (String testingFile : validTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                File xDefFile = getXDefFile(fileName);
+                File xDefFile = getInputXDefFile(fileName);
                 ArrayReporter reporter = new ArrayReporter();
                 XDDocument xdDocument = XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(xdDocument != null, "XML is not valid against x-definition. Test=" + fileName + ", File=" + testingFile);
@@ -306,7 +262,7 @@ public class TestXd2Xsd extends XDTester {
         if (invalidTestingData != null) {
             for (String testingFile : invalidTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                File xDefFile = getXDefFile(fileName);
+                File xDefFile = getInputXDefFile(fileName);
                 ArrayReporter reporter = new ArrayReporter();
                 XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(reporter.errors(), "Error does not occurs on x-definition validation (but it should). Test=" + fileName + ", File=" + testingFile);
@@ -315,17 +271,14 @@ public class TestXd2Xsd extends XDTester {
     }
 
     private void validateXmlAgainstXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, boolean validateRef, boolean invalidXsd) throws FileNotFoundException {
-        File refXsdFile = null;
-        if (validateRef) {
-            refXsdFile = getRefSchemaFile(fileName);
-        }
         File outputXsdFile = getOutputSchemaFile(fileName);
+        File refXsdFile = validateRef ? getRefSchemaFile(fileName) : null;
 
         // Validate valid XML file against XSD schema
         if (validTestingData != null) {
             for (String testingFile : validTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                if (validateRef == true && VALIDATE_XML_AGAINST_REF_XSD == true) {
+                if (validateRef == true && VALIDATE_XML_AGAINST_REF_FILE == true) {
                     validateXmlAgainstXsd(fileName, xmlDataFile, refXsdFile, true, "ref");
                 }
                 if (outputXsdFile != null) {
@@ -338,7 +291,7 @@ public class TestXd2Xsd extends XDTester {
         if (invalidTestingData != null) {
             for (String testingFile : invalidTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                if (validateRef == true && VALIDATE_XML_AGAINST_REF_XSD == true) {
+                if (validateRef == true && VALIDATE_XML_AGAINST_REF_FILE == true) {
                     validateXmlAgainstXsd(fileName, xmlDataFile, refXsdFile, false, "ref");
                 }
                 if (outputXsdFile != null) {
@@ -350,7 +303,7 @@ public class TestXd2Xsd extends XDTester {
 
     private void validateXmlAgainstXsd(final String fileName, final File xmlFile, final File xsdSchemaFile, boolean expectedResult, String type) {
         XmlValidator validator = new XmlValidator(new StreamSource(xmlFile), new StreamSource(xsdSchemaFile));
-        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), expectedResult && VALIDATE_XML_PRINT_ERRORS),
+        assertEq(expectedResult, validator.validate(_outputFilesRoot.getAbsolutePath(), expectedResult && PRINT_XML_VALIDATION_ERRORS),
                 "Xml validation failed, testCase: " + fileName + ", type: " + type + ", fileName: " + xmlFile.getName());
     }
 
@@ -390,7 +343,7 @@ public class TestXd2Xsd extends XDTester {
 
             // Compare output XSD schemas to XSD references
             if (validateAgainstRefXsd) {
-                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), 1);
+                validateSchemas(fileName, getRefXsd(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), 1);
             } else {
                 writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
@@ -452,7 +405,7 @@ public class TestXd2Xsd extends XDTester {
 
             // Compare output XSD schemas to XSD references
             if (validateAgainstRefXsd) {
-                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
+                validateSchemas(fileName, getRefXsd(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
             } else {
                 writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }

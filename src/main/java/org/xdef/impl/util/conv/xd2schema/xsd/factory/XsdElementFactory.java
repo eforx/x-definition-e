@@ -8,6 +8,7 @@ import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.xsd.CXmlSchemaAll;
@@ -26,7 +27,7 @@ import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
 /**

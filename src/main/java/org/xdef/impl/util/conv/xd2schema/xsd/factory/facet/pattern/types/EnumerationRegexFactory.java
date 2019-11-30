@@ -3,11 +3,11 @@ package org.xdef.impl.util.conv.xd2schema.xsd.factory.facet.pattern.types;
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XSD_FACET_ENUMERATION;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 
 public class EnumerationRegexFactory implements RegexFactory {
 

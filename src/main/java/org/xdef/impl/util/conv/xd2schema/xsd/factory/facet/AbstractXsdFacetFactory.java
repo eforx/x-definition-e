@@ -3,14 +3,14 @@ package org.xdef.impl.util.conv.xd2schema.xsd.factory.facet;
 import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 

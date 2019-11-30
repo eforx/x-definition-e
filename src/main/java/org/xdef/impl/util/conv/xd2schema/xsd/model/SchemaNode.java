@@ -5,7 +5,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.model.XMNode;
 
@@ -13,8 +13,8 @@ import javax.xml.namespace.QName;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.XSD_REFERENCE;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.XSD_REFERENCE;
 
 /**
  * Couples x-definition nodes with XSD nodes. Saves binding between element references.

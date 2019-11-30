@@ -8,12 +8,12 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNameUtils;
 
 import java.util.Map;
 
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * Factory which is creating schema nodes, which pairs up x-definition nodes with XSD nodes

@@ -6,15 +6,15 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schema.xsd.factory.XsdElementFactory;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdSchemaImportLocation;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 
 import java.util.*;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
 
 /**
  * Transforms x-definition nodes into xsd nodes

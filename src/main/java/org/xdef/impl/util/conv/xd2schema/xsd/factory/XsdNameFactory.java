@@ -6,7 +6,7 @@ import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.xd2schema.xsd.model.XsdAdapterCtx;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdLogger;
+import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature.XSD_NAME_COLISSION_DETECTOR;
-import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 
 /**
  * Creates names of specific types of nodes.
