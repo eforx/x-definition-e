@@ -1,6 +1,6 @@
 package test.xdutils;
 
-import builtools.XDTester;
+import buildtools.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
