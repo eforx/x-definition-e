@@ -148,6 +148,7 @@ public class Xsd2XdTreeAdapter {
 
         if (xdElem != null) {
             xdAttrFactory.addOccurrence(xdElem, xsdElementNode);
+            xdAttrFactory.addNillable(xdElem, xsdElementNode);
         }
 
         return xdElem;

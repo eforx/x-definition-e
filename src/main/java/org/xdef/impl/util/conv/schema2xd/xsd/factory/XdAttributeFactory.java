@@ -1,5 +1,6 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.factory;
 
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
@@ -45,5 +46,11 @@ public class XdAttributeFactory {
         }
 
         Xsd2XdUtils.addXdefAttribute(xdParticle, XD_ATTR_SCRIPT, "occurs " + xsdParicle.getMinOccurs() + ".." + xsdParicle.getMaxOccurs());
+    }
+
+    public void addNillable(final Element xdParticle, final XmlSchemaElement xsdElem) {
+        if (xsdElem.isNillable()) {
+            Xsd2XdUtils.addXdefAttribute(xdParticle, XD_ATTR_SCRIPT, "options nillable");
+        }
     }
 }
