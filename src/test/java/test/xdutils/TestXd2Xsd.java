@@ -481,6 +481,8 @@ public class TestXd2Xsd extends TesterXdSchema {
 
         convertXdDef2XsdNoRef ("t990", Arrays.asList(new String[] {"t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
         convertXdDef2XsdNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
+        convertXdDef2XsdNoRef ("D2A", Arrays.asList(new String[] {"D2A"}), null);
+        convertXdDef2XsdNoRef ("D3A", Arrays.asList(new String[] {"D3A"}), null);
 
         // ============ XDPool ============
 
