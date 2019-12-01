@@ -10,27 +10,16 @@ import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFOR
 
 public abstract class AbstractDeclarationTypeFactory implements IDeclarationTypeFactory {
 
-    // TODO: default/fixed?
-    protected static final String MIN_INCLUSIVE = "MIN_INCLUSIVE";
-    protected static final String MIN_EXCLUSIVE = "MIN_EXCLUSIVE";
-    protected static final String MAX_INCLUSIVE = "MAX_INCLUSIVE";
-    protected static final String MAX_EXCLUSIVE = "MAX_EXCLUSIVE";
-    protected static final String PATTERN = "PATTERN";
-    protected static final String LENGTH = "LENGTH";
-    protected static final String MIN_LENGTH = "MIN_LENGTH";
-    protected static final String MAX_LENGTH = "MAX_LENGTH";
-    protected static final String TOTAL_DIGITS = "TOTAL_DIGITS";
-    protected static final String FRACTIONS_DIGITS = "FRACTIONS_DIGITS";
-    protected static final String WHITESPACE = "WHITESPACE";
-    protected static final String ENUMERATION = "ENUMERATION";
+    // TODO: default/fixed value?
 
     private Mode mode;
     protected String typeName = null;
     protected List<XmlSchemaFacet> facets = null;
 
-    final Map<String, String> facetSingleValues = new HashMap<String, String>();
-    final Map<String, List<String>> facetMultipleValues = new HashMap<String, List<String>>();
-    protected boolean firstFacet;
+    private final Map<String, Object> facetSingleValues = new HashMap<String, Object>();
+    private final Map<String, List<Object>> facetMultipleValues = new HashMap<String, List<Object>>();
+    private boolean firstFacet;
+    protected Set<String> facetsToRemove = null;
 
     @Override
     public void setMode(Mode mode) {
@@ -47,7 +36,14 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         this.facets = facets;
         parseFacets();
 
-        final String type = hasMultipleFacet(ENUMERATION) ? "enum" : getDataType();
+        if (facetsToRemove != null) {
+            for (String facet : facetsToRemove) {
+                facetSingleValues.remove(facet);
+                facetMultipleValues.remove(facet);
+            }
+        }
+
+        final String type = hasMultipleFacet(FACET_ENUMERATION) ? "enum" : getDataType();
 
         StringBuilder facetStringBuilder = new StringBuilder();
         buildFacets(facetStringBuilder);
@@ -87,52 +83,68 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return sb.toString();
     }
 
+    public AbstractDeclarationTypeFactory removeFacet(final String facetToRemove) {
+        if (this.facetsToRemove == null) {
+            this.facetsToRemove = new HashSet<String>();
+        }
+        this.facetsToRemove.add(facetToRemove);
+        return this;
+    }
+
+    public AbstractDeclarationTypeFactory removeFacets(final Set<String> facetsToRemove) {
+        if (this.facetsToRemove == null) {
+            this.facetsToRemove = new HashSet<String>();
+        }
+        this.facetsToRemove.addAll(facetsToRemove);
+        return this;
+    }
+
     protected void parseFacets() {
         reset();
 
         if (facets != null) {
             for (XmlSchemaFacet facet : facets) {
                 if (facet instanceof XmlSchemaFractionDigitsFacet) {
-                    facetSingleValues.put(FRACTIONS_DIGITS, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_FRACTIONS_DIGITS, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add fraction digits. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaLengthFacet) {
-                    facetSingleValues.put(LENGTH, (String)facet.getValue());
+                    facetSingleValues.put(FACET_LENGTH, facet.getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxExclusiveFacet) {
-                    facetSingleValues.put(MAX_EXCLUSIVE, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MAX_EXCLUSIVE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max exclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxInclusiveFacet) {
-                    facetSingleValues.put(MAX_INCLUSIVE, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MAX_INCLUSIVE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max inclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMaxLengthFacet) {
-                    facetSingleValues.put(MAX_LENGTH, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MAX_LENGTH, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add max length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinLengthFacet) {
-                    facetSingleValues.put(MIN_LENGTH, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MIN_LENGTH, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min length. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinExclusiveFacet) {
-                    facetSingleValues.put(MIN_EXCLUSIVE, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MIN_EXCLUSIVE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min exclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaMinInclusiveFacet) {
-                    facetSingleValues.put(MIN_INCLUSIVE, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_MIN_INCLUSIVE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min inclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaPatternFacet) {
-                    facetSingleValues.put(PATTERN, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_PATTERN, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add pattern. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaTotalDigitsFacet) {
-                    facetSingleValues.put(TOTAL_DIGITS, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_TOTAL_DIGITS, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add total digits. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaWhiteSpaceFacet) {
-                    facetSingleValues.put(WHITESPACE, (String)(facet).getValue());
+                    facetSingleValues.put(FACET_WHITESPACE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add whitespace. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaEnumerationFacet) {
-                    List<String> enumeration = facetMultipleValues.get(ENUMERATION);
+                    List<Object> enumeration = facetMultipleValues.get(FACET_ENUMERATION);
                     if (enumeration == null) {
-                        enumeration = new LinkedList<String>();
-                        facetMultipleValues.put(ENUMERATION, enumeration);
+                        enumeration = new LinkedList<Object>();
+                        facetMultipleValues.put(FACET_ENUMERATION, enumeration);
                     }
 
-                    enumeration.add((String)(facet).getValue());
+                    enumeration.add((facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add enumeration. Value=" + facet.getValue());
                 } else {
                     XsdLogger.print(LOG_WARN, TRANSFORMATION, typeName, "Declaration - Unsupported XSD facet! Clazz=" + facet.getClass().getSimpleName());
@@ -145,22 +157,26 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return facetSingleValues.containsKey(facetName);
     }
 
-    protected String useFacet(final String facetName) {
+    protected Object useFacet(final String facetName) {
         return facetSingleValues.remove(facetName);
+    }
+
+    protected Object getFacet(final String facetName) {
+        return facetSingleValues.get(facetName);
     }
 
     protected boolean hasMultipleFacet(final String facetName) {
         return facetMultipleValues.containsKey(facetName);
     }
 
-    protected List<String> useMultipleFacet(final String facetName) {
+    protected List<Object> useMultipleFacet(final String facetName) {
         return facetMultipleValues.remove(facetName);
     }
 
     protected void buildFacets(final StringBuilder sb) {
     }
 
-    protected void facetBuilder(final StringBuilder sb, final String value) {
+    protected void facetBuilder(final StringBuilder sb, final Object value) {
         if (!firstFacet) {
             sb.append("," + value);
         } else {
@@ -170,43 +186,43 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     }
 
     protected void defaultBuildFacets(final StringBuilder sb) {
-        if (hasFacet(FRACTIONS_DIGITS)) {
-            facetBuilder(sb, "%fractionDigits='" + useFacet(FRACTIONS_DIGITS) + "'");
+        if (hasFacet(FACET_FRACTIONS_DIGITS)) {
+            facetBuilder(sb, "%fractionDigits='" + useFacet(FACET_FRACTIONS_DIGITS) + "'");
         }
-        if (hasFacet(LENGTH)) {
-            facetBuilder(sb, "%length='" + useFacet(LENGTH) + "'");
+        if (hasFacet(FACET_LENGTH)) {
+            facetBuilder(sb, "%length='" + useFacet(FACET_LENGTH) + "'");
         }
-        if (hasFacet(MAX_EXCLUSIVE)) {
-            facetBuilder(sb, "%maxExclusive='" + useFacet(MAX_EXCLUSIVE) + "'");
+        if (hasFacet(FACET_MAX_EXCLUSIVE)) {
+            facetBuilder(sb, "%maxExclusive='" + useFacet(FACET_MAX_EXCLUSIVE) + "'");
         }
-        if (hasFacet(MAX_INCLUSIVE)) {
-            facetBuilder(sb, "%maxInclusive='" + useFacet(MAX_INCLUSIVE) + "'");
+        if (hasFacet(FACET_MAX_INCLUSIVE)) {
+            facetBuilder(sb, "%maxInclusive='" + useFacet(FACET_MAX_INCLUSIVE) + "'");
         }
-        if (hasFacet(MAX_LENGTH)) {
-            facetBuilder(sb, "%maxLength='" + useFacet(MAX_LENGTH) + "'");
+        if (hasFacet(FACET_MAX_LENGTH)) {
+            facetBuilder(sb, "%maxLength='" + useFacet(FACET_MAX_LENGTH) + "'");
         }
-        if (hasFacet(MIN_LENGTH)) {
-            facetBuilder(sb, "%minLength='" + useFacet(MIN_LENGTH) + "'");
+        if (hasFacet(FACET_MIN_LENGTH)) {
+            facetBuilder(sb, "%minLength='" + useFacet(FACET_MIN_LENGTH) + "'");
         }
-        if (hasFacet(MIN_EXCLUSIVE)) {
-            facetBuilder(sb, "%minExclusive='" + useFacet(MIN_EXCLUSIVE) + "'");
+        if (hasFacet(FACET_MIN_EXCLUSIVE)) {
+            facetBuilder(sb, "%minExclusive='" + useFacet(FACET_MIN_EXCLUSIVE) + "'");
         }
-        if (hasFacet(MIN_INCLUSIVE)) {
-            facetBuilder(sb, "%minInclusive='" + useFacet(MIN_INCLUSIVE) + "'");
+        if (hasFacet(FACET_MIN_INCLUSIVE)) {
+            facetBuilder(sb, "%minInclusive='" + useFacet(FACET_MIN_INCLUSIVE) + "'");
         }
-        if (hasFacet(PATTERN)) {
-            facetBuilder(sb, "%pattern=['" + useFacet(PATTERN).replace("\\", "\\\\") + "']");
+        if (hasFacet(FACET_PATTERN)) {
+            facetBuilder(sb, "%pattern=['" + useFacet(FACET_PATTERN).toString().replace("\\", "\\\\") + "']");
         }
-        if (hasFacet(TOTAL_DIGITS)) {
-            facetBuilder(sb, "%totalDigits='" + useFacet(TOTAL_DIGITS) + "'");
+        if (hasFacet(FACET_TOTAL_DIGITS)) {
+            facetBuilder(sb, "%totalDigits='" + useFacet(FACET_TOTAL_DIGITS) + "'");
         }
-        if (hasFacet(WHITESPACE)) {
-            facetBuilder(sb, "%whiteSpace='" + useFacet(WHITESPACE) + "'");
+        if (hasFacet(FACET_WHITESPACE)) {
+            facetBuilder(sb, "%whiteSpace='" + useFacet(FACET_WHITESPACE) + "'");
         }
-        if (hasMultipleFacet(ENUMERATION)) {
-            final List<String> enumeration = useMultipleFacet(ENUMERATION);
+        if (hasMultipleFacet(FACET_ENUMERATION)) {
+            final List<Object> enumeration = useMultipleFacet(FACET_ENUMERATION);
             if (enumeration != null && !enumeration.isEmpty()) {
-                Iterator<String> enumItr = enumeration.iterator();
+                Iterator<Object> enumItr = enumeration.iterator();
                 sb.append("\"" + enumItr.next() + "\"");
                 while (enumItr.hasNext()) {
                     sb.append(", \"" + enumItr.next() + "\"");

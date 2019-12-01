@@ -1,10 +1,10 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration;
 
-public class DecimalTypeFactory extends AbstractDeclarationTypeFactory {
+public class EmptyTypeFactory extends AbstractDeclarationTypeFactory {
 
     public final String xdType;
 
-    public DecimalTypeFactory(String xdType) {
+    public EmptyTypeFactory(String xdType) {
         this.xdType = xdType;
     }
 

@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.schema2xd.xsd.adapter;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -139,8 +140,12 @@ public class Xsd2XdTreeAdapter {
                 createElementFromComplex(xdElem, (XmlSchemaComplexType)xsdElementNode.getSchemaType());
             } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
                 final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
-                if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                if (xsdElemQName != null && (Constants.XSD_NMTOKENS.equals(xsdElemQName) || Constants.XSD_IDREFS.equals(xsdElemQName))) {
+                    xdElem.setTextContent(xdDeclarationFactory.createSimpleTextDeclaration(xsdElemQName));
+                } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
                     xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), xsdElemQName));
+                } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeUnion) {
+                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration((XmlSchemaSimpleTypeUnion)simpleType.getContent()));
                 }
             }
         }
