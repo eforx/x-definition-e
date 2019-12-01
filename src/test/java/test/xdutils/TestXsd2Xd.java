@@ -323,8 +323,6 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         init();
 
-        // B1_common, D1A
-
         // ============ XDef ============
 
         convertXsd2XDef("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_1e", "t000_2e", "t000_3e"}));
@@ -351,6 +349,8 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("declarationTest",
                 Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
                 Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
+        convertXsd2XDefNoRef ("M1RC", Arrays.asList(new String[] {"M1RC"}), null);
+        convertXsd2XDefNoRef ("M1RT", Arrays.asList(new String[] {"M1RT"}), null);
 
         // ============ Huge data type set ============
 
@@ -363,6 +363,12 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
         convertXsd2XDefNoRef ("D2A", Arrays.asList(new String[] {"D2A"}), null);
         convertXsd2XDefNoRef ("D3A", Arrays.asList(new String[] {"D3A"}), null);
+        convertXsd2XDefNoRef ("D5", Arrays.asList(new String[] {"D5"}), null);
+        convertXsd2XDefNoRef ("L1A", Arrays.asList(new String[] {"L1A"}), null);
+        convertXsd2XDefNoRef ("M1RN", Arrays.asList(new String[] {"M1RN"}), null);
+        convertXsd2XDefNoRef ("M1RS", Arrays.asList(new String[] {"M1RS"}), null);
+        convertXsd2XDefNoRef ("M1RV", Arrays.asList(new String[] {"M1RV"}), null);
+        convertXsd2XDefNoRef ("P1A", Arrays.asList(new String[] {"P1A"}), null);
 
         // ============ Multiple types of references ============
 
