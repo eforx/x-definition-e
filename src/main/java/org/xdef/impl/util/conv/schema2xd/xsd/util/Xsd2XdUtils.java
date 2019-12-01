@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_SCRIPT;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_NAMESPACE_URI;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
@@ -34,6 +35,10 @@ public class Xsd2XdUtils {
         } else {
             el.setAttribute(xsdAttr.getName(), attrValue);
         }
+    }
+
+    public static void addRefAttribute(final Element el, final QName qName) {
+        Xsd2XdUtils.addXdefAttribute(el, XD_ATTR_SCRIPT, "ref " + qName.getLocalPart());
     }
 
     public static void addXdefAttribute(final Element el, final String qName, final String value) {

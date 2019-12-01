@@ -342,10 +342,24 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t020", Arrays.asList(new String[] {"t020"}), null);
         convertXsd2XDefNoRef("t020_1", Arrays.asList(new String[] {"t020_1"}), null);
         convertXsd2XDefNoRef("t990", Arrays.asList(new String[] {"t990", "t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
+
         convertXsd2XDefNoRef("test_00015", Arrays.asList(new String[] {"test_00015_data"}), null);
         convertXsd2XDefNoRef("test_Inf", Arrays.asList(new String[] {"test_Inf_valid"}), null);
         convertXsd2XDefNoRef("basicTestSchema", Arrays.asList(new String[] {"basicTest_valid_1"}), null);
         convertXsd2XDefNoRef("typeTestSchema", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
+        convertXsd2XDefNoRef ("basicTest",
+                Arrays.asList(new String[] {"basicTest_valid_1", "basicTest_valid_2", "basicTest_valid_3"}),
+                Arrays.asList(new String[] {"basicTest_invalid_1", "basicTest_invalid_2", "basicTest_invalid_3", "basicTest_invalid_4"}));
+
+        convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
+        convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);
+        convertXsd2XDefNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null);
+        convertXsd2XDefNoRef ("ATTR_to_ATTR", Arrays.asList(new String[] {"ATTR_to_ATTR_valid_1", "ATTR_to_ATTR_valid_2"}), Arrays.asList(new String[] {"ATTR_to_ATTR_invalid_1", "ATTR_to_ATTR_invalid_2"}));
+        convertXsd2XDefNoRef ("ATTR_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_to_ATTR_CHLD_valid_1"}), null);
+        convertXsd2XDefNoRef ("ATTR_to_CHLD", Arrays.asList(new String[] {"ATTR_to_CHLD_valid_1"}), null);
+        convertXsd2XDefNoRef ("CHLD_to_ATTR", Arrays.asList(new String[] {"CHLD_to_ATTR_valid_1"}), null);
+        convertXsd2XDefNoRef ("CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"CHLD_to_ATTR_CHLD_valid_1"}), null);
+        convertXsd2XDefNoRef ("CHLD_to_CHLD", Arrays.asList(new String[] {"CHLD_to_CHLD_valid_1"}), null);
 
     }
 

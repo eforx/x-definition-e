@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_SCRIPT;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
@@ -109,7 +108,7 @@ public class Xsd2XdTreeAdapter {
                 }
             }
         } else if (xsdNode instanceof XmlSchemaGroupParticle) {
-            return createParticle((XmlSchemaGroupParticle)xsdNode, topLevel);
+            return createGroupParticle((XmlSchemaGroupParticle)xsdNode, topLevel);
         }
 
         return null;
@@ -123,7 +122,7 @@ public class Xsd2XdTreeAdapter {
             if (xsdElementNode.getSchemaType() != null) {
                 if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to complex type. Reference=" + xsdElemQName);
-                    Xsd2XdUtils.addXdefAttribute(xdElem, XD_ATTR_SCRIPT, "ref " + xsdElemQName.getLocalPart());
+                    Xsd2XdUtils.addRefAttribute(xdElem, xsdElemQName);
                 } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
                     XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
                     final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
@@ -185,13 +184,29 @@ public class Xsd2XdTreeAdapter {
                     addAttrsToElem(xdElem, xsdSimpleExtension.getAttributes());
                 }
                 // TODO: more types of extensions/restrictions
-            } else {
-                // TODO: XmlSchemaComplexContent?
+            } else if (xsdComplexNode.getContentModel() instanceof XmlSchemaComplexContent) {
+                final XmlSchemaComplexContent xsdComplexContent = (XmlSchemaComplexContent)xsdComplexNode.getContentModel();
+                if (xsdComplexContent.getContent() instanceof XmlSchemaComplexContentExtension) {
+                    final XmlSchemaComplexContentExtension xsdComplexExtension = (XmlSchemaComplexContentExtension)xsdComplexContent.getContent();
+                    final QName baseType = xsdComplexExtension.getBaseTypeName();
+                    if (baseType != null) {
+                        Xsd2XdUtils.addRefAttribute(xdElem, baseType);
+                    }
+
+                    if (xsdComplexExtension.getParticle() != null) {
+                        if (xsdComplexExtension.getParticle() instanceof XmlSchemaGroupParticle) {
+                            xdElem.appendChild(createGroupParticle((XmlSchemaGroupParticle)xsdComplexExtension.getParticle(), false));
+                        }
+                    }
+
+                    addAttrsToElem(xdElem, xsdComplexExtension.getAttributes());
+                }
+                // TODO: more types of extensions/restrictions
             }
         }
     }
 
-    private Node createParticle(final XmlSchemaGroupParticle xsdParticleNode, final boolean topLevel) {
+    private Node createGroupParticle(final XmlSchemaGroupParticle xsdParticleNode, final boolean topLevel) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdParticleNode, "Creating particle ...");
         Element xdParticle = null;
         if (xsdParticleNode instanceof XmlSchemaSequence) {

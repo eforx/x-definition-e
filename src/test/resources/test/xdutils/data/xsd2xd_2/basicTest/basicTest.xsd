@@ -1,0 +1,31 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:complexType name="Leaf">
+      <xs:attribute name="name" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:element name="Root">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="Leaf" type="Leaf"/>
+         </xs:sequence>
+         <xs:attribute name="name" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:annotation>
+                     <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                  </xs:annotation>
+                  <xs:enumeration value="bb"/>
+                  <xs:enumeration value="aa"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

@@ -90,7 +90,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         XsdLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "*** Transformation of XSD tree ***");
 
         final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
-        if (schemaTypeMap != null) {
+        if (schemaTypeMap != null && !schemaTypeMap.isEmpty()) {
             for (XmlSchemaType xsdSchemaType : schemaTypeMap.values()) {
                 final Node res = treeAdapter.convertTree(xsdSchemaType, true);
                 if (res != null) {
@@ -101,7 +101,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         final Map<QName, XmlSchemaElement> elementMap = schema.getElements();
 
-        if (elementMap != null) {
+        if (elementMap != null && !elementMap.isEmpty()) {
             for (XmlSchemaElement xsdElem : elementMap.values()) {
                 final Node res = treeAdapter.convertTree(xsdElem, true);
                 if (res != null) {

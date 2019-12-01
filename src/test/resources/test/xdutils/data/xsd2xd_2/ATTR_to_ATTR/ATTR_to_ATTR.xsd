@@ -1,0 +1,77 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:complexType name="Subject">
+      <xs:attribute name="id" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="1"/>
+               <xs:maxInclusive value="999999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="Person">
+      <xs:complexContent>
+         <xs:extension base="Subject">
+            <xs:attribute name="name" use="required">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:minLength value="1"/>
+                     <xs:maxLength value="30"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="surname" use="required">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:minLength value="1"/>
+                     <xs:maxLength value="50"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+   <xs:element name="Staff">
+      <xs:complexType>
+         <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>Original group particle: all</xs:documentation>
+            </xs:annotation>
+            <xs:element name="Worker" type="Person">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="ExternalFirm">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:complexType>
+                  <xs:complexContent>
+                     <xs:extension base="Subject">
+                        <xs:attribute name="name" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:minLength value="1"/>
+                                 <xs:maxLength value="50"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="address" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:minLength value="1"/>
+                                 <xs:maxLength value="100"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                     </xs:extension>
+                  </xs:complexContent>
+               </xs:complexType>
+            </xs:element>
+         </xs:choice>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
