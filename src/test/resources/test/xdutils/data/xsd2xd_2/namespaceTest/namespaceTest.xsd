@@ -1,0 +1,45 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="a.b"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="a.b">
+   <xs:element name="A">
+      <xs:complexType>
+         <xs:attribute name="a" type="xs:string" use="required"/>
+         <xs:attribute name="b" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:int">
+                  <xs:minInclusive value="2014"/>
+                  <xs:maxInclusive value="2014"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute name="b1" use="optional">
+            <xs:simpleType>
+               <xs:restriction base="xs:long">
+                  <xs:minInclusive value="2014"/>
+                  <xs:maxInclusive value="2014"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute name="c" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:date">
+                  <xs:minInclusive value="2014-01-01"/>
+                  <xs:maxInclusive value="2017-01-01"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute name="d" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:decimal">
+                  <xs:totalDigits value="2"/>
+                  <xs:fractionDigits value="1"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute default="1.2" name="e" type="xs:double" use="optional"/>
+         <xs:attribute fixed="1.3" name="f" type="xs:double"/>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

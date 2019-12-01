@@ -400,6 +400,9 @@ public class TestXsd2Xd extends TesterXdSchema {
 
 //        convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 
+        // ============ Basic namespace ============
+
+        convertXsd2XDefNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
     }
 
     /** Run test

@@ -156,7 +156,11 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         Map<String, String> namespaces = adapterCtx.getNamespaces(xDefName);
         if (namespaces != null && !namespaces.isEmpty()) {
             for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
-                Xsd2XdUtils.addAttribute(xdRootElem, Constants.XMLNS_ATTRIBUTE + ":" + namespace.getValue(), namespace.getKey());
+                if (!namespace.getValue().isEmpty()) {
+                    Xsd2XdUtils.addAttribute(xdRootElem, Constants.XMLNS_ATTRIBUTE + ":" + namespace.getValue(), namespace.getKey());
+                } else {
+                    Xsd2XdUtils.addAttribute(xdRootElem, Constants.XMLNS_ATTRIBUTE, namespace.getKey());
+                }
             }
         }
     }
