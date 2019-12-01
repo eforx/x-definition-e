@@ -1,7 +1,6 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.factory;
 
 import org.apache.ws.commons.schema.*;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.*;
@@ -11,8 +10,10 @@ import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 
 import javax.xml.namespace.QName;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
@@ -31,6 +32,8 @@ public class XdDeclarationFactory {
 
     final private XdAdapterCtx adapterCtx;
 
+    final Set<String> processedTopDeclarations = new HashSet<String>();
+
     public XdDeclarationFactory(XmlSchema schema, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.xdFactory = xdFactory;
@@ -40,23 +43,30 @@ public class XdDeclarationFactory {
     public Element createTopDeclaration(final XmlSchemaSimpleType simpleType) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, simpleType, "Creating declaration ...");
         final Element xdDeclaration = xdFactory.createEmptyDeclaration();
-        final String name = simpleType.getName();
-        if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-            xdDeclaration.setTextContent(_createTopDeclaration((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name));
-        } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeList) {
-            xdDeclaration.setTextContent(_createTopDeclaration((XmlSchemaSimpleTypeList) simpleType.getContent(), name));
-        }
-
-        // TODO: union
+        xdDeclaration.setTextContent(_createTopDeclaration(simpleType));
         return xdDeclaration;
     }
 
+    private String _createTopDeclaration(final XmlSchemaSimpleType simpleType) {
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, simpleType, "Creating top declaration content ...");
+        final String name = simpleType.getName();
+        if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+            return _createTopDeclaration((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name);
+        } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeList) {
+            return _createTopDeclaration((XmlSchemaSimpleTypeList) simpleType.getContent(), name);
+        }
+
+        // TODO: union
+        XsdLogger.printP(LOG_WARN, TRANSFORMATION, simpleType, "Empty top declaration has been created!");
+        return "";
+    }
+
     private String _createTopDeclaration(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name) {
-        return create(simpleTypeRestriction, name, IDeclarationTypeFactory.Mode.NAMED_DECL);
+        return create(simpleTypeRestriction, name, IDeclarationTypeFactory.Mode.TOP_DECL);
     }
 
     private String _createTopDeclaration(final XmlSchemaSimpleTypeList simpleTypeList, final String name) {
-        return _create(simpleTypeList, name, IDeclarationTypeFactory.Mode.NAMED_DECL, null);
+        return _create(simpleTypeList, name, IDeclarationTypeFactory.Mode.TOP_DECL, null);
     }
 
     public String createTextDeclaration(final XmlSchemaSimpleTypeContent simpleTypeContent, final QName baseType) {
@@ -181,8 +191,26 @@ public class XdDeclarationFactory {
 
         final QName baseType = simpleTypeRestriction.getBaseTypeName();
         final IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
+
+        if (xdDeclarationFactory == null) {
+            final XmlSchemaType itemSchemaType = Xsd2XdUtils.getSchemaTypeByQName(schema, baseType);
+            if (itemSchemaType instanceof XmlSchemaSimpleType) {
+                final XmlSchemaSimpleType schemaSimpleType = (XmlSchemaSimpleType)itemSchemaType;
+                if (IDeclarationTypeFactory.Mode.TEXT_DECL.equals(mode)) {
+                    return createTextDeclaration(schemaSimpleType.getContent(), null);
+                } else if (IDeclarationTypeFactory.Mode.TOP_DECL.equals(mode)) {
+                    return _createTopDeclaration(schemaSimpleType);
+                }
+            }
+        }
+
         if (xdDeclarationFactory == null) {
             XsdLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeRestriction, "Unknown XSD data type! QName=" + baseType);
+            return null;
+        }
+
+        if (IDeclarationTypeFactory.Mode.TOP_DECL.equals(mode) && !processedTopDeclarations.add(name)) {
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, simpleTypeRestriction, "Declaration has been already created. Name=" + name);
             return null;
         }
 
@@ -223,6 +251,11 @@ public class XdDeclarationFactory {
                 extraFacetsString = extraFacetsString.substring(1).substring(0, extraFacetsString.length() - 2);
                 facetString += ", " + extraFacetsString;
             }
+        }
+
+        if (IDeclarationTypeFactory.Mode.TOP_DECL.equals(mode) && !processedTopDeclarations.add(name)) {
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, simpleTypeList, "Declaration has been already created. Name=" + name);
+            return null;
         }
 
         final ListTypeFactory listTypeFactory = new ListTypeFactory();

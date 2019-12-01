@@ -60,7 +60,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     public String build(final String type, final String facets) {
         StringBuilder sb = new StringBuilder();
 
-        if (Mode.NAMED_DECL.equals(mode)) {
+        if (Mode.TOP_DECL.equals(mode)) {
             XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building top declaration. Type=" + type);
             sb.append("type " + typeName + " " + type);
         } else if (Mode.TEXT_DECL.equals(mode)) {
@@ -223,14 +223,18 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
             if (patterns != null && !patterns.isEmpty()) {
                 facetBuilder(sb, "%pattern=['");
 
-                Iterator<Object> patternItr = patterns.iterator();
-                sb.append('(');
-                sb.append(patternItr.next().toString().replace("\\", "\\\\"));
-                sb.append(')');
-                while (patternItr.hasNext()) {
-                    sb.append("|(");
+                if (patterns.size() == 1) {
+                    sb.append(patterns.get(0).toString().replace("\\", "\\\\"));
+                } else {
+                    Iterator<Object> patternItr = patterns.iterator();
+                    sb.append('(');
                     sb.append(patternItr.next().toString().replace("\\", "\\\\"));
                     sb.append(')');
+                    while (patternItr.hasNext()) {
+                        sb.append("|(");
+                        sb.append(patternItr.next().toString().replace("\\", "\\\\"));
+                        sb.append(')');
+                    }
                 }
 
                 sb.append("']");

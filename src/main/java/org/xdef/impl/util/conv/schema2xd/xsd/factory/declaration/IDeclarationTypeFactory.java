@@ -20,7 +20,7 @@ public interface IDeclarationTypeFactory {
     String FACET_ENUMERATION = "ENUMERATION";
 
     enum Mode {
-        NAMED_DECL,         // Used for top level xd:declaration nodes
+        TOP_DECL,           // Used for top level xd:declaration nodes
         TEXT_DECL,          // Used for definition of text value of element
         DATATYPE_DECL       // Used for building only data type from facets (ie. attribute type, list item type)
     }

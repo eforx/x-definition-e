@@ -173,7 +173,6 @@ public class Xsd2XdTreeAdapter {
         addAttrsToElem(xdElem, xsdComplexNode.getAttributes());
 
         // TODO: mixed
-
         if (xsdComplexNode.getParticle() != null) {
             xdElem.appendChild(convertTree(xsdComplexNode.getParticle(), false));
         }

@@ -1,0 +1,708 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://ws.ckp.cz/pis/B1/2016/09"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://ws.ckp.cz/pis/B1/2016/09">
+   <xs:complexType name="Get_NositelPSPAgr">
+      <xs:sequence>
+         <xs:element name="Nositel" type="Id_Nositel"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="Get_NositelPSPAgr365">
+      <xs:sequence>
+         <xs:element name="Nositel" type="Id_Nositel"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="Get_VolnePSP">
+      <xs:choice>
+         <xs:element name="Nositel">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="Id_Nositel">
+                     <xs:attribute name="InfoDatum" type="xs:date" use="required"/>
+                  </xs:extension>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element name="CilovaSmlouva" type="Id_Smlouva"/>
+         <xs:element name="CilovyPSP" type="Id_Smlouva"/>
+      </xs:choice>
+   </xs:complexType>
+   <xs:complexType name="Set_BlokujPSP">
+      <xs:sequence>
+         <xs:element name="ZdrojovaSmlouva" type="Id_Smlouva"/>
+      </xs:sequence>
+      <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+   </xs:complexType>
+   <xs:complexType name="Set_PrenosPSP">
+      <xs:choice>
+         <xs:element maxOccurs="unbounded"
+                     name="ZdrojovaSmlouva"
+                     type="Id_ZdrojovaSmlouva"/>
+         <xs:element maxOccurs="unbounded" name="ZdrojovyPSP" type="Id_ZdrojovaSmlouva"/>
+      </xs:choice>
+      <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+      <xs:attribute name="CisloSmlouvy" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="35"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="PoradiVozidla" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: num</xs:documentation>
+               </xs:annotation>
+               <xs:minLength value="1"/>
+               <xs:maxLength value="10"/>
+               <xs:pattern value="([0-9])*"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="Set_UvolniPSP">
+      <xs:sequence>
+         <xs:element name="ZdrojovaSmlouva" type="Id_Smlouva"/>
+      </xs:sequence>
+      <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+   </xs:complexType>
+   <xs:complexType name="BlokujPSP">
+      <xs:sequence>
+         <xs:element name="PSP" type="PSP"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="NositelPSP">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" minOccurs="0" name="PSP" type="PSP"/>
+      </xs:sequence>
+      <xs:attribute name="AddInfo" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: enum</xs:documentation>
+               </xs:annotation>
+               <xs:enumeration value="1"/>
+               <xs:enumeration value="0"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="NositelPSPAgr">
+      <xs:sequence>
+         <xs:element name="PSPAgr">
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Agr">
+                     <xs:complexType>
+                        <xs:sequence>
+                           <xs:element maxOccurs="unbounded" name="Detail" type="Detail"/>
+                        </xs:sequence>
+                        <xs:attribute name="Rok" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:annotation>
+                                    <xs:documentation>Original x-definition parser: xdatetime</xs:documentation>
+                                 </xs:annotation>
+                                 <xs:pattern value="\d{4}\d*">
+                                    <xs:annotation>
+                                       <xs:documentation>Original pattern value: 'yyyy'</xs:documentation>
+                                    </xs:annotation>
+                                 </xs:pattern>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="PS" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="SpravovanePS" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="SU" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Rezerva" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:long">
+                                 <xs:minInclusive value="0"/>
+                                 <xs:maxInclusive value="1410065407"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Plneni" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:long">
+                                 <xs:minInclusive value="0"/>
+                                 <xs:maxInclusive value="1215752191"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+               <xs:attribute name="PS" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SpravovanePS" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="DobaPojisteni" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="99999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SU" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Rezerva" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1410065407"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Plneni" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1215752191"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+      <xs:attribute name="InfoDatum" type="xs:date" use="required"/>
+      <xs:attribute name="IC" type="xs:string" use="optional"/>
+      <xs:attribute name="RC" type="xs:string" use="optional"/>
+      <xs:attribute name="Jmeno" type="xs:string" use="optional"/>
+      <xs:attribute name="Prijmeni" type="xs:string" use="optional"/>
+      <xs:attribute name="StatPrislusnost" type="xs:string" use="optional"/>
+   </xs:complexType>
+   <xs:complexType name="NositelPSPAgr365">
+      <xs:sequence>
+         <xs:element name="PSPAgr365">
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Agr365">
+                     <xs:complexType>
+                        <xs:sequence>
+                           <xs:element maxOccurs="unbounded" name="Detail" type="Detail"/>
+                        </xs:sequence>
+                        <xs:attribute name="Rok365" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:annotation>
+                                    <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                                 </xs:annotation>
+                                 <xs:enumeration value="-3"/>
+                                 <xs:enumeration value="-2"/>
+                                 <xs:enumeration value="-1"/>
+                                 <xs:enumeration value="0"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="PS" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="SpravovanePS" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="SU" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="999999"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Rezerva" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:long">
+                                 <xs:minInclusive value="0"/>
+                                 <xs:maxInclusive value="1410065407"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Plneni" use="optional">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:long">
+                                 <xs:minInclusive value="0"/>
+                                 <xs:maxInclusive value="1215752191"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+               <xs:attribute name="PS" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SpravovanePS" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="DobaPojisteni" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="99999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SU" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Rezerva" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1410065407"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Plneni" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1215752191"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+      <xs:attribute name="InfoDatum" type="xs:date" use="required"/>
+      <xs:attribute name="IC" type="xs:string" use="optional"/>
+      <xs:attribute name="RC" type="xs:string" use="optional"/>
+      <xs:attribute name="Jmeno" type="xs:string" use="optional"/>
+      <xs:attribute name="Prijmeni" type="xs:string" use="optional"/>
+      <xs:attribute name="StatPrislusnost" type="xs:string" use="optional"/>
+   </xs:complexType>
+   <xs:complexType name="PSP">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" name="UsekPojisteni">
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="RozhodnaUdalost">
+                     <xs:complexType>
+                        <xs:attribute name="Rezerva" type="xs:int" use="required"/>
+                        <xs:attribute name="Vyplaceno" type="xs:int" use="required"/>
+                        <xs:attribute name="Regres" type="xs:int" use="required"/>
+                        <xs:attribute name="DatumCasSU" type="xs:dateTime" use="required"/>
+                        <xs:attribute name="KlasifikovanaUdalost" use="required">
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:annotation>
+                                    <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                                 </xs:annotation>
+                                 <xs:enumeration value="N"/>
+                                 <xs:enumeration value="A"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:attribute>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+               <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+               <xs:attribute name="CisloSmlouvy" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:string">
+                        <xs:minLength value="1"/>
+                        <xs:maxLength value="35"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="PoradiVozidla" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:string">
+                        <xs:annotation>
+                           <xs:documentation>Original x-definition parser: num</xs:documentation>
+                        </xs:annotation>
+                        <xs:minLength value="1"/>
+                        <xs:maxLength value="10"/>
+                        <xs:pattern value="([0-9])*"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="DruhVozidla" type="xs:string" use="required"/>
+               <xs:attribute name="CelkovaHmotnost" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="UsekPojisteniOd" type="xs:date" use="required"/>
+               <xs:attribute name="UsekPojisteniDo" type="xs:date" use="optional"/>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+      <xs:attribute name="ORD" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="-9999"/>
+               <xs:maxInclusive value="9999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="InfoDatum" type="xs:date" use="required"/>
+      <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+      <xs:attribute name="CisloSmlouvy" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="35"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="PoradiVozidla" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: num</xs:documentation>
+               </xs:annotation>
+               <xs:minLength value="1"/>
+               <xs:maxLength value="10"/>
+               <xs:pattern value="([0-9])*"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="StavSmlouvy" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: enum</xs:documentation>
+               </xs:annotation>
+               <xs:enumeration value="U"/>
+               <xs:enumeration value="T"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="Blokace" type="xs:string" use="optional"/>
+      <xs:attribute name="AltIdentPSP" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: enum</xs:documentation>
+               </xs:annotation>
+               <xs:enumeration value="A"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="PouzeZdroj" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: enum</xs:documentation>
+               </xs:annotation>
+               <xs:enumeration value="A"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="UvolniPSP">
+      <xs:sequence>
+         <xs:element name="PSP" type="PSP"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="VolnePSP">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" minOccurs="0" name="PSP" type="PSP"/>
+      </xs:sequence>
+      <xs:attribute name="AddInfo" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: enum</xs:documentation>
+               </xs:annotation>
+               <xs:enumeration value="1"/>
+               <xs:enumeration value="0"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="VyslednePSP">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" name="PSP" type="PSP"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="Detail">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" minOccurs="0" name="SubDetail">
+            <xs:complexType>
+               <xs:attribute name="Kategorie" type="xs:string" use="required"/>
+               <xs:attribute name="PS" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SpravovanePS" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="DobaPojisteni" use="required">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="99999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="SU" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:int">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="999999"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Rezerva" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1410065407"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+               <xs:attribute name="Plneni" use="optional">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:long">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="1215752191"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:attribute>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+      <xs:attribute name="DruhVozidla" type="xs:string" use="required"/>
+      <xs:attribute name="PS" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="1"/>
+               <xs:maxInclusive value="999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="SpravovanePS" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="1"/>
+               <xs:maxInclusive value="999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="DobaPojisteni" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="0"/>
+               <xs:maxInclusive value="99999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="SU" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="0"/>
+               <xs:maxInclusive value="999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="Rezerva" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:long">
+               <xs:minInclusive value="0"/>
+               <xs:maxInclusive value="1410065407"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="Plneni" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:long">
+               <xs:minInclusive value="0"/>
+               <xs:maxInclusive value="1215752191"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="Id_Nositel">
+      <xs:attribute name="Jmeno" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="24"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="Prijmeni" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="36"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="RC" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: num</xs:documentation>
+               </xs:annotation>
+               <xs:minLength value="9"/>
+               <xs:maxLength value="10"/>
+               <xs:pattern value="([0-9])*"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="DatumNarozeni" type="xs:date" use="optional"/>
+      <xs:attribute name="StatPrislusnost" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="NazevFirmy" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="100"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="IC" use="optional">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="1"/>
+               <xs:maxInclusive value="99999999"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="Id_Smlouva">
+      <xs:attribute name="KodPojistitele" type="xs:string" use="required"/>
+      <xs:attribute name="CisloSmlouvy" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:maxLength value="35"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="PoradiVozidla" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:annotation>
+                  <xs:documentation>Original x-definition parser: num</xs:documentation>
+               </xs:annotation>
+               <xs:minLength value="1"/>
+               <xs:maxLength value="10"/>
+               <xs:pattern value="([0-9])*"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="Id_ZdrojovaSmlouva">
+      <xs:complexContent>
+         <xs:extension base="Id_Smlouva">
+            <xs:attribute name="KontrolaNositele" use="optional">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:annotation>
+                        <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                     </xs:annotation>
+                     <xs:enumeration value="N"/>
+                     <xs:enumeration value="A"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+   <xs:element name="Get_NositelPSP">
+      <xs:complexType>
+         <xs:choice>
+            <xs:element name="Nositel" type="Id_Nositel"/>
+            <xs:element name="CilovaSmlouva" type="Id_Smlouva"/>
+            <xs:element name="CilovyPSP" type="Id_Smlouva"/>
+         </xs:choice>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="SmlouvyPSP">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="PSP" type="PSP"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

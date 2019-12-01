@@ -342,17 +342,29 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t020_1", Arrays.asList(new String[] {"t020_1"}), null);
         convertXsd2XDefNoRef("t990", Arrays.asList(new String[] {"t990", "t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
 
-        convertXsd2XDefNoRef("test_00015", Arrays.asList(new String[] {"test_00015_data"}), null);
         convertXsd2XDefNoRef("test_Inf", Arrays.asList(new String[] {"test_Inf_valid"}), null);
         convertXsd2XDefNoRef("basicTestSchema", Arrays.asList(new String[] {"basicTest_valid_1"}), null);
-        convertXsd2XDefNoRef("typeTestSchema", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
         convertXsd2XDefNoRef ("basicTest",
                 Arrays.asList(new String[] {"basicTest_valid_1", "basicTest_valid_2", "basicTest_valid_3"}),
                 Arrays.asList(new String[] {"basicTest_invalid_1", "basicTest_invalid_2", "basicTest_invalid_3", "basicTest_invalid_4"}));
+        convertXsd2XDefNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
+        convertXsd2XDefNoRef ("declarationTest",
+                Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
+                Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
+
+        // ============ Huge data type set ============
+
+        convertXsd2XDefNoRef("test_00015", Arrays.asList(new String[] {"test_00015_data"}), null);
+        convertXsd2XDefNoRef("typeTestSchema", Arrays.asList(new String[] {"typeTest_valid_1"}), null);
         convertXsd2XDefNoRef ("simpleModelTest",
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", //"simpleModelTest_valid_3",
                 "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
+        convertXsd2XDefNoRef ("B1_common", Arrays.asList(new String[] {"B1_Common_valid_1", "B1_Common_valid_2"}), null);
+        convertXsd2XDefNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
+        convertXsd2XDefNoRef ("D2A", Arrays.asList(new String[] {"D2A"}), null);
+        convertXsd2XDefNoRef ("D3A", Arrays.asList(new String[] {"D3A"}), null);
 
+        // ============ Multiple types of references ============
 
         convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
         convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);
@@ -363,11 +375,6 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("CHLD_to_ATTR", Arrays.asList(new String[] {"CHLD_to_ATTR_valid_1"}), null);
         convertXsd2XDefNoRef ("CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"CHLD_to_ATTR_CHLD_valid_1"}), null);
         convertXsd2XDefNoRef ("CHLD_to_CHLD", Arrays.asList(new String[] {"CHLD_to_CHLD_valid_1"}), null);
-
-        convertXsd2XDefNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
-        convertXsd2XDefNoRef ("declarationTest",
-                Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
-                Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
 
         // ============ List/union advanced ============
 
@@ -403,6 +410,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         // ============ Basic namespace ============
 
         convertXsd2XDefNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
+
     }
 
     /** Run test
