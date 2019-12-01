@@ -71,8 +71,20 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
             sb.append(type);
         }
 
+        boolean useItemSyntax = facets != null && !facets.isEmpty() && (this instanceof ListTypeFactory || this instanceof UnionTypeFactory);
+        boolean itemArraySyntax = this instanceof UnionTypeFactory;
+
         sb.append("(");
+        if (useItemSyntax) {
+            sb.append("%item=");
+            if (itemArraySyntax) {
+                sb.append("[");
+            }
+        }
         sb.append(facets);
+        if (useItemSyntax && itemArraySyntax) {
+            sb.append("]");
+        }
         sb.append(")");
         if (!Mode.DATATYPE_DECL.equals(mode)) {
             sb.append(";");
@@ -129,7 +141,8 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
                     facetSingleValues.put(FACET_MIN_INCLUSIVE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add min inclusive. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaPatternFacet) {
-                    facetSingleValues.put(FACET_PATTERN, (facet).getValue());
+                    final List<Object> patterns = getOrCreateValueList(FACET_PATTERN);
+                    patterns.add((facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add pattern. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaTotalDigitsFacet) {
                     facetSingleValues.put(FACET_TOTAL_DIGITS, (facet).getValue());
@@ -138,12 +151,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
                     facetSingleValues.put(FACET_WHITESPACE, (facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add whitespace. Value=" + facet.getValue());
                 } else if (facet instanceof XmlSchemaEnumerationFacet) {
-                    List<Object> enumeration = facetMultipleValues.get(FACET_ENUMERATION);
-                    if (enumeration == null) {
-                        enumeration = new LinkedList<Object>();
-                        facetMultipleValues.put(FACET_ENUMERATION, enumeration);
-                    }
-
+                    final List<Object> enumeration = getOrCreateValueList(FACET_ENUMERATION);
                     enumeration.add((facet).getValue());
                     XsdLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add enumeration. Value=" + facet.getValue());
                 } else {
@@ -178,7 +186,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
 
     protected void facetBuilder(final StringBuilder sb, final Object value) {
         if (!firstFacet) {
-            sb.append("," + value);
+            sb.append(", " + value);
         } else {
             sb.append(value);
             firstFacet = false;
@@ -210,8 +218,23 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         if (hasFacet(FACET_MIN_INCLUSIVE)) {
             facetBuilder(sb, "%minInclusive='" + useFacet(FACET_MIN_INCLUSIVE) + "'");
         }
-        if (hasFacet(FACET_PATTERN)) {
-            facetBuilder(sb, "%pattern=['" + useFacet(FACET_PATTERN).toString().replace("\\", "\\\\") + "']");
+        if (hasMultipleFacet(FACET_PATTERN)) {
+            final List<Object> patterns = useMultipleFacet(FACET_PATTERN);
+            if (patterns != null && !patterns.isEmpty()) {
+                facetBuilder(sb, "%pattern=['");
+
+                Iterator<Object> patternItr = patterns.iterator();
+                sb.append('(');
+                sb.append(patternItr.next().toString().replace("\\", "\\\\"));
+                sb.append(')');
+                while (patternItr.hasNext()) {
+                    sb.append("|(");
+                    sb.append(patternItr.next().toString().replace("\\", "\\\\"));
+                    sb.append(')');
+                }
+
+                sb.append("']");
+            }
         }
         if (hasFacet(FACET_TOTAL_DIGITS)) {
             facetBuilder(sb, "%totalDigits='" + useFacet(FACET_TOTAL_DIGITS) + "'");
@@ -229,6 +252,16 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
                 }
             }
         }
+    }
+
+    protected List<Object> getOrCreateValueList(final String facet) {
+        List<Object> list = facetMultipleValues.get(facet);
+        if (list == null) {
+            list = new LinkedList<Object>();
+            facetMultipleValues.put(facet, list);
+        }
+
+        return list;
     }
 
     private void reset() {

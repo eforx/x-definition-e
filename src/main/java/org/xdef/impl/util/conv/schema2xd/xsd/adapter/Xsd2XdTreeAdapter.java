@@ -141,10 +141,8 @@ public class Xsd2XdTreeAdapter {
                 final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
                 if (xsdElemQName != null && (Constants.XSD_NMTOKENS.equals(xsdElemQName) || Constants.XSD_IDREFS.equals(xsdElemQName))) {
                     xdElem.setTextContent(xdDeclarationFactory.createSimpleTextDeclaration(xsdElemQName));
-                } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), xsdElemQName));
-                } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeUnion) {
-                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration((XmlSchemaSimpleTypeUnion)simpleType.getContent()));
+                } else {
+                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration(simpleType.getContent(), xsdElemQName));
                 }
             }
         }

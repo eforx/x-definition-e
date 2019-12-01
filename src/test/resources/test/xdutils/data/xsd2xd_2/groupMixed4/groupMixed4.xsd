@@ -1,0 +1,15 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:element name="a">
+      <xs:complexType>
+         <xs:all>
+            <xs:element name="b"/>
+            <xs:element name="p"/>
+            <xs:element name="q"/>
+            <xs:element name="o"/>
+            <xs:element name="c"/>
+         </xs:all>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

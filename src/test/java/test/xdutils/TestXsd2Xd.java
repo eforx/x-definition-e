@@ -366,9 +366,25 @@ public class TestXsd2Xd extends TesterXdSchema {
                 Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
                 Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
 
-//         ============ Default/Fixed values ============
+        // ============ List/union advanced ============
+
+        convertXsd2XDefNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
+        convertXsd2XDefNoRef ("schemaTypeTest2", Arrays.asList(new String[] {"schemaTypeTest2_valid_1"}), null);
+        convertXsd2XDefNoRef ("schemaTypeTest3", Arrays.asList(new String[] {"schemaTypeTest3_valid_1"}), null);
+
+        // ============ Default/Fixed values ============
 
         convertXsd2XDefNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
+
+        // ============ Groups ============
+
+        convertXsd2XDefNoRef ("groupMixed4", Arrays.asList(new String[] {"groupMixed4_valid_1"}), Arrays.asList(new String[] {"groupMixed4_invalid_1", "groupMixed4_invalid_2"}));
+        convertXsd2XDefNoRef ("groupMixed5",
+                Arrays.asList(new String[] {"groupMixed5_valid_1", "groupMixed5_valid_2", "groupMixed5_valid_3"}),
+                 null);
+        convertXsd2XDefNoRef ("groupMixed6",
+                Arrays.asList(new String[] {"groupMixed6_valid_1", "groupMixed6_valid_2", "groupMixed6_valid_3", "groupMixed6_valid_4"}),
+                Arrays.asList(new String[] {"groupMixed6_invalid_2"}));
 
     }
 

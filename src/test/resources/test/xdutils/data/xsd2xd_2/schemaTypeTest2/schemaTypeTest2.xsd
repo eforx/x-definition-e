@@ -1,0 +1,124 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:element name="Root">
+      <xs:complexType>
+         <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>Original group particle: all</xs:documentation>
+            </xs:annotation>
+            <xs:element name="Test1">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:minLength value="1"/>
+                     <xs:maxLength value="10"/>
+                     <xs:pattern value="[A-Z][a-z]*"/>
+                     <xs:pattern value="[A-Z]*"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test2">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:list>
+                     <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                           <xs:minInclusive value="1"/>
+                           <xs:maxInclusive value="10"/>
+                        </xs:restriction>
+                     </xs:simpleType>
+                  </xs:list>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test3">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:restriction>
+                     <xs:simpleType>
+                        <xs:list>
+                           <xs:simpleType>
+                              <xs:restriction base="xs:int">
+                                 <xs:minInclusive value="1"/>
+                                 <xs:maxInclusive value="10"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:list>
+                     </xs:simpleType>
+                     <xs:length value="3"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test4">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:union memberTypes="Test4_union_string Test4_union_int"/>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test5">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:union memberTypes="Test5_union_string Test5_union_int"/>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test6">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:restriction>
+                     <xs:simpleType>
+                        <xs:list>
+                           <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                 <xs:enumeration value="A"/>
+                                 <xs:enumeration value="B"/>
+                                 <xs:enumeration value="C"/>
+                              </xs:restriction>
+                           </xs:simpleType>
+                        </xs:list>
+                     </xs:simpleType>
+                     <xs:length value="3"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+         </xs:choice>
+      </xs:complexType>
+   </xs:element>
+   <xs:simpleType name="Test4_union_int">
+      <xs:restriction base="xs:int">
+         <xs:minInclusive value="1"/>
+         <xs:maxInclusive value="10"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="Test4_union_string">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="A"/>
+         <xs:enumeration value="B"/>
+         <xs:enumeration value="C"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="Test5_union_int">
+      <xs:restriction base="xs:int">
+         <xs:minInclusive value="1"/>
+         <xs:maxInclusive value="20"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="Test5_union_string">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="A"/>
+         <xs:enumeration value="B"/>
+         <xs:enumeration value="C"/>
+      </xs:restriction>
+   </xs:simpleType>
+</xs:schema>
