@@ -24,12 +24,18 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     protected static final String WHITESPACE = "WHITESPACE";
     protected static final String ENUMERATION = "ENUMERATION";
 
+    private Mode mode;
     protected String typeName = null;
     protected List<XmlSchemaFacet> facets = null;
 
     final Map<String, String> facetSingleValues = new HashMap<String, String>();
     final Map<String, List<String>> facetMultipleValues = new HashMap<String, List<String>>();
     protected boolean firstFacet;
+
+    @Override
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
 
     @Override
     public void setName(final String typeName) {
@@ -42,27 +48,47 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         parseFacets();
 
         final String type = hasMultipleFacet(ENUMERATION) ? "enum" : getDataType();
-        StringBuilder sb;
 
-        if (typeName != null) {
-            XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building declaration. Type=" + type);
-            sb = new StringBuilder("type " + typeName + " " + type);
-        } else {
-            XsdLogger.print(LOG_INFO, TRANSFORMATION, null, "Building built-in declaration. Type=" + type);
-            sb = new StringBuilder("required " + type);
+        StringBuilder facetStringBuilder = new StringBuilder();
+        buildFacets(facetStringBuilder);
+        defaultBuildFacets(facetStringBuilder);
+        return build(type, facetStringBuilder.toString());
+    }
+
+    @Override
+    public String build(String facets) {
+        return build(getDataType(), facets);
+    }
+
+    @Override
+    public String build(final String type, final String facets) {
+        StringBuilder sb = new StringBuilder();
+
+        if (Mode.NAMED_DECL.equals(mode)) {
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building top declaration. Type=" + type);
+            sb.append("type " + typeName + " " + type);
+        } else if (Mode.TEXT_DECL.equals(mode)) {
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, null, "Building text declaration. Type=" + type);
+            sb.append("required " + type);
+        } else if (Mode.DATATYPE_DECL.equals(mode)) {
+            XsdLogger.print(LOG_INFO, TRANSFORMATION, null, "Building data type declaration. Type=" + type);
+            sb.append(type);
         }
 
         sb.append("(");
-        buildFacets(sb);
-        defaultBuildFacets(sb);
-        sb.append(");");
+        sb.append(facets);
+        sb.append(")");
+        if (!Mode.DATATYPE_DECL.equals(mode)) {
+            sb.append(";");
+        }
+
+        reset();
+
         return sb.toString();
     }
 
     protected void parseFacets() {
-        facetSingleValues.clear();
-        facetMultipleValues.clear();
-        firstFacet = true;
+        reset();
 
         if (facets != null) {
             for (XmlSchemaFacet facet : facets) {
@@ -187,5 +213,11 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
                 }
             }
         }
+    }
+
+    private void reset() {
+        facetSingleValues.clear();
+        facetMultipleValues.clear();
+        firstFacet = true;
     }
 }

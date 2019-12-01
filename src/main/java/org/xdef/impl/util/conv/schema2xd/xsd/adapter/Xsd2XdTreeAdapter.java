@@ -3,13 +3,13 @@ package org.xdef.impl.util.conv.schema2xd.xsd.adapter;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdDeclarationFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
+import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.IDeclarationTypeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 
@@ -31,6 +31,11 @@ public class Xsd2XdTreeAdapter {
      * Output x-definition name
      */
     final private String xDefName;
+
+    /**
+     * Input schema used for transformation
+     */
+    private final XmlSchema schema;
 
     /**
      * X-definition XML element factory
@@ -57,12 +62,13 @@ public class Xsd2XdTreeAdapter {
      */
     private String targetNsPrefix;
 
-    public Xsd2XdTreeAdapter(String xDefName, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
+    public Xsd2XdTreeAdapter(String xDefName, XmlSchema schema, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
         this.xDefName = xDefName;
+        this.schema = schema;
         this.xdFactory = xdFactory;
         this.adapterCtx = adapterCtx;
         xdAttrFactory = new XdAttributeFactory(adapterCtx);
-        xdDeclarationFactory = new XdDeclarationFactory(xdFactory, adapterCtx);
+        xdDeclarationFactory = new XdDeclarationFactory(schema, xdFactory, adapterCtx);
     }
 
     public String loadXsdRootNames(Map<QName, XmlSchemaElement> rootElements) {
@@ -96,7 +102,7 @@ public class Xsd2XdTreeAdapter {
         } else if (xsdNode instanceof XmlSchemaType) {
             if (topLevel) {
                 if (xsdNode instanceof XmlSchemaSimpleType) {
-                    final Element xdDeclaration = xdDeclarationFactory.create((XmlSchemaSimpleType) xsdNode);
+                    final Element xdDeclaration = xdDeclarationFactory.createTopDeclaration((XmlSchemaSimpleType) xsdNode);
                     return xdDeclaration;
                 } else if (xsdNode instanceof XmlSchemaComplexType) {
                     return createTopNonRootElement((XmlSchemaComplexType)xsdNode);
@@ -123,7 +129,7 @@ public class Xsd2XdTreeAdapter {
                     final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
                     if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
                         // TODO: make as reference instead of copying restriction, t005 & t006
-                        xdElem.setTextContent(xdDeclarationFactory.createWithName((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), null));
+                        xdElem.setTextContent(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), null, IDeclarationTypeFactory.Mode.TEXT_DECL));
                     }
                 }
             } else {
@@ -135,7 +141,7 @@ public class Xsd2XdTreeAdapter {
             } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
                 final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
                 if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                    xdElem.setTextContent(xdDeclarationFactory.createFromBaseType((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), xsdElemQName));
+                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), xsdElemQName));
                 }
             }
         }

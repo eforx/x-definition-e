@@ -64,16 +64,16 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         adapterCtx = new XdAdapterCtx(features);
         adapterCtx.init();
 
-        final XdElementFactory elementFactory = new XdElementFactory(adapterCtx);
-        final Xsd2XdTreeAdapter treeAdapter = new Xsd2XdTreeAdapter(this.xDefName, elementFactory, adapterCtx);
-
         Document doc;
         if (schemas.length > 2) {
+            final XdElementFactory elementFactory = new XdElementFactory(adapterCtx);
             doc = elementFactory.createPool();
             // TODO: multiple schemas
             return elementFactory.createHeader();
         } else {
             schema = schemas[0];
+            final XdElementFactory elementFactory = new XdElementFactory(adapterCtx);
+            final Xsd2XdTreeAdapter treeAdapter = new Xsd2XdTreeAdapter(this.xDefName, schema, elementFactory, adapterCtx);
             initializeNamespaces();
             final String rootElements = treeAdapter.loadXsdRootNames(schema.getElements());
             // TODO: x-definition name

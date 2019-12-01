@@ -1,8 +1,6 @@
 package org.xdef.impl.util.conv.schema2xd.xsd.util;
 
-import org.apache.ws.commons.schema.XmlSchemaAttribute;
-import org.apache.ws.commons.schema.XmlSchemaForm;
-import org.apache.ws.commons.schema.XmlSchemaUse;
+import org.apache.ws.commons.schema.*;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
@@ -11,6 +9,7 @@ import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
@@ -54,6 +53,15 @@ public class Xsd2XdUtils {
         } else {
             el.setAttributeNS(XD_NAMESPACE_URI, qName, value);
         }
+    }
+
+    public static XmlSchemaType getSchemaTypeByQName(final XmlSchema schema, final QName qName) {
+        final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
+        if (schemaTypeMap != null) {
+            return schemaTypeMap.get(qName);
+        }
+
+        return null;
     }
 
     /**
