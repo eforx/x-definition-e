@@ -281,6 +281,10 @@ public class Xsd2XdTreeAdapter {
             }
         }
 
+        if (xsdAttr.getDefaultValue() != null && !xsdAttr.getDefaultValue().isEmpty()) {
+            valueBuilder.append("; default \"" + xsdAttr.getDefaultValue() + "\"");
+        }
+
         return valueBuilder.toString();
     }
 }

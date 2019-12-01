@@ -361,6 +361,15 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"CHLD_to_ATTR_CHLD_valid_1"}), null);
         convertXsd2XDefNoRef ("CHLD_to_CHLD", Arrays.asList(new String[] {"CHLD_to_CHLD_valid_1"}), null);
 
+        convertXsd2XDefNoRef ("dateTimeTest", Arrays.asList(new String[] {"dateTimeTest_valid_1"}), null);
+        convertXsd2XDefNoRef ("declarationTest",
+                Arrays.asList(new String[] {"declarationTest_valid_1", "declarationTest_valid_2", "declarationTest_valid_3"}),
+                Arrays.asList(new String[] {"declarationTest_invalid_1", "declarationTest_invalid_2", "declarationTest_invalid_3", "declarationTest_invalid_4"}));
+
+//         ============ Default/Fixed values ============
+
+        convertXsd2XDefNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
+
     }
 
     /** Run test

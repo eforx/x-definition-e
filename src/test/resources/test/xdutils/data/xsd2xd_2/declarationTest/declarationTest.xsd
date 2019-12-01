@@ -1,0 +1,57 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:simpleType name="refLoc_myType">
+      <xs:restriction base="xs:int">
+         <xs:minInclusive value="1"/>
+         <xs:maxInclusive value="10"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="refLoc_x">
+      <xs:restriction base="xs:string">
+         <xs:annotation>
+            <xs:documentation>Original x-definition parser: xdatetime</xs:documentation>
+         </xs:annotation>
+         <xs:pattern value="([1-9]|[1-2][0-9]|3[0-1])\.([1-9]|1[0-2])\.\d{4}\d*">
+            <xs:annotation>
+               <xs:documentation>Original pattern value: 'd.M.yyyy'</xs:documentation>
+            </xs:annotation>
+         </xs:pattern>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="refLoc_y">
+      <xs:restriction base="xs:string">
+         <xs:annotation>
+            <xs:documentation>Original x-definition parser: xdatetime</xs:documentation>
+         </xs:annotation>
+         <xs:pattern value="([1-9]|[1-2][0-9]|3[0-1])\.([1-9]|1[0-2])\.\d{4}\d*">
+            <xs:annotation>
+               <xs:documentation>Original pattern value: 'd.M.yyyy'</xs:documentation>
+            </xs:annotation>
+         </xs:pattern>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="Model">
+      <xs:restriction base="xs:int">
+         <xs:minInclusive value="1"/>
+         <xs:maxInclusive value="10"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:element name="A">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Elem" type="Model"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="B">
+      <xs:complexType>
+         <xs:attribute name="b" type="refLoc_x" use="required"/>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="C">
+      <xs:complexType>
+         <xs:attribute name="c" type="refLoc_y" use="required"/>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

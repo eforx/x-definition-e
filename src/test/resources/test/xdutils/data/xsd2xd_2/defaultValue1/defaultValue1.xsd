@@ -1,0 +1,23 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:element name="Vehicle">
+      <xs:complexType>
+         <xs:attribute default="personal" name="type" use="optional">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:annotation>
+                     <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                  </xs:annotation>
+                  <xs:enumeration value="other"/>
+                  <xs:enumeration value="sport"/>
+                  <xs:enumeration value="truck"/>
+                  <xs:enumeration value="personal"/>
+                  <xs:enumeration value="MPV"/>
+                  <xs:enumeration value="SUV"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
