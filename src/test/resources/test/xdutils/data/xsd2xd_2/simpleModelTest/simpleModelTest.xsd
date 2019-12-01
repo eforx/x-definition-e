@@ -1,0 +1,137 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:simpleType name="string">
+      <xs:restriction base="xs:string">
+         <xs:length value="5"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:simpleType name="TEXT">
+      <xs:restriction base="xs:string">
+         <xs:length value="5"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:complexType name="ATTR">
+      <xs:attribute name="attr" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:length value="5"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="CHLD">
+      <xs:sequence>
+         <xs:element name="A"/>
+         <xs:element name="B"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="TEXT_ATTR">
+      <xs:simpleContent>
+         <xs:extension base="string">
+            <xs:attribute name="attr" use="required">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:length value="5"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   <xs:complexType mixed="true" name="TEXT_CHLD">
+      <xs:annotation>
+         <xs:documentation>Text content has been originally restricted by x-definition</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="A"/>
+         <xs:element name="B"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="ATTR_CHLD">
+      <xs:sequence>
+         <xs:element name="A"/>
+         <xs:element name="B"/>
+      </xs:sequence>
+      <xs:attribute name="attr" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:length value="5"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType mixed="true" name="TEXT_ATTR_CHLD">
+      <xs:annotation>
+         <xs:documentation>Text content has been originally restricted by x-definition</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="A"/>
+         <xs:element name="B"/>
+      </xs:sequence>
+      <xs:attribute name="attr" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+               <xs:length value="5"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:element name="empty">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="EMPTY"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="text">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="TEXT"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="attr">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="ATTR"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="chld">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="CHLD"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="text_attr">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="TEXT_ATTR"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="text_chld">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="TEXT_CHLD"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="attr_chld">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="ATTR_CHLD"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="text_attr_chld">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ref" type="TEXT_ATTR_CHLD"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:complexType name="EMPTY"/>
+</xs:schema>

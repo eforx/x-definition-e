@@ -211,7 +211,7 @@ public class XdDeclarationFactory {
         }
 
         if (facetString.isEmpty()) {
-            XsdLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeList, "Unsuccessfully created list declaration content!");
+            XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, simpleTypeList, "List declaration content empty");
         }
 
         String extraFacetsString = "";

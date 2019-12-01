@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends TesterXdSchema {
 
@@ -39,7 +40,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_INFO);
+        XsdLogger.setLogLevel(LOG_WARN);
     }
 
     private File getInputXDefFile(final String fileName) throws FileNotFoundException {
@@ -474,12 +475,9 @@ public class TestXd2Xsd extends TesterXdSchema {
         convertXdPool2XsdNoRef("namespaceTest3", Arrays.asList(new String[] {"namespaceTest3_valid_1"}), null);
         convertXdPool2XsdNoRef("namespaceTest4", Arrays.asList(new String[] {"namespaceTest4_valid_1"}), null);
 
-        convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
-        convertXdDef2XsdNoRef ("schemaTypeTest2", Arrays.asList(new String[] {"schemaTypeTest2_valid_1"}), null);
-        convertXdDef2XsdNoRef ("schemaTypeTest3", Arrays.asList(new String[] {"schemaTypeTest3_valid_1"}), null);
         convertXdDef2XsdNoRef ("simpleModelTest",
                 Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", //"simpleModelTest_valid_3",
-        "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
+                        "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
 
         convertXdDef2XsdNoRef ("t990", Arrays.asList(new String[] {"t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
         convertXdDef2XsdNoRef ("D1A", Arrays.asList(new String[] {"D1A"}), null);
@@ -513,6 +511,11 @@ public class TestXd2Xsd extends TesterXdSchema {
         convertXdPool2XsdWithFeatures ("typeTest2", Arrays.asList(new String[] {"typeTest2_valid_1"}), null, EnumSet.of(XD2XsdFeature.XSD_DECIMAL_ANY_SEPARATOR));
         convertXdPool2XsdNoRef("Test000_05", Arrays.asList(new String[] {"Test000_05"}), null);
 
+        // ============ List/union advanced ============
+
+        convertXdDef2XsdNoRef ("schemaTypeTest", Arrays.asList(new String[] {"schemaTypeTest_valid_1"}), Arrays.asList(new String[] {"schemaTypeTest_invalid_1"}));
+        convertXdDef2XsdNoRef ("schemaTypeTest2", Arrays.asList(new String[] {"schemaTypeTest2_valid_1"}), null);
+        convertXdDef2XsdNoRef ("schemaTypeTest3", Arrays.asList(new String[] {"schemaTypeTest3_valid_1"}), null);
 
         // ============ Groups ============
 
@@ -527,7 +530,6 @@ public class TestXd2Xsd extends TesterXdSchema {
                 Arrays.asList(new String[] {"groupChoice4_invalid_1", "groupChoice4_invalid_2"})
         );
 
-        convertXdDef2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
         convertXdDef2XsdNoRef ("groupMixed1", Arrays.asList(new String[] {"groupMixed1_valid_1", "groupMixed1_valid_2"}), Arrays.asList(new String[] {"groupMixed1_invalid_1"}));
         convertXdDef2XsdNoRef ("groupMixed2", Arrays.asList(new String[] {"groupMixed2_valid_1", "groupMixed2_valid_2", "groupMixed2_valid_3", "groupMixed2_valid_4"}), Arrays.asList(new String[] {"groupMixed2_invalid_1"}));
         convertXdDef2XsdNoRef ("groupMixed3",
@@ -542,8 +544,9 @@ public class TestXd2Xsd extends TesterXdSchema {
                 Arrays.asList(new String[] {"groupMixed6_invalid_1", "groupMixed6_invalid_2"}));
 
 
-        convertXdPool2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
-        convertXdPool2XsdNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
+        convertXdDef2XsdNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2", "testGroup1_valid_3"}), null);
+        convertXdDef2XsdNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
+        convertXdDef2XsdNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
 
         // ============ Default/Fixed values ============
 

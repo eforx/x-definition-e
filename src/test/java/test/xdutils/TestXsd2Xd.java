@@ -3,12 +3,10 @@ package test.xdutils;
 import buildtools.XDTester;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDDocument;
-import org.xdef.impl.util.conv.schema2xd.xsd.Xsd2XDefAdapter;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
+import org.xdef.impl.util.conv.schema2xd.xsd.Xsd2XDefAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdFeature;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XD2XsdUtils;
 import org.xdef.sys.ArrayReporter;
 import org.xdef.util.XValidate;
 import org.xmlunit.builder.DiffBuilder;
@@ -22,8 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 
 public class TestXsd2Xd extends TesterXdSchema {
@@ -40,7 +37,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         _dataFilesRoot = initFolder(dataDir, "xsd2xd_2");
         _outputFilesRoot = initFolder(dataDir, "xsd2xd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_DEBUG);
+        XsdLogger.setLogLevel(LOG_INFO);
     }
 
     private File getInputSchemaFile(final String fileName) {
@@ -326,6 +323,8 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         init();
 
+        // B1_common, D1A
+
         // ============ XDef ============
 
         convertXsd2XDef("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_1e", "t000_2e", "t000_3e"}));
@@ -350,6 +349,10 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("basicTest",
                 Arrays.asList(new String[] {"basicTest_valid_1", "basicTest_valid_2", "basicTest_valid_3"}),
                 Arrays.asList(new String[] {"basicTest_invalid_1", "basicTest_invalid_2", "basicTest_invalid_3", "basicTest_invalid_4"}));
+        convertXsd2XDefNoRef ("simpleModelTest",
+                Arrays.asList(new String[] {"simpleModelTest_valid_1", "simpleModelTest_valid_2", //"simpleModelTest_valid_3",
+                "simpleModelTest_valid_5", "simpleModelTest_valid_5"}), null);
+
 
         convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
         convertXsd2XDefNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);
@@ -378,6 +381,13 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         // ============ Groups ============
 
+        convertXsd2XDefNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2"}), null);
+        convertXsd2XDefNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
+        // TODO: group reference with occurrence definition
+//        convertXsd2XDefNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
+
+        // ============ All ============
+
         convertXsd2XDefNoRef ("groupMixed4", Arrays.asList(new String[] {"groupMixed4_valid_1"}), Arrays.asList(new String[] {"groupMixed4_invalid_1", "groupMixed4_invalid_2"}));
         convertXsd2XDefNoRef ("groupMixed5",
                 Arrays.asList(new String[] {"groupMixed5_valid_1", "groupMixed5_valid_2", "groupMixed5_valid_3"}),
@@ -385,6 +395,10 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef ("groupMixed6",
                 Arrays.asList(new String[] {"groupMixed6_valid_1", "groupMixed6_valid_2", "groupMixed6_valid_3", "groupMixed6_valid_4"}),
                 Arrays.asList(new String[] {"groupMixed6_invalid_2"}));
+
+        // ============ Mixed content ============
+
+//        convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
 
     }
 

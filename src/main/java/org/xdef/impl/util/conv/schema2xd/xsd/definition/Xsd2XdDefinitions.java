@@ -13,6 +13,7 @@ public interface Xsd2XdDefinitions {
     String XD_ELEM_SEQUENCE = "xd:sequence";
     String XD_ELEM_CHOICE = "xd:choice";
     String XD_ELEM_MIXED = "xd:mixed";
+    String XD_ELEM_ANY = "xd:any";
 
     String XD_ATTR_NAME = "xd:name";
     String XD_ATTR_ROOT_ELEMT = "xd:root";

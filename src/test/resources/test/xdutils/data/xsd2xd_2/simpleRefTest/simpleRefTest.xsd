@@ -1,0 +1,78 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:simpleType name="B">
+      <xs:restriction base="xs:string">
+         <xs:minLength value="1"/>
+         <xs:maxLength value="10"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:complexType name="C">
+      <xs:attribute name="attr" use="required">
+         <xs:simpleType>
+            <xs:restriction base="xs:int">
+               <xs:minInclusive value="1"/>
+               <xs:maxInclusive value="10"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:attribute>
+   </xs:complexType>
+   <xs:complexType name="D">
+      <xs:sequence>
+         <xs:element name="E"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="F">
+      <xs:simpleContent>
+         <xs:extension base="xs:int">
+            <xs:attribute name="attr" use="required">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:minLength value="1"/>
+                     <xs:maxLength value="5"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   <xs:complexType mixed="true" name="G">
+      <xs:annotation>
+         <xs:documentation>Text content has been originally restricted by x-definition</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="H"/>
+         <xs:element name="I"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="J">
+      <xs:sequence>
+         <xs:element name="K"/>
+      </xs:sequence>
+      <xs:attribute name="attr" type="xs:int" use="required"/>
+   </xs:complexType>
+   <xs:complexType mixed="true" name="L">
+      <xs:annotation>
+         <xs:documentation>Text content has been originally restricted by x-definition</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="M"/>
+      </xs:sequence>
+      <xs:attribute name="attr" type="xs:string" use="required"/>
+   </xs:complexType>
+   <xs:element name="X">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="A" type="A"/>
+            <xs:element name="B" type="B"/>
+            <xs:element name="C" type="C"/>
+            <xs:element name="D" type="D"/>
+            <xs:element name="F" type="F"/>
+            <xs:element name="G" type="G"/>
+            <xs:element name="J" type="J"/>
+            <xs:element name="L" type="L"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:complexType name="A"/>
+</xs:schema>

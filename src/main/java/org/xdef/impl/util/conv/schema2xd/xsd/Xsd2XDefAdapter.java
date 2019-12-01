@@ -1,10 +1,7 @@
 package org.xdef.impl.util.conv.schema2xd.xsd;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
@@ -95,6 +92,20 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 final Node res = treeAdapter.convertTree(xsdSchemaType, true);
                 if (res != null) {
                     xdElem.appendChild(res);
+                } else {
+                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Schema type has not been created!");
+                }
+            }
+        }
+
+        final Map<QName, XmlSchemaGroup> groupMap = schema.getGroups();
+        if (groupMap != null && !groupMap.isEmpty()) {
+            for (XmlSchemaGroup xsdGroup : groupMap.values()) {
+                final Node res = treeAdapter.convertTree(xsdGroup, true);
+                if (res != null) {
+                    xdElem.appendChild(res);
+                } else {
+                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Group has not been created!");
                 }
             }
         }
@@ -106,6 +117,8 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 final Node res = treeAdapter.convertTree(xsdElem, true);
                 if (res != null) {
                     xdElem.appendChild(res);
+                } else {
+                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Element has not been created!");
                 }
             }
         }

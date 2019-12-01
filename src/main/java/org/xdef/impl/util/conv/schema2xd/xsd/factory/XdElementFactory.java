@@ -42,12 +42,12 @@ public class XdElementFactory {
         return KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_POOL, null);
     }
 
-    public Document createRootXdefinition(final String xDefName, final String rootElem) {
+    public Document createRootXdefinition(final String xDefName, final String rootElements) {
         XsdLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "Root x-definition node");
         final Document res = KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_XDEF, null);
         final Element root = res.getDocumentElement();
         Xsd2XdUtils.addAttribute(root, XD_ATTR_NAME, xDefName);
-        Xsd2XdUtils.addAttribute(root, XD_ATTR_ROOT_ELEMT, rootElem);
+        Xsd2XdUtils.addAttribute(root, XD_ATTR_ROOT_ELEMT, rootElements);
         return res;
     }
 
@@ -84,5 +84,15 @@ public class XdElementFactory {
 
     public Element createEmptyMixed() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_MIXED);
+    }
+
+    public Element createEmptyNamedMixed(final String name) {
+        final Element elem = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_MIXED);
+        Xsd2XdUtils.addAttribute(elem, XD_ATTR_NAME, name);
+        return elem;
+    }
+
+    public Element createEmptyAny() {
+        return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_ANY);
     }
 }

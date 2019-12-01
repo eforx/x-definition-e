@@ -1,0 +1,38 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:group name="m">
+      <xs:all>
+         <xs:element name="n"/>
+         <xs:element name="o"/>
+      </xs:all>
+   </xs:group>
+   <xs:element name="x">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:any minOccurs="0" processContents="lax">
+               <xs:annotation>
+                  <xs:documentation>Original any element contains children nodes/attributes</xs:documentation>
+               </xs:annotation>
+            </xs:any>
+         </xs:sequence>
+         <xs:attribute name="b" type="xs:int" use="required"/>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="a">
+      <xs:complexType>
+         <xs:group ref="m"/>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="b">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:any minOccurs="0" processContents="lax">
+               <xs:annotation>
+                  <xs:documentation>Original any element contains children nodes/attributes</xs:documentation>
+               </xs:annotation>
+            </xs:any>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

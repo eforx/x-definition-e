@@ -1,0 +1,15 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:group name="m">
+      <xs:all>
+         <xs:element name="n"/>
+         <xs:element name="o"/>
+      </xs:all>
+   </xs:group>
+   <xs:element name="a">
+      <xs:complexType>
+         <xs:group ref="m"/>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

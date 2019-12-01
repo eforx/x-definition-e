@@ -6,6 +6,7 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdDeclarationFactory;
@@ -88,7 +89,7 @@ public class Xsd2XdTreeAdapter {
             if (rootElemSb.length() == 0) {
                 rootElemSb.append(targetNsPrefix + xsdElem.getName());
             } else {
-                rootElemSb.append("|" + targetNsPrefix + xsdElem.getName());
+                rootElemSb.append(" | " + targetNsPrefix + xsdElem.getName());
             }
         }
 
@@ -109,6 +110,12 @@ public class Xsd2XdTreeAdapter {
             }
         } else if (xsdNode instanceof XmlSchemaGroupParticle) {
             return createGroupParticle((XmlSchemaGroupParticle)xsdNode, topLevel);
+        } else if (xsdNode instanceof XmlSchemaGroup) {
+            return createGroup((XmlSchemaGroup)xsdNode, topLevel);
+        } else if (xsdNode instanceof XmlSchemaGroupRef) {
+            return createGroupRef((XmlSchemaGroupRef)xsdNode, topLevel);
+        } else if (xsdNode instanceof XmlSchemaAny) {
+            return createAny((XmlSchemaAny)xsdNode, topLevel);
         }
 
         return null;
@@ -165,6 +172,8 @@ public class Xsd2XdTreeAdapter {
     private void createElementFromComplex(final Element xdElem, final XmlSchemaComplexType xsdComplexNode) {
         addAttrsToElem(xdElem, xsdComplexNode.getAttributes());
 
+        // TODO: mixed
+
         if (xsdComplexNode.getParticle() != null) {
             xdElem.appendChild(convertTree(xsdComplexNode.getParticle(), false));
         }
@@ -213,7 +222,7 @@ public class Xsd2XdTreeAdapter {
             final List<XmlSchemaSequenceMember> xsdSequenceMembers = xsdSequence.getItems();
             if (xsdSequenceMembers != null && !xsdSequenceMembers.isEmpty()) {
                 for (XmlSchemaSequenceMember xsdSequenceMember : xsdSequenceMembers) {
-                    if (xsdSequenceMember instanceof XmlSchemaElement || xsdSequenceMember instanceof XmlSchemaGroupParticle) {
+                    if (xsdSequenceMember instanceof XmlSchemaParticle) {
                         xdParticle.appendChild(convertTree(xsdSequenceMember, false));
                     }
                 }
@@ -224,7 +233,7 @@ public class Xsd2XdTreeAdapter {
             final List<XmlSchemaChoiceMember> xsdChoiceMembers = xsdChoice.getItems();
             if (xsdChoiceMembers != null && !xsdChoiceMembers.isEmpty()) {
                 for (XmlSchemaChoiceMember xsdChoiceMember : xsdChoiceMembers) {
-                    if (xsdChoiceMember instanceof XmlSchemaElement || xsdChoiceMember instanceof XmlSchemaGroupParticle) {
+                    if (xsdChoiceMember instanceof XmlSchemaParticle) {
                         xdParticle.appendChild(convertTree(xsdChoiceMember, false));
                     }
                 }
@@ -247,6 +256,43 @@ public class Xsd2XdTreeAdapter {
         }
 
         return xdParticle;
+    }
+
+    private Node createGroup(final XmlSchemaGroup xsdGroupNode, final boolean topLevel) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdGroupNode, "Creating group.");
+
+        final Element group = xdFactory.createEmptyNamedMixed(xsdGroupNode.getName());
+        if (xsdGroupNode.getParticle() != null) {
+            final Node groupParticle = createGroupParticle(xsdGroupNode.getParticle(), false);
+            if (xsdGroupNode.getParticle() instanceof XmlSchemaAll) {
+                Node groupParticleChild = groupParticle.getFirstChild();
+                while (groupParticleChild != null) {
+                    Node sibling = groupParticleChild.getNextSibling();
+                    group.appendChild(groupParticleChild);
+                    groupParticleChild = sibling;
+                }
+            } else {
+                group.appendChild(groupParticle);
+            }
+        }
+        return group;
+    }
+
+    private Node createGroupRef(final XmlSchemaGroupRef xsdGroupRefNode, final boolean topLevel) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdGroupRefNode, "Creating group reference.");
+        final Element groupRef = xdFactory.createEmptyMixed();
+        Xsd2XdUtils.addRefAttribute(groupRef, xsdGroupRefNode.getRefName());
+        if (xsdGroupRefNode.getMaxOccurs() > 1) {
+            XsdLogger.printP(LOG_ERROR, TRANSFORMATION, xsdGroupRefNode, "Group reference is using multiple occurence - prohibited in x-definition.");
+        }
+        return groupRef;
+    }
+
+    private Node createAny(final XmlSchemaAny xsdAnyNode, final boolean topLevel) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdAnyNode, "Creating any.");
+        final Element xdAny = xdFactory.createEmptyAny();
+        xdAttrFactory.addOccurrence(xdAny, xsdAnyNode);
+        return xdAny;
     }
 
     private void addAttrsToElem(final Element xdElem, final List<XmlSchemaAttributeOrGroupRef> xsdAttrs) {
