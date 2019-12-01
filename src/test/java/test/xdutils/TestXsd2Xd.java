@@ -396,8 +396,7 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         convertXsd2XDefNoRef ("testGroup1", Arrays.asList(new String[] {"testGroup1_valid_1", "testGroup1_valid_2"}), null);
         convertXsd2XDefNoRef ("testGroup2", Arrays.asList(new String[] {"testGroup2_valid_1"}), null);
-        // TODO: group reference with occurrence definition
-//        convertXsd2XDefNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
+        convertXsd2XDefNoRef ("testGroup3", Arrays.asList(new String[] {"testGroup3_valid_1"}), null);
 
         // ============ All ============
 

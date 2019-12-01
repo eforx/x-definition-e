@@ -3,12 +3,10 @@ package org.xdef.impl.util.conv.schema2xd.xsd;
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.Schema2XDefAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.adapter.AbstractXsd2XdAdapter;
@@ -17,17 +15,14 @@ import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
-import org.xdef.impl.util.conv.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_NAME;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
@@ -89,24 +84,14 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
         if (schemaTypeMap != null && !schemaTypeMap.isEmpty()) {
             for (XmlSchemaType xsdSchemaType : schemaTypeMap.values()) {
-                final Node res = treeAdapter.convertTree(xsdSchemaType, true);
-                if (res != null) {
-                    xdElem.appendChild(res);
-                } else {
-                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Schema type has not been created!");
-                }
+                treeAdapter.convertTree(xsdSchemaType, xdElem);
             }
         }
 
         final Map<QName, XmlSchemaGroup> groupMap = schema.getGroups();
         if (groupMap != null && !groupMap.isEmpty()) {
             for (XmlSchemaGroup xsdGroup : groupMap.values()) {
-                final Node res = treeAdapter.convertTree(xsdGroup, true);
-                if (res != null) {
-                    xdElem.appendChild(res);
-                } else {
-                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Group has not been created!");
-                }
+                treeAdapter.convertTree(xsdGroup, xdElem);
             }
         }
 
@@ -114,12 +99,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         if (elementMap != null && !elementMap.isEmpty()) {
             for (XmlSchemaElement xsdElem : elementMap.values()) {
-                final Node res = treeAdapter.convertTree(xsdElem, true);
-                if (res != null) {
-                    xdElem.appendChild(res);
-                } else {
-                    XsdLogger.print(LOG_WARN, TRANSFORMATION, xDefName, "Element has not been created!");
-                }
+                treeAdapter.convertTree(xsdElem, xdElem);
             }
         }
     }

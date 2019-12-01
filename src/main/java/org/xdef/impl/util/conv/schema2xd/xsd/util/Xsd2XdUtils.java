@@ -61,6 +61,15 @@ public class Xsd2XdUtils {
         return null;
     }
 
+    public static XmlSchemaGroup getGroupByQName(final XmlSchema schema, final QName qName) {
+        final Map<QName, XmlSchemaGroup> schemaTypeMap = schema.getGroups();
+        if (schemaTypeMap != null) {
+            return schemaTypeMap.get(qName);
+        }
+
+        return null;
+    }
+
     /**
      * Features which should be enabled by default for transformation algorithm
      * @return default algorithm features
