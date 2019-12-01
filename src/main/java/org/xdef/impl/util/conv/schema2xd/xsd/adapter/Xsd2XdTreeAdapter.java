@@ -17,8 +17,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_SCRIPT;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
@@ -237,9 +236,31 @@ public class Xsd2XdTreeAdapter {
             for (XmlSchemaAttributeOrGroupRef xsdAttrRef : xsdAttrs) {
                 if (xsdAttrRef instanceof XmlSchemaAttribute) {
                     final XmlSchemaAttribute xsdAttr = (XmlSchemaAttribute)xsdAttrRef;
-                    Xsd2XdUtils.addAttribute(xdElem, xsdAttr, xDefName, adapterCtx);
+                    final String attribute = createAttribute(xsdAttr);
+                    Xsd2XdUtils.addAttribute(xdElem, xsdAttr, attribute, xDefName, adapterCtx);
                 }
             }
         }
+    }
+
+    private String createAttribute(final XmlSchemaAttribute xsdAttr) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdAttr, "Creating attribute.");
+
+        final StringBuilder valueBuilder = new StringBuilder();
+        if (XmlSchemaUse.OPTIONAL.equals(xsdAttr.getUse())) {
+            valueBuilder.append("optional ");
+        } else if (XmlSchemaUse.REQUIRED.equals(xsdAttr.getUse())) {
+            valueBuilder.append("required ");
+        }
+
+        if (xsdAttr.getSchemaTypeName() != null) {
+            valueBuilder.append(xsdAttr.getSchemaTypeName().getLocalPart() + "()");
+        } else if (xsdAttr.getSchemaType() != null) {
+            if (xsdAttr.getSchemaType().getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                valueBuilder.append(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction)xsdAttr.getSchemaType().getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL));
+            }
+        }
+
+        return valueBuilder.toString();
     }
 }

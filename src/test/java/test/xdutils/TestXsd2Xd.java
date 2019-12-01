@@ -342,6 +342,8 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t020", Arrays.asList(new String[] {"t020"}), null);
         convertXsd2XDefNoRef("t020_1", Arrays.asList(new String[] {"t020_1"}), null);
         convertXsd2XDefNoRef("t990", Arrays.asList(new String[] {"t990", "t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
+        convertXsd2XDefNoRef("test_00015", Arrays.asList(new String[] {"test_00015_data"}), null);
+        convertXsd2XDefNoRef("test_Inf", Arrays.asList(new String[] {"test_Inf_valid"}), null);
 
     }
 

@@ -5,6 +5,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
+import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.IDeclarationTypeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 
 import javax.xml.namespace.QName;
@@ -23,24 +24,15 @@ public class Xsd2XdUtils {
         el.setAttribute(attrName, attrValue);
     }
 
-    public static void addAttribute(final Element el, final XmlSchemaAttribute xsdAttr, final String xDefName, final XdAdapterCtx xdAdapterCtx) {
-        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. QName=" + xsdAttr.getQName() + ", SchemaType=" + xsdAttr.getSchemaTypeName());
-
-        final StringBuilder valueBuilder = new StringBuilder();
-        if (XmlSchemaUse.OPTIONAL.equals(xsdAttr.getUse())) {
-            valueBuilder.append("optional ");
-        } else if (XmlSchemaUse.REQUIRED.equals(xsdAttr.getUse())) {
-            valueBuilder.append("required ");
-        }
-
-        valueBuilder.append(xsdAttr.getSchemaTypeName().getLocalPart() + "()");
+    public static void addAttribute(final Element el, final XmlSchemaAttribute xsdAttr, final String attrValue, final String xDefName, final XdAdapterCtx xdAdapterCtx) {
+        XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. QName=" + xsdAttr.getQName());
 
         final QName xsdQName = xsdAttr.getQName();
         if (xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdAttr.getForm())) {
             final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, xdAdapterCtx);
-            el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, valueBuilder.toString());
+            el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attrValue);
         } else {
-            el.setAttribute(xsdAttr.getName(), valueBuilder.toString());
+            el.setAttribute(xsdAttr.getName(), attrValue);
         }
     }
 
