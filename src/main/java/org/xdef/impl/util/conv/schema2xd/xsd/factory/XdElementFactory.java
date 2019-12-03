@@ -49,7 +49,9 @@ public class XdElementFactory {
         final Document res = KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_XDEF, null);
         final Element root = res.getDocumentElement();
         Xsd2XdUtils.addAttribute(root, XD_ATTR_NAME, xDefName);
-        Xsd2XdUtils.addAttribute(root, XD_ATTR_ROOT_ELEMT, rootElements);
+        if (rootElements != null && !rootElements.isEmpty()) {
+            Xsd2XdUtils.addAttribute(root, XD_ATTR_ROOT_ELEMT, rootElements);
+        }
         return res;
     }
 
@@ -57,7 +59,9 @@ public class XdElementFactory {
         XsdLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "X-definition node");
         final Element xdDef = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_XDEF);
         Xsd2XdUtils.addAttribute(xdDef, XD_ATTR_NAME, xDefName);
-        Xsd2XdUtils.addAttribute(xdDef, XD_ATTR_ROOT_ELEMT, rootElements);
+        if (rootElements != null && !rootElements.isEmpty()) {
+            Xsd2XdUtils.addAttribute(xdDef, XD_ATTR_ROOT_ELEMT, rootElements);
+        }
         return xdDef;
     }
 
