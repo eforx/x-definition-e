@@ -89,6 +89,10 @@ public class Xsd2XdUtils {
         String schemaName = null;
 
         final Set<String> refXDefs = xdAdapterCtx.getXDefByNamespace(refQName.getNamespaceURI());
+        if (refXDefs == null) {
+            return schemaName;
+        }
+
         if (refXDefs.size() == 1) {
             schemaName = refXDefs.iterator().next();
         } else {

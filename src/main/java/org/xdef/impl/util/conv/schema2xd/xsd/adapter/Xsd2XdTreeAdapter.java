@@ -177,10 +177,18 @@ public class Xsd2XdTreeAdapter {
                 final XmlSchemaSimpleContent xsdSimpleContent = (XmlSchemaSimpleContent)xsdComplexNode.getContentModel();
                 if (xsdSimpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
                     final XmlSchemaSimpleContentExtension xsdSimpleExtension = (XmlSchemaSimpleContentExtension)xsdSimpleContent.getContent();
-                    if (adapterCtx.hasEnableFeature(XD_TEXT_OPTIONAL)) {
-                        xdElem.setTextContent("optional " + xsdSimpleExtension.getBaseTypeName().getLocalPart() + "()");
-                    } else {
-                        xdElem.setTextContent(xsdSimpleExtension.getBaseTypeName().getLocalPart() + "()");
+                    final QName baseType = xsdSimpleExtension.getBaseTypeName();
+                    if (baseType != null) {
+                        final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
+                        if (xDefRefName != null) {
+                            Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
+                        } else {
+                            if (adapterCtx.hasEnableFeature(XD_TEXT_OPTIONAL)) {
+                                xdElem.setTextContent("optional " + baseType.getLocalPart() + "()");
+                            } else {
+                                xdElem.setTextContent(baseType.getLocalPart() + "()");
+                            }
+                        }
                     }
                     addAttrsToElem(xdElem, xsdSimpleExtension.getAttributes());
                 }
