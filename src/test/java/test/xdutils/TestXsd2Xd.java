@@ -23,7 +23,7 @@ import java.util.Set;
 import static org.testng.reporters.Files.readFile;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 
 public class TestXsd2Xd extends TesterXdSchema {
 
@@ -302,7 +302,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t002", Arrays.asList(new String[] {"t002"}),  Arrays.asList(new String[] {"t002_1e", "t002_2e"}));
         convertXsd2XDefNoRef("t003", Arrays.asList(new String[] {"t003"}),  Arrays.asList(new String[] {"t003_1e"}));
         convertXsd2XDefNoRef("t004", Arrays.asList(new String[] {"t004"}),  Arrays.asList(new String[] {"t004_1e"}));
-        convertXsd2XDefWithFeatures("t005", Arrays.asList(new String[] {"t005"}), null, EnumSet.of(XD_TEXT_OPTIONAL));
+        convertXsd2XDefNoRef("t005", Arrays.asList(new String[] {"t005"}), null);
         convertXsd2XDefNoRef("t006", Arrays.asList(new String[] {"t006", "t006_1"}),  Arrays.asList(new String[] {"t006_2e", "t006_3e"}));
         convertXsd2XDefNoRef("t007", Arrays.asList(new String[] {"t007"}),  Arrays.asList(new String[] {"t007_1e"}));
         convertXsd2XDefNoRef("t009", Arrays.asList(new String[] {"t009"}), null);
@@ -414,6 +414,8 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XdPoolNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
         convertXsd2XdPoolNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
 
+        // TODO: mixed
+//        convertXsd2XdPoolNoRef ("Sisma_RegistraceSU", Arrays.asList(new String[] {"Sisma_RegistraceSU"}), null);
     }
 
     /** Run test
