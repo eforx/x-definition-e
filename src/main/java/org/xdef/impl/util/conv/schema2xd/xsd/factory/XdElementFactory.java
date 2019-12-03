@@ -13,6 +13,8 @@ import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
 
+import java.util.Set;
+
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
@@ -64,7 +66,7 @@ public class XdElementFactory {
             final QName xsdQName = xsdElem.getRef().getTargetQName();
             if (xsdQName != null) {
                 final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(),  XdNameUtils.createQualifiedName(xsdQName));
-                final String refXDef = adapterCtx.getXDefByNamespace(xsdQName.getNamespaceURI());
+                final String refXDef = Xsd2XdUtils.getReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
                 Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, xsdQName);
                 return xdElem;
             } else {

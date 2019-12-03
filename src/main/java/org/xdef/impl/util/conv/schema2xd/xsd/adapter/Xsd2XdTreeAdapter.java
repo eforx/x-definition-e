@@ -14,8 +14,10 @@ import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 
 import javax.xml.namespace.QName;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
@@ -190,7 +192,7 @@ public class Xsd2XdTreeAdapter {
                     final QName baseType = xsdComplexExtension.getBaseTypeName();
                     if (baseType != null) {
                         if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-                            final String refXDef = adapterCtx.getXDefByNamespace(baseType.getNamespaceURI());
+                            final String refXDef = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
                             Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, baseType);
                         } else {
                             Xsd2XdUtils.addRefAttribute(xdElem, baseType);
