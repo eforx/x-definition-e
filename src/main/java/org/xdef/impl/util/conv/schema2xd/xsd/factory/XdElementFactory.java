@@ -13,7 +13,7 @@ import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
@@ -67,10 +67,14 @@ public class XdElementFactory {
                 final String refXDef = adapterCtx.getXDefByNamespace(xsdQName.getNamespaceURI());
                 Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, xsdQName);
                 return xdElem;
+            } else {
+                XsdLogger.printP(LOG_WARN, TRANSFORMATION, xsdElem, "Unknown element reference QName!");
             }
         } else {
             final QName xsdQName = xsdElem.getQName();
-            if (xsdQName != null && xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdElem.getForm())) {
+            if (xsdQName == null) {
+                return doc.createElement(xsdElem.getName());
+            } else if (xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdElem.getForm())) {
                 final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
                 return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
             }
