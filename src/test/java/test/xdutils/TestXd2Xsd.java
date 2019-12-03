@@ -333,8 +333,6 @@ public class TestXd2Xsd extends TesterXdSchema {
                                   boolean validateAgainstRefXsd,
                                   String exMsg, boolean invalidXsd,
                                   Set<XD2XsdFeature> features) {
-        ArrayReporter reporter = new ArrayReporter();
-        setProperty("xdef.warnings", "true");
         try {
             XDef2XsdAdapter adapter = createXdDefAdapter(features);
 
@@ -353,8 +351,6 @@ public class TestXd2Xsd extends TesterXdSchema {
 
             // Validate XML files against output XSD schemas and reference XSD schemas
             validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd, invalidXsd);
-
-            assertNoErrors(reporter);
         } catch (Exception ex) {
             if (exMsg != null) {
                 assertEq(exMsg, ex.getMessage());
@@ -389,8 +385,6 @@ public class TestXd2Xsd extends TesterXdSchema {
                                    boolean validateAgainstRefXsd,
                                    String exMsg, boolean invalidXsd,
                                    Set<XD2XsdFeature> features) {
-        ArrayReporter reporter = new ArrayReporter();
-        setProperty("xdef.warnings", "true");
         try {
             XDPool2XsdAdapter adapter = createXdPoolAdapter(features);
 
@@ -415,8 +409,6 @@ public class TestXd2Xsd extends TesterXdSchema {
 
             // Validate XML files against output XSD schemas and reference XSD schemas
             validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd, invalidXsd);
-
-            assertNoErrors(reporter);
         } catch (Exception ex) {
             if (exMsg != null) {
                 assertEq(exMsg, ex.getMessage());

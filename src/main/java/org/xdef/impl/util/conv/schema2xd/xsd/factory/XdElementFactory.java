@@ -51,14 +51,32 @@ public class XdElementFactory {
         return res;
     }
 
+    public Element createXDefinition(final String xDefName, final String rootElements) {
+        XsdLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "X-definition node");
+        final Element xdDef = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_XDEF);
+        Xsd2XdUtils.addAttribute(xdDef, XD_ATTR_NAME, xDefName);
+        Xsd2XdUtils.addAttribute(xdDef, XD_ATTR_ROOT_ELEMT, rootElements);
+        return xdDef;
+    }
+
     public Element createEmptyElement(final XmlSchemaElement xsdElem, final String xDefName) {
-        final QName xsdQName = xsdElem.getQName();
-        if (xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdElem.getForm())) {
-            final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
-            return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
+        if (xsdElem.isRef()) {
+            final QName xsdQName = xsdElem.getRef().getTargetQName();
+            if (xsdQName != null) {
+                final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(),  XdNameUtils.createQualifiedName(xsdQName));
+                final String refXDef = adapterCtx.getXDefByNamespace(xsdQName.getNamespaceURI());
+                Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, xsdQName);
+                return xdElem;
+            }
         } else {
-            return doc.createElement(xsdElem.getName());
+            final QName xsdQName = xsdElem.getQName();
+            if (xsdQName != null && xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdElem.getForm())) {
+                final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
+                return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
+            }
         }
+
+        return doc.createElement(xsdElem.getName());
     }
 
     public Element createEmptyElement(final XmlSchemaComplexType xsdComplex) {

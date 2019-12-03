@@ -228,6 +228,7 @@ public class TestXsd2Xd extends TesterXdSchema {
 
     private XmlSchemaCollection compileXsd(final String fileName) throws FileNotFoundException {
         final XmlSchemaCollection inputXmlSchemaCollection = new XmlSchemaCollection();
+        inputXmlSchemaCollection.setBaseUri(_inputFilesRoot.getAbsolutePath() + "\\" + fileName);
         inputXmlSchemaCollection.read(createInputFileReader(fileName, ".xsd"));
         return inputXmlSchemaCollection;
     }
@@ -235,8 +236,6 @@ public class TestXsd2Xd extends TesterXdSchema {
     private void convertXsd2XDef(final String fileName,
                                   List<String> validTestingData, List<String> invalidTestingData,
                                   boolean validateAgainstRef, Set<Xsd2XdFeature> additionalFeatures) {
-        ArrayReporter reporter = new ArrayReporter();
-        setProperty("xdef.warnings", "true");
         try {
             Xsd2XDefAdapter adapter = createXsdAdapter(additionalFeatures);
 
@@ -255,66 +254,48 @@ public class TestXsd2Xd extends TesterXdSchema {
             validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData);
 
             validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData, validateAgainstRef);
-
-            assertNoErrors(reporter);
         } catch (Exception ex) {
             fail(ex);
         }
     }
 
-//    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-//        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, true, null, false, null);
-//    }
-//
-//    private void convertXdPool2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-//        convertXdPool2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, null);
-//    }
-//
-//    private void convertXdPool2Xsd(final String fileName, List<String> validTestingData,
-//                                   List<String> invalidTestingData,
-//                                   boolean validateAgainstRefXsd,
-//                                   String exMsg, boolean invalidXsd,
-//                                   Set<XD2XsdFeature> features) {
-//        ArrayReporter reporter = new ArrayReporter();
-//        setProperty("xdef.warnings", "true");
-//        try {
-//            XDPool2XsdAdapter adapter = createXdPoolAdapter(features);
-//
-//            // Load x-definition files
-//            File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
-//            XDBuilder xb = XDFactory.getXDBuilder(null);
-//            xb.setExternals(getClass());
-//            xb.setSource(defFiles);
-//            XDPool inputXD = xb.compileXD();
-//            // Convert XD -> XSD Schema
-//            XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
-//            int expectedShemaCount = inputXD.getXMDefinitions().length;
-//
-//            // Compare output XSD schemas to XSD references
-//            if (validateAgainstRefXsd) {
-//                validateSchemas(fileName, getRefSchemas(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
-//            } else {
-//                writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
-//            }
-//
-//            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData);
-//
-//            // Validate XML files against output XSD schemas and reference XSD schemas
-//            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd, invalidXsd);
-//
-//            assertNoErrors(reporter);
-//        } catch (Exception ex) {
-//            if (exMsg != null) {
-//                assertEq(exMsg, ex.getMessage());
-//            } else {
-//                fail(ex);
-//            }
-//        }
-//
-//        if (exMsg != null) {
-//            fail("Test should failed with message: " + exMsg);
-//        }
-//    }
+    private void convertXsd2XdPool(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, true, null);
+    }
+
+    private void convertXsd2XdPoolNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
+        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, false, null);
+    }
+
+    private void convertXsd2XdPoolWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<Xsd2XdFeature> features) {
+        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, false, features);
+    }
+
+    private void convertXsd2XdPool(final String fileName,
+                                   List<String> validTestingData, List<String> invalidTestingData,
+                                   boolean validateAgainstRef, Set<Xsd2XdFeature> additionalFeatures) {
+        try {
+            Xsd2XDefAdapter adapter = createXsdAdapter(additionalFeatures);
+
+            // Convert XSD -> XD Schema
+            XmlSchemaCollection inputXmlSchemaCollection = compileXsd(fileName);
+            String outputXdPool = adapter.createXDefinition(inputXmlSchemaCollection, fileName);
+
+            // Compare output x-definition to x-definition reference
+            if (validateAgainstRef) {
+                validateXDefinition(fileName, outputXdPool);
+            } else {
+                writeOutputXDefinition(fileName, outputXdPool);
+            }
+
+            // Validate XML files against input XSD schema
+            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData);
+
+            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData, validateAgainstRef);
+        } catch (Exception ex) {
+            fail(ex);
+        }
+    }
 
     @Override
     public void test() {
@@ -323,7 +304,9 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         init();
 
+        // ==============================
         // ============ XDef ============
+        // ==============================
 
         convertXsd2XDef("t000", Arrays.asList(new String[] {"t000"}), Arrays.asList(new String[] {"t000_1e", "t000_2e", "t000_3e"}));
         convertXsd2XDefNoRef("t001", Arrays.asList(new String[] {"t001"}),  Arrays.asList(new String[] {"t001_1e", "t001_2e", "t001_3e", "t001_4e", "t001e"}));
@@ -416,6 +399,11 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         convertXsd2XDefNoRef ("namespaceTest", Arrays.asList(new String[] {"namespaceTest_valid"}), null);
 
+        // ==============================
+        // =========== XDPool ===========
+        // ==============================
+
+        convertXsd2XdPoolNoRef ("t011", Arrays.asList(new String[] {"t011"}), null);
     }
 
     /** Run test

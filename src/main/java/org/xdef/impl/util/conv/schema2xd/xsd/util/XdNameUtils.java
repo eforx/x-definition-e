@@ -23,4 +23,13 @@ public class XdNameUtils {
 
         return nsPrefix + ":" + qName.getLocalPart();
     }
+
+    public static String createQualifiedName(final QName qName) {
+        final String nsPrefix = qName.getPrefix();
+        if (nsPrefix == null || nsPrefix.isEmpty()) {
+            return qName.getLocalPart();
+        }
+
+        return nsPrefix + ":" + qName.getLocalPart();
+    }
 }

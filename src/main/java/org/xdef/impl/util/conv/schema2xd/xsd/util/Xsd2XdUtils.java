@@ -41,6 +41,10 @@ public class Xsd2XdUtils {
         Xsd2XdUtils.addXdefAttribute(el, XD_ATTR_SCRIPT, "ref " + qName.getLocalPart());
     }
 
+    public static void addRefInDiffXDefAttribute(final Element el, final String xDefName, final QName qName) {
+        Xsd2XdUtils.addXdefAttribute(el, XD_ATTR_SCRIPT, "ref " + xDefName + '#' + XdNameUtils.createQualifiedName(qName));
+    }
+
     public static void addXdefAttribute(final Element el, final String qName, final String value) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add x-definition attribute. QName=" + qName + ", Value=" + value);
         final String localName = XdNameUtils.getLocalName(qName);

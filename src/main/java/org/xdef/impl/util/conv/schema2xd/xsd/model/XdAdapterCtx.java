@@ -37,6 +37,13 @@ public class XdAdapterCtx {
      */
     private Map<String, Map<String, String>> xDefNamespaces;
 
+    /**
+     * Target namespace URI per x-definition
+     * Key:     target namespace URI
+     * Value:   x-definition name
+     */
+    private Map<String, String> xDefTargetNamespaces;
+
     public XdAdapterCtx(Set<Xsd2XdFeature> features) {
         this.features = features;
     }
@@ -47,6 +54,7 @@ public class XdAdapterCtx {
     public void init() {
         targetNamespaces = new HashMap<String, Pair<String, String>>();
         xDefNamespaces = new HashMap<String, Map<String, String>>();
+        xDefTargetNamespaces = new HashMap<String, String>();
     }
 
     public void addTargetNamespace(final String xDefName, final Pair<String, String> targetNamespace) {
@@ -57,6 +65,13 @@ public class XdAdapterCtx {
 
         XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add x-definition target namespace. XDefinition=" + xDefName + ", TargetNamespace=" + targetNamespace);
         targetNamespaces.put(xDefName, targetNamespace);
+
+        if (xDefTargetNamespaces.containsKey(targetNamespace.getValue())) {
+            XsdLogger.printG(LOG_WARN, XD_ADAPTER_CTX, "X-definition using given namespace URI already exists. NamespaceURI=" + targetNamespace.getValue());
+            return;
+        }
+
+        xDefTargetNamespaces.put(targetNamespace.getValue(), xDefName);
     }
 
     public Pair<String, String> getTargetNamespace(final String xDefName) {
@@ -92,6 +107,9 @@ public class XdAdapterCtx {
         return namespaces.get(nsUri);
     }
 
+    public String getXDefByNamespace(final String nsUri) {
+        return xDefTargetNamespaces.get(nsUri);
+    }
 
     /**
      * Check if algorithm feature is enabled
