@@ -189,7 +189,12 @@ public class Xsd2XdTreeAdapter {
                     final XmlSchemaComplexContentExtension xsdComplexExtension = (XmlSchemaComplexContentExtension)xsdComplexContent.getContent();
                     final QName baseType = xsdComplexExtension.getBaseTypeName();
                     if (baseType != null) {
-                        Xsd2XdUtils.addRefAttribute(xdElem, baseType);
+                        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
+                            final String refXDef = adapterCtx.getXDefByNamespace(baseType.getNamespaceURI());
+                            Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, baseType);
+                        } else {
+                            Xsd2XdUtils.addRefAttribute(xdElem, baseType);
+                        }
                     }
 
                     if (xsdComplexExtension.getParticle() != null) {
