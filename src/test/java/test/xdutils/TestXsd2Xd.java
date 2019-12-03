@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 
 public class TestXsd2Xd extends TesterXdSchema {
@@ -306,6 +306,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t007", Arrays.asList(new String[] {"t007"}),  Arrays.asList(new String[] {"t007_1e"}));
         convertXsd2XDefNoRef("t009", Arrays.asList(new String[] {"t009"}), null);
         convertXsd2XDefNoRef("t010", Arrays.asList(new String[] {"t010"}), null);
+        convertXsd2XDefNoRef("t016", Arrays.asList(new String[] {"t016"}),  Arrays.asList(new String[] {"t016e"}));
         convertXsd2XDefNoRef("t019", Arrays.asList(new String[] {"t019"}), null);
         convertXsd2XDefNoRef("t020", Arrays.asList(new String[] {"t020"}), null);
         convertXsd2XDefNoRef("t020_1", Arrays.asList(new String[] {"t020_1"}), null);
@@ -393,6 +394,8 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         convertXsd2XdPoolNoRef ("t011", Arrays.asList(new String[] {"t011"}), null);
         convertXsd2XdPoolNoRef ("t013", Arrays.asList(new String[] {"t013"}), null);
+        convertXsd2XdPoolNoRef ("t015", Arrays.asList(new String[] {"t015"}), null);
+        convertXsd2XdPoolNoRef ("t018", Arrays.asList(new String[] {"t018"}), null);
 
     }
 

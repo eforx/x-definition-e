@@ -1,7 +1,10 @@
 package org.xdef.impl.util.conv.schema2xd.xsd;
 
 import javafx.util.Pair;
-import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
@@ -60,30 +63,55 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         Element xdRootElem;
 
         int schemaCount = 0;
+        boolean realXsdSchemaRootFound = false;
         for (int i = 0; i < schemas.length; i++) {
             if (Constants.URI_2001_SCHEMA_XSD.equals(schemas[i].getTargetNamespace())) {
-                continue;
+                break;
+            }
+
+            if (rootSchema.equals(schemas[i])) {
+                realXsdSchemaRootFound = true;
             }
 
             schemaCount++;
         }
 
-        if (schemaCount == 0) {
-            XsdLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "All input XSD schemas are default!");
+        XmlSchema realRootSchema = null;
+        if (!realXsdSchemaRootFound && rootSchema.getParent() != null && rootSchema.getTargetNamespace() != null) {
+            realRootSchema = rootSchema.getParent().schemaForNamespace(rootSchema.getTargetNamespace());
+            schemaCount++;
+        } else if (realXsdSchemaRootFound) {
+            realRootSchema = rootSchema;
         }
 
-        initializeNamespaces(schemas, xDefName, rootSchema);
+        if (schemaCount == 0) {
+            XsdLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "All input XSD schemas are default!");
+            return "";
+        }
+
+        if (realRootSchema == null) {
+            XsdLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "Real root of XSD schema collection has not been found!");
+            return "";
+        }
+
+        XsdLogger.print(LOG_DEBUG, INITIALIZATION, xDefName, "Total input schemas: " + schemaCount);
+
+        initializeNamespaces(schemas, xDefName, realRootSchema);
 
         if (schemaCount > 1) {
             xdRootElem = createXdPool();
 
             // First transform root xsd
-            xdRootElem.appendChild(createXDef(xDefName, rootSchema, true));
+            xdRootElem.appendChild(createXDef(xDefName, realRootSchema, true));
 
             int j = 1;
             for (int i = 0; i < schemas.length; i++) {
                 final XmlSchema schema = schemas[i];
-                if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace()) || rootSchema.equals(schema)) {
+                if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
+                    break;
+                }
+
+                if (realRootSchema.equals(schema)) {
                     continue;
                 }
 
@@ -92,19 +120,8 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 j++;
             }
         } else {
-            XmlSchema schema = null;
-            for (int i = 0; i < schemas.length; i++) {
-                final XmlSchema schemaTmp = schemas[i];
-                if (Constants.URI_2001_SCHEMA_XSD.equals(schemaTmp.getTargetNamespace())) {
-                    continue;
-                }
-
-                schema = schemaTmp;
-                break;
-            }
-
             XsdLogger.print(LOG_INFO, PREPROCESSING, xDefName, "Creating x-definition. Name=" + xDefName);
-            xdRootElem = createXDef(xDefName, schema, false);
+            xdRootElem = createXDef(xDefName, realRootSchema, false);
         }
 
         return elementFactory.createHeader() + KXmlUtils.nodeToString(xdRootElem, true);
@@ -146,7 +163,11 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         int j = 1;
         for (int i = 0; i < schemas.length; i++) {
             final XmlSchema schema = schemas[i];
-            if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace()) || rootSchema.equals(schema)) {
+            if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
+                break;
+            }
+
+            if (rootSchema.equals(schema)) {
                 continue;
             }
 
