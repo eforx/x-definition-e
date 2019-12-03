@@ -1,6 +1,7 @@
 package test.xdutils;
 
 import buildtools.XDTester;
+import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDDocument;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
@@ -75,18 +76,6 @@ public class TestXsd2Xd extends TesterXdSchema {
         adapter.setFeatures(features);
         return adapter;
     }
-
-//    private XDPool2XsdAdapter createXdPoolAdapter(Set<XD2XsdFeature> additionalFeatures) {
-//        final XDPool2XsdAdapter adapter = new XDPool2XsdAdapter();
-//        final Set<XD2XsdFeature> features = XD2XsdUtils.defaultFeatures();
-//        features.add(XD2XsdFeature.XSD_ANNOTATION);
-//        features.add(XD2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
-//        if (additionalFeatures != null) {
-//            features.addAll(additionalFeatures);
-//        }
-//        adapter.setFeatures(features);
-//        return adapter;
-//    }
 
     private void writeOutputXDefinition(final String fileName, final String outputXDefinition) {
         if (WRITE_OUTPUT_INTO_FILE == true) {
@@ -226,11 +215,10 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDef(fileName, validTestingData, invalidTestingData, false, features);
     }
 
-    private XmlSchemaCollection compileXsd(final String fileName) throws FileNotFoundException {
+    private XmlSchema compileXsd(final String fileName) throws FileNotFoundException {
         final XmlSchemaCollection inputXmlSchemaCollection = new XmlSchemaCollection();
         inputXmlSchemaCollection.setBaseUri(_inputFilesRoot.getAbsolutePath() + "\\" + fileName);
-        inputXmlSchemaCollection.read(createInputFileReader(fileName, ".xsd"));
-        return inputXmlSchemaCollection;
+        return inputXmlSchemaCollection.read(createInputFileReader(fileName, ".xsd"));
     }
 
     private void convertXsd2XDef(final String fileName,
@@ -240,8 +228,8 @@ public class TestXsd2Xd extends TesterXdSchema {
             Xsd2XDefAdapter adapter = createXsdAdapter(additionalFeatures);
 
             // Convert XSD -> XD Schema
-            XmlSchemaCollection inputXmlSchemaCollection = compileXsd(fileName);
-            String outputXDefinition = adapter.createXDefinition(inputXmlSchemaCollection, fileName);
+            XmlSchema inputXmlSchema = compileXsd(fileName);
+            String outputXDefinition = adapter.createXDefinition(inputXmlSchema, fileName);
 
             // Compare output x-definition to x-definition reference
             if (validateAgainstRef) {
@@ -278,7 +266,7 @@ public class TestXsd2Xd extends TesterXdSchema {
             Xsd2XDefAdapter adapter = createXsdAdapter(additionalFeatures);
 
             // Convert XSD -> XD Schema
-            XmlSchemaCollection inputXmlSchemaCollection = compileXsd(fileName);
+            XmlSchema inputXmlSchemaCollection = compileXsd(fileName);
             String outputXdPool = adapter.createXDefinition(inputXmlSchemaCollection, fileName);
 
             // Compare output x-definition to x-definition reference
@@ -404,6 +392,8 @@ public class TestXsd2Xd extends TesterXdSchema {
         // ==============================
 
         convertXsd2XdPoolNoRef ("t011", Arrays.asList(new String[] {"t011"}), null);
+        convertXsd2XdPoolNoRef ("t013", Arrays.asList(new String[] {"t013"}), null);
+
     }
 
     /** Run test

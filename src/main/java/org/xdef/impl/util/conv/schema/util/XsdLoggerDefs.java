@@ -24,5 +24,6 @@ public interface XsdLoggerDefs {
     String XSD_NAME_FACTORY = "NameFactory";
 
 
+    String XD_ADAPTER = "XdAdapter";
     String XD_ADAPTER_CTX = "XdAdapterCtx";
 }

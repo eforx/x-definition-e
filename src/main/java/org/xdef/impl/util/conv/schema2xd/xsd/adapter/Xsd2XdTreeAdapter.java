@@ -206,7 +206,7 @@ public class Xsd2XdTreeAdapter {
     }
 
     private void createGroupParticle(final XmlSchemaGroupParticle xsdParticleNode, Element parentNode) {
-        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdParticleNode, "Creating particle ...");
+        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdParticleNode, "Creating group particle ...");
         Element xdParticle = null;
         if (xsdParticleNode instanceof XmlSchemaSequence) {
             final XmlSchemaSequence xsdSequence = (XmlSchemaSequence)xsdParticleNode;

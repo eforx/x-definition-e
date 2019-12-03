@@ -59,15 +59,15 @@ public class XdAdapterCtx {
 
     public void addTargetNamespace(final String xDefName, final Pair<String, String> targetNamespace) {
         if (targetNamespaces.containsKey(xDefName)) {
-            XsdLogger.printG(LOG_WARN, XD_ADAPTER_CTX, "X-definition target namespace already exists. XDefinition=" + xDefName);
+            XsdLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER_CTX, "X-definition target namespace already exists. XDefinition=" + xDefName);
             return;
         }
 
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add x-definition target namespace. XDefinition=" + xDefName + ", TargetNamespace=" + targetNamespace);
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER_CTX, "Add x-definition target namespace. XDefinition=" + xDefName + ", TargetNamespace=" + targetNamespace);
         targetNamespaces.put(xDefName, targetNamespace);
 
         if (xDefTargetNamespaces.containsKey(targetNamespace.getValue())) {
-            XsdLogger.printG(LOG_WARN, XD_ADAPTER_CTX, "X-definition using given namespace URI already exists. NamespaceURI=" + targetNamespace.getValue());
+            XsdLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER_CTX, "X-definition using given namespace URI already exists. NamespaceURI=" + targetNamespace.getValue());
             return;
         }
 
@@ -86,11 +86,11 @@ public class XdAdapterCtx {
         }
 
         if (xDefNamespaces.containsKey(nsUri)) {
-            XsdLogger.printG(LOG_WARN, XD_ADAPTER_CTX, "X-definition namespace already exists. XDefinition=" + xDefName + ", NsPrefix=" + nsPrefix);
+            XsdLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER_CTX, "X-definition namespace already exists. XDefinition=" + xDefName + ", NsPrefix=" + nsPrefix);
             return;
         }
 
-        XsdLogger.printP(LOG_INFO, PREPROCESSING, "Add x-definition namespace. XDefinition=" + xDefName + ", NsPrefix=" + nsPrefix + ", NsUri=" + nsUri);
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER_CTX, "Add x-definition namespace. XDefinition=" + xDefName + ", NsPrefix=" + nsPrefix + ", NsUri=" + nsUri);
         namespaces.put(nsUri, nsPrefix);
     }
 
