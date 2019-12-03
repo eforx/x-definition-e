@@ -1,0 +1,17 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:car="http://example.com/carInfo"
+           xmlns:shop="http://example.com/eshopInfo"
+           xmlns:tns="http://www.w3ctest.com"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://www.w3ctest.com">
+   <xs:import namespace="http://example.com/carInfo"
+              schemaLocation="external_car.xsd"/>
+   <xs:element name="to">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element maxOccurs="unbounded" ref="car:Car"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

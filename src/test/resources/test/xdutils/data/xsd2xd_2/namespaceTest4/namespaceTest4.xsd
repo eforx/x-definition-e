@@ -1,0 +1,18 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:a="http://www.w3ctest.com"
+           xmlns:car="http://example.com/carInfo"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:import namespace="http://www.w3ctest.com"
+              schemaLocation="namespaceTest4_1.xsd"/>
+   <xs:import namespace="http://example.com/carInfo"
+              schemaLocation="external_car.xsd"/>
+   <xs:element name="Cars">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element ref="a:to"/>
+            <xs:element ref="car:Built"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

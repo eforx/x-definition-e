@@ -22,6 +22,7 @@ import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
 
 public class TestXsd2Xd extends TesterXdSchema {
@@ -401,6 +402,17 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XdPoolNoRef ("t015", Arrays.asList(new String[] {"t015"}), null);
         convertXsd2XdPoolNoRef ("t018", Arrays.asList(new String[] {"t018"}), null);
 
+        convertXsd2XdPoolNoRef ("namespaceTest2", Arrays.asList(new String[] {"namespaceTest2_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("namespaceTest3", Arrays.asList(new String[] {"namespaceTest3_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("namespaceTest4", Arrays.asList(new String[] {"namespaceTest4_valid_1"}), null);
+
+        convertXsd2XdPoolNoRef ("multiXdefTest", Arrays.asList(new String[] {"multiXdefTest_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("multiXdefTest2", Arrays.asList(new String[] {"multiXdefTest2_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("multiXdefTest3", Arrays.asList(new String[] {"multiXdefTest3_valid_1"}), null);
+
+        convertXsd2XdPoolNoRef ("refTest1", Arrays.asList(new String[] {"refTest1_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
 
     }
 

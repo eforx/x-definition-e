@@ -1,0 +1,46 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ext="b.b"
+           xmlns:hr="A.A"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="A.A">
+   <xs:import namespace="b.b" schemaLocation="ext3_2.xsd"/>
+   <xs:element name="Person" type="hr:ct_root_Person"/>
+   <xs:complexType name="ct_root_Person">
+      <xs:sequence>
+         <xs:element name="Name">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:minLength value="1"/>
+                  <xs:maxLength value="30"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element name="Surname">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:minLength value="1"/>
+                  <xs:maxLength value="50"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element name="DateOfBirth">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:annotation>
+                     <xs:documentation>Original x-definition parser: xdatetime</xs:documentation>
+                  </xs:annotation>
+                  <xs:pattern value="(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\.\d{4}\d*">
+                     <xs:annotation>
+                        <xs:documentation>Original pattern value: 'dd.MM.yyyy'</xs:documentation>
+                     </xs:annotation>
+                  </xs:pattern>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element maxOccurs="unbounded" ref="ext:Position"/>
+         <xs:element ref="ext:Salary"/>
+      </xs:sequence>
+      <xs:attribute name="PersonId" type="xs:int" use="required"/>
+   </xs:complexType>
+</xs:schema>

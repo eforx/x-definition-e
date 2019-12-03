@@ -1,0 +1,12 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:test="http://test_ns"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://test_ns">
+   <xs:complexType name="d">
+      <xs:sequence>
+         <xs:element form="unqualified" name="f" type="xs:int"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:element name="e"/>
+</xs:schema>

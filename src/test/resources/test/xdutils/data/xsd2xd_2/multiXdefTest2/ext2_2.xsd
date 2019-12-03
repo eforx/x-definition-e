@@ -1,0 +1,23 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:fh="b.b"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="b.b">
+   <xs:element name="Position">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+         </xs:sequence>
+         <xs:attribute name="place" type="xs:string" use="optional"/>
+      </xs:complexType>
+   </xs:element>
+   <xs:element name="Salary">
+      <xs:complexType>
+         <xs:simpleContent>
+            <xs:extension base="xs:int">
+               <xs:attribute name="currency" type="xs:string" use="required"/>
+            </xs:extension>
+         </xs:simpleContent>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

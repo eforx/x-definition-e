@@ -1,0 +1,54 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:car="http://example.com/carInfo"
+           xmlns:shop="http://example.com/eshopInfo"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://example.com/carInfo">
+   <xs:import namespace="http://example.com/eshopInfo"
+              schemaLocation="external_shop.xsd"/>
+   <xs:element name="Car">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="VIN">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:annotation>
+                        <xs:documentation>Original x-definition parser: an</xs:documentation>
+                     </xs:annotation>
+                     <xs:pattern value="[a-zA-Z0-9]*"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Built">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:annotation>
+                        <xs:documentation>Original x-definition parser: xdatetime</xs:documentation>
+                     </xs:annotation>
+                     <xs:pattern value="\d{4}\d*/(0[1-9]|1[0-2])">
+                        <xs:annotation>
+                           <xs:documentation>Original pattern value: 'yyyy/MM'</xs:documentation>
+                        </xs:annotation>
+                     </xs:pattern>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Mark">
+               <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                     <xs:annotation>
+                        <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                     </xs:annotation>
+                     <xs:enumeration value="Škoda"/>
+                     <xs:enumeration value="Audi"/>
+                     <xs:enumeration value="Mercedes-Benz"/>
+                     <xs:enumeration value="BMW"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element minOccurs="0" ref="shop:Info"/>
+         </xs:sequence>
+         <xs:attribute ref="shop:from" use="required"/>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

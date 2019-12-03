@@ -1,0 +1,10 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:complexType name="d">
+      <xs:sequence>
+         <xs:element name="f" type="xs:int"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:element name="e"/>
+</xs:schema>
