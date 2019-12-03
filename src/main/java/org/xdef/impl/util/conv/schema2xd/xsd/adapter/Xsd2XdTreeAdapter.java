@@ -118,7 +118,7 @@ public class Xsd2XdTreeAdapter {
 
     private void createElement(final XmlSchemaElement xsdElementNode, Element parentNode) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Creating element ...");
-        final Element xdElem = xdFactory.createEmptyElement(xsdElementNode, xDefName);
+        final Element xdElem = xdFactory.createElement(xsdElementNode, xDefName);
         final QName xsdElemQName = xsdElementNode.getSchemaTypeName();
         if (xsdElemQName != null && XSD_NAMESPACE_PREFIX_EMPTY.equals(xsdElemQName.getPrefix())) {
             if (xsdElementNode.getSchemaType() != null) {
@@ -159,7 +159,7 @@ public class Xsd2XdTreeAdapter {
 
     private void createTopNonRootElement(final XmlSchemaComplexType xsdComplexNode, Element parentNode) {
         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdComplexNode, "Creating top level non-root element ...");
-        final Element xdElem = xdFactory.createEmptyElement(xsdComplexNode);
+        final Element xdElem = xdFactory.createEmptyElement(xsdComplexNode, xDefName);
         createElementFromComplex(xdElem, xsdComplexNode);
         parentNode.appendChild(xdElem);
     }

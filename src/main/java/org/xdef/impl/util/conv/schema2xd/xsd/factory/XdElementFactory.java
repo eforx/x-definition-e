@@ -61,11 +61,11 @@ public class XdElementFactory {
         return xdDef;
     }
 
-    public Element createEmptyElement(final XmlSchemaElement xsdElem, final String xDefName) {
+    public Element createElement(final XmlSchemaElement xsdElem, final String xDefName) {
         if (xsdElem.isRef()) {
             final QName xsdQName = xsdElem.getRef().getTargetQName();
             if (xsdQName != null) {
-                final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(),  XdNameUtils.createQualifiedName(xsdQName));
+                final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(), XdNameUtils.createQualifiedName(xsdQName));
                 final String refXDef = Xsd2XdUtils.getReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
                 Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, xsdQName);
                 return xdElem;
@@ -85,10 +85,11 @@ public class XdElementFactory {
         return doc.createElement(xsdElem.getName());
     }
 
-    public Element createEmptyElement(final XmlSchemaComplexType xsdComplex) {
+    public Element createEmptyElement(final XmlSchemaComplexType xsdComplex, final String xDefName) {
         final QName xsdQName = xsdComplex.getQName();
         if (xsdQName.getNamespaceURI() != null) {
-            return doc.createElementNS(xsdQName.getNamespaceURI(), xsdComplex.getName());
+            final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
+            return doc.createElementNS(xsdQName.getNamespaceURI(), qualifiedName);
         } else {
             return doc.createElement(xsdQName.getLocalPart());
         }
