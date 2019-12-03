@@ -181,6 +181,8 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         final Pair<String, String> targetNamespace = getTargetNamespace(schema);
         if (targetNamespace != null) {
             adapterCtx.addTargetNamespace(xDefName, targetNamespace);
+        } else {
+            adapterCtx.addTargetNamespace(xDefName, new Pair<String, String>("", ""));
         }
 
         final NodeNamespaceContext namespaceCtx = (NodeNamespaceContext)schema.getNamespaceContext();
