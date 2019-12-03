@@ -121,20 +121,39 @@ public class Xsd2XdTreeAdapter {
         final Element xdElem = xdFactory.createElement(xsdElementNode, xDefName);
         final QName xsdElemQName = xsdElementNode.getSchemaTypeName();
         if (xsdElemQName != null && XSD_NAMESPACE_PREFIX_EMPTY.equals(xsdElemQName.getPrefix())) {
-            if (xsdElementNode.getSchemaType() != null) {
-                if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
-                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to complex type. Reference=" + xsdElemQName);
-                    Xsd2XdUtils.addRefAttribute(xdElem, xsdElemQName);
-                } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
-                    XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
-                    final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType)xsdElementNode.getSchemaType();
-                    if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                        // TODO: make as reference instead of copying restriction, t005 & t006
-                        xdElem.setTextContent(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), null, IDeclarationTypeFactory.Mode.TEXT_DECL));
+            // TODO: Make reference if possible!
+//            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), xsdElemQName, adapterCtx, false);
+//            if (xDefRefName != null) {
+//                final Element xdTextRefElem = xdFactory.createTextRef();
+//                if (!externalRef(xsdElemQName, xDefRefName, xdTextRefElem)) {
+//                    Xsd2XdUtils.addRefAttribute(xdTextRefElem, xsdElemQName);
+//                }
+//                xdElem.appendChild(xdTextRefElem);
+//            } else
+                {
+
+                if (xsdElementNode.getSchemaType() != null) {
+                    if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
+                        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to complex type. Reference=" + xsdElemQName);
+                        Xsd2XdUtils.addRefAttribute(xdElem, xsdElemQName);
+                    } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
+                        XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
+                        final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) xsdElementNode.getSchemaType();
+                        if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                            final QName baseType = ((XmlSchemaSimpleTypeRestriction) simpleType.getContent()).getBaseTypeName();
+                            if (baseType != null) {
+                                final Element xdTextRefElem = xdFactory.createTextRef();
+                                if (externalRef(baseType, xdTextRefElem, true)) {
+                                    xdElem.appendChild(xdTextRefElem);
+                                } else {
+                                    xdElem.setTextContent(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), null, IDeclarationTypeFactory.Mode.TEXT_DECL));
+                                }
+                            }
+                        }
                     }
+                } else {
+                    XsdLogger.printP(LOG_WARN, TRANSFORMATION, xsdElementNode, "Element reference has not found! Reference=" + xsdElemQName);
                 }
-            } else {
-                XsdLogger.printP(LOG_WARN, TRANSFORMATION, xsdElementNode, "Element reference has not found! Reference=" + xsdElemQName);
             }
         } else if (xsdElementNode.getSchemaType() != null) {
             if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
@@ -179,17 +198,7 @@ public class Xsd2XdTreeAdapter {
                     final XmlSchemaSimpleContentExtension xsdSimpleExtension = (XmlSchemaSimpleContentExtension)xsdSimpleContent.getContent();
                     final QName baseType = xsdSimpleExtension.getBaseTypeName();
                     if (baseType != null) {
-                        boolean external = false;
-                        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-                            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
-                            final String xDefName = adapterCtx.getXmlSchemaName(schema);
-                            if (xDefRefName != null && !xDefRefName.equals(xDefName)) {
-                                Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
-                                external = true;
-                            }
-                        }
-
-                        if (!external) {
+                        if (!externalRef(baseType, xdElem, false)) {
                             if (adapterCtx.hasEnableFeature(XD_TEXT_OPTIONAL)) {
                                 xdElem.setTextContent("optional " + baseType.getLocalPart() + "()");
                             } else {
@@ -206,17 +215,7 @@ public class Xsd2XdTreeAdapter {
                     final XmlSchemaComplexContentExtension xsdComplexExtension = (XmlSchemaComplexContentExtension)xsdComplexContent.getContent();
                     final QName baseType = xsdComplexExtension.getBaseTypeName();
                     if (baseType != null) {
-                        boolean external = false;
-                        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-                            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
-                            final String xDefName = adapterCtx.getXmlSchemaName(schema);
-                            if (xDefRefName != null && !xDefRefName.equals(xDefName)) {
-                                Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
-                                external = true;
-                            }
-                        }
-
-                        if (!external) {
+                        if (!externalRef(baseType, xdElem, false)) {
                             Xsd2XdUtils.addRefAttribute(xdElem, baseType);
                         }
                     }
@@ -352,5 +351,25 @@ public class Xsd2XdTreeAdapter {
         }
 
         return valueBuilder.toString();
+    }
+
+    private boolean externalRef(final QName baseType, final Element xdNode, final boolean simple) {
+        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
+            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, simple);
+            return externalRef(baseType, xDefRefName, xdNode);
+        }
+
+        return false;
+    }
+
+    private boolean externalRef(final QName baseType, final String xDefRefName, final Element xdNode) {
+        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
+            if (xDefRefName != null && !xDefRefName.equals(xDefName)) {
+                Xsd2XdUtils.addRefInDiffXDefAttribute(xdNode, xDefRefName, baseType);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

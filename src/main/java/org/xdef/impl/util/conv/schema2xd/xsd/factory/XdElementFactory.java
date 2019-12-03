@@ -120,4 +120,8 @@ public class XdElementFactory {
     public Element createEmptyAny() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_ANY);
     }
+
+    public Element createTextRef() {
+        return doc.createElement(XD_ELEM_TEXT_REF);
+    }
 }
