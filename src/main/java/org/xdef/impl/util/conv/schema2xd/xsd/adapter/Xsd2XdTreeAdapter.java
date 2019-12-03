@@ -179,10 +179,17 @@ public class Xsd2XdTreeAdapter {
                     final XmlSchemaSimpleContentExtension xsdSimpleExtension = (XmlSchemaSimpleContentExtension)xsdSimpleContent.getContent();
                     final QName baseType = xsdSimpleExtension.getBaseTypeName();
                     if (baseType != null) {
-                        final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
-                        if (xDefRefName != null) {
-                            Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
-                        } else {
+                        boolean external = false;
+                        if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
+                            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
+                            final String xDefName = adapterCtx.getXmlSchemaName(schema);
+                            if (xDefRefName != null && !xDefRefName.equals(xDefName)) {
+                                Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
+                                external = true;
+                            }
+                        }
+
+                        if (!external) {
                             if (adapterCtx.hasEnableFeature(XD_TEXT_OPTIONAL)) {
                                 xdElem.setTextContent("optional " + baseType.getLocalPart() + "()");
                             } else {
@@ -192,17 +199,24 @@ public class Xsd2XdTreeAdapter {
                     }
                     addAttrsToElem(xdElem, xsdSimpleExtension.getAttributes());
                 }
-                // TODO: more types of extensions/restrictions
+                // TODO: more types of extensions/restrictions?
             } else if (xsdComplexNode.getContentModel() instanceof XmlSchemaComplexContent) {
                 final XmlSchemaComplexContent xsdComplexContent = (XmlSchemaComplexContent)xsdComplexNode.getContentModel();
                 if (xsdComplexContent.getContent() instanceof XmlSchemaComplexContentExtension) {
                     final XmlSchemaComplexContentExtension xsdComplexExtension = (XmlSchemaComplexContentExtension)xsdComplexContent.getContent();
                     final QName baseType = xsdComplexExtension.getBaseTypeName();
                     if (baseType != null) {
+                        boolean external = false;
                         if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-                            final String refXDef = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
-                            Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, baseType);
-                        } else {
+                            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, false);
+                            final String xDefName = adapterCtx.getXmlSchemaName(schema);
+                            if (xDefRefName != null && !xDefRefName.equals(xDefName)) {
+                                Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, xDefRefName, baseType);
+                                external = true;
+                            }
+                        }
+
+                        if (!external) {
                             Xsd2XdUtils.addRefAttribute(xdElem, baseType);
                         }
                     }
@@ -215,7 +229,7 @@ public class Xsd2XdTreeAdapter {
 
                     addAttrsToElem(xdElem, xsdComplexExtension.getAttributes());
                 }
-                // TODO: more types of extensions/restrictions
+                // TODO: more types of extensions/restrictions?
             }
         }
     }
