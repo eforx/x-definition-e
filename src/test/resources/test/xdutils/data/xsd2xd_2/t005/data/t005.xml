@@ -24,7 +24,7 @@
 
       <Predmet OznSegmentu="P-1" NazevPredmetu="okrasné keøe u è.p.175 -   polámané okrasné keøe" DruhPredmetu="okrasné keøe u è.p.175">
          <Skoda Kc="10000">
-
+             Fixed
          </Skoda>
       </Predmet>
       <Ucastnik OznSegmentu="1-1" TypUcastnika="øidiè" PraxeRizeni="18" PokutaKc="1000" PokutaZapl="nezaplacena" Pachatel="Pachatel DN">

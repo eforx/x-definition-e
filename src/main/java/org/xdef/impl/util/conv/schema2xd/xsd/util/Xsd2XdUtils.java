@@ -17,6 +17,7 @@ import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_ATTR_SCRIPT;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.XD_NAMESPACE_URI;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
 public class Xsd2XdUtils {
@@ -136,6 +137,7 @@ public class Xsd2XdUtils {
      */
     public static Set<Xsd2XdFeature> defaultFeatures() {
         Set<Xsd2XdFeature> features = new HashSet<Xsd2XdFeature>();
+        features.add(XD_TEXT_REQUIRED);
         return features;
     }
 }

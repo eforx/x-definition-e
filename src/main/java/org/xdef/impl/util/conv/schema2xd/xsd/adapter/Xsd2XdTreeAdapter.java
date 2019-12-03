@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_OPTIONAL;
+import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.XD2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
@@ -199,10 +199,10 @@ public class Xsd2XdTreeAdapter {
                     final QName baseType = xsdSimpleExtension.getBaseTypeName();
                     if (baseType != null) {
                         if (!externalRef(baseType, xdElem, false)) {
-                            if (adapterCtx.hasEnableFeature(XD_TEXT_OPTIONAL)) {
-                                xdElem.setTextContent("optional " + baseType.getLocalPart() + "()");
+                            if (adapterCtx.hasEnableFeature(XD_TEXT_REQUIRED)) {
+                                xdElem.setTextContent("required " + baseType.getLocalPart() + "()");
                             } else {
-                                xdElem.setTextContent(baseType.getLocalPart() + "()");
+                                xdElem.setTextContent("optional " + baseType.getLocalPart() + "()");
                             }
                         }
                     }
@@ -332,10 +332,10 @@ public class Xsd2XdTreeAdapter {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdAttr, "Creating attribute.");
 
         final StringBuilder valueBuilder = new StringBuilder();
-        if (XmlSchemaUse.OPTIONAL.equals(xsdAttr.getUse())) {
-            valueBuilder.append("optional ");
-        } else if (XmlSchemaUse.REQUIRED.equals(xsdAttr.getUse())) {
+        if (XmlSchemaUse.REQUIRED.equals(xsdAttr.getUse())) {
             valueBuilder.append("required ");
+        } else {
+            valueBuilder.append("optional ");
         }
 
         if (xsdAttr.getSchemaTypeName() != null) {
