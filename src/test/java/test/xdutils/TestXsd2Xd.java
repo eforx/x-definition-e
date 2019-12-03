@@ -310,6 +310,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XDefNoRef("t019", Arrays.asList(new String[] {"t019"}), null);
         convertXsd2XDefNoRef("t020", Arrays.asList(new String[] {"t020"}), null);
         convertXsd2XDefNoRef("t020_1", Arrays.asList(new String[] {"t020_1"}), null);
+        convertXsd2XDefNoRef("t021b", Arrays.asList(new String[] {"t021"}), null);
         convertXsd2XDefNoRef("t990", Arrays.asList(new String[] {"t990", "t990_1"}), Arrays.asList(new String[] {"t990_1e", "t990_2e", "t990_3e", "t990_4e", "t990_5e"}));
 
         convertXsd2XDefNoRef("test_Inf", Arrays.asList(new String[] {"test_Inf_valid"}), null);
@@ -383,6 +384,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         // ============ Mixed content ============
 
 //        convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
+//        convertXsd2XDefNoRef("t021a", Arrays.asList(new String[] {"t021"}), null);
 
         // ============ Basic namespace ============
 
@@ -393,9 +395,12 @@ public class TestXsd2Xd extends TesterXdSchema {
         // ==============================
 
         convertXsd2XdPoolNoRef ("t011", Arrays.asList(new String[] {"t011"}), null);
+        convertXsd2XdPoolNoRef ("t012", Arrays.asList(new String[] {"t012"}), null);
         convertXsd2XdPoolNoRef ("t013", Arrays.asList(new String[] {"t013"}), null);
+        convertXsd2XdPoolNoRef ("t014", Arrays.asList(new String[] {"t014"}), null);
         convertXsd2XdPoolNoRef ("t015", Arrays.asList(new String[] {"t015"}), null);
         convertXsd2XdPoolNoRef ("t018", Arrays.asList(new String[] {"t018"}), null);
+
 
     }
 
