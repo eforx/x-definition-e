@@ -8,14 +8,14 @@ import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNameUtils;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
 
-import java.util.Set;
-
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdDefinitions.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
@@ -70,7 +70,7 @@ public class XdElementFactory {
             final QName xsdQName = xsdElem.getRef().getTargetQName();
             if (xsdQName != null) {
                 final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(), XdNameUtils.createQualifiedName(xsdQName));
-                final String refXDef = Xsd2XdUtils.getReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
+                final String refXDef = XdNamespaceUtils.getReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
                 Xsd2XdUtils.addRefInDiffXDefAttribute(xdElem, refXDef, xsdQName);
                 return xdElem;
             } else {

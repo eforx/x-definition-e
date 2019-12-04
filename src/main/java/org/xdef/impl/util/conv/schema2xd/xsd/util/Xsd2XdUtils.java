@@ -5,15 +5,12 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
-import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.IDeclarationTypeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
@@ -23,9 +20,6 @@ import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
 public class Xsd2XdUtils {
-
-    static private final Pattern XSD_NAME_PATTERN_1 = Pattern.compile("(.+)(?:\\.xsd)");
-    static private final Pattern XSD_NAME_PATTERN_2 = Pattern.compile(".*[\\/|\\\\](.+)(?:\\.xsd)");
 
     public static void addAttribute(final Element el, final String attrName, final String attrValue) {
         XsdLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. Name=" + attrName + ", Value=" + attrValue);
@@ -89,64 +83,6 @@ public class Xsd2XdUtils {
         }
 
         return null;
-    }
-
-    public static String getReferenceSchemaName(final XmlSchemaCollection schemaCollection, final QName refQName, final XdAdapterCtx xdAdapterCtx, boolean simple) {
-        String schemaName = null;
-
-        final Set<String> refXDefs = xdAdapterCtx.getXDefByNamespace(refQName.getNamespaceURI());
-        if (refXDefs == null) {
-            return schemaName;
-        }
-
-        if (refXDefs.size() == 1) {
-            schemaName = refXDefs.iterator().next();
-        } else {
-            if (simple == false) {
-                if (schemaName == null) {
-                    final XmlSchemaType refSchemaType = schemaCollection.getTypeByQName(refQName);
-                    if (refSchemaType != null) {
-                        schemaName = xdAdapterCtx.getXmlSchemaName(refSchemaType.getParent());
-                    }
-                }
-
-                if (schemaName == null) {
-                    final XmlSchemaGroup refGroup = schemaCollection.getGroupByQName(refQName);
-                    if (refGroup != null) {
-                        schemaName = xdAdapterCtx.getXmlSchemaName(refGroup.getParent());
-                    }
-                }
-
-                if (schemaName == null) {
-                    final XmlSchemaElement refElem = schemaCollection.getElementByQName(refQName);
-                    if (refElem != null) {
-                        schemaName = xdAdapterCtx.getXmlSchemaName(refElem.getParent());
-                    }
-                }
-            } else {
-                if (schemaName == null) {
-                    final XmlSchemaAttribute refAttr = schemaCollection.getAttributeByQName(refQName);
-                    if (refAttr != null) {
-                        schemaName = xdAdapterCtx.getXmlSchemaName(refAttr.getParent());
-                    }
-                }
-            }
-        }
-
-        return schemaName;
-    }
-
-    public static String getSchemaName(final String schemaLocation) {
-        Matcher matcher = XSD_NAME_PATTERN_2.matcher(schemaLocation);
-        if (!matcher.matches()) {
-            matcher = XSD_NAME_PATTERN_1.matcher(schemaLocation);
-        }
-
-        if (matcher.matches()) {
-            return matcher.group(1);
-        }
-
-        return schemaLocation;
     }
 
     /**

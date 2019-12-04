@@ -11,13 +11,12 @@ import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdDeclarationFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.IDeclarationTypeFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 
 import javax.xml.namespace.QName;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
@@ -68,7 +67,7 @@ public class Xsd2XdTreeAdapter {
         this.xdFactory = xdFactory;
         this.adapterCtx = adapterCtx;
         xdAttrFactory = new XdAttributeFactory(adapterCtx);
-        xdDeclarationFactory = new XdDeclarationFactory(schema, xdFactory, adapterCtx);
+        xdDeclarationFactory = new XdDeclarationFactory(schema, xdFactory);
     }
 
     public String loadXsdRootNames(Map<QName, XmlSchemaElement> rootElements) {
@@ -357,7 +356,7 @@ public class Xsd2XdTreeAdapter {
 
     private boolean externalRef(final QName baseType, final Element xdNode, final boolean simple) {
         if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-            final String xDefRefName = Xsd2XdUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, simple);
+            final String xDefRefName = XdNamespaceUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, simple);
             return externalRef(baseType, xDefRefName, xdNode);
         }
 

@@ -4,12 +4,10 @@ import org.apache.ws.commons.schema.*;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.XsdLogger;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.declaration.*;
-import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdTypeMapping;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
 
 import javax.xml.namespace.QName;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,14 +28,11 @@ public class XdDeclarationFactory {
      */
     final private XdElementFactory xdFactory;
 
-    final private XdAdapterCtx adapterCtx;
-
     final Set<String> processedTopDeclarations = new HashSet<String>();
 
-    public XdDeclarationFactory(XmlSchema schema, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
+    public XdDeclarationFactory(XmlSchema schema, XdElementFactory xdFactory) {
         this.schema = schema;
         this.xdFactory = xdFactory;
-        this.adapterCtx = adapterCtx;
     }
 
     public Element createTopDeclaration(final XmlSchemaSimpleType simpleType) {
@@ -56,7 +51,7 @@ public class XdDeclarationFactory {
             return _createTopDeclaration((XmlSchemaSimpleTypeList) simpleType.getContent(), name);
         }
 
-        // TODO: union
+        // TODO: union?
         XsdLogger.printP(LOG_WARN, TRANSFORMATION, simpleType, "Empty top declaration has been created!");
         return "";
     }

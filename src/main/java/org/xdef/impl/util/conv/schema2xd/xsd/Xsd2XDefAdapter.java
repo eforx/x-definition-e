@@ -13,16 +13,17 @@ import org.xdef.impl.util.conv.schema2xd.xsd.adapter.AbstractXsd2XdAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.adapter.Xsd2XdTreeAdapter;
 import org.xdef.impl.util.conv.schema2xd.xsd.factory.XdElementFactory;
 import org.xdef.impl.util.conv.schema2xd.xsd.model.XdAdapterCtx;
+import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
-import org.xdef.model.XMDefinition;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.*;
 import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.*;
@@ -30,11 +31,6 @@ import static org.xdef.impl.util.conv.xd2schema.xsd.definition.AlgPhase.*;
 public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDefAdapter<XmlSchema> {
 
     private XdElementFactory elementFactory;
-
-    @Override
-    public XMDefinition createCompiledXDefinition(final XmlSchema rootSchema) {
-        return null;
-    }
 
     @Override
     public String createXDefinition(final XmlSchema rootSchema, final String xDefName) {
@@ -61,30 +57,25 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         adapterCtx.init();
 
-        final ArrayList<XmlSchema> usedSchemas = initializeSchemas(schemas, rootSchema, xDefName);
+        final ArrayList<XmlSchema> schemasToBeProcessed = initializeSchemas(schemas, rootSchema, xDefName);
 
-        if (usedSchemas.isEmpty()) {
+        if (schemasToBeProcessed.isEmpty()) {
             XsdLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "No XSD schema to be processed found!");
             return "";
         }
 
-        if (xDefName == null) {
-            XsdLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "Root x-definition name has not been found!");
-            return "";
-        }
-
-        initializeNamespaces(usedSchemas, xDefName, rootSchema);
+        initializeNamespaces(schemasToBeProcessed);
 
         Element xdRootElem;
 
-        if (usedSchemas.size() > 1) {
+        if (schemasToBeProcessed.size() > 1) {
             xdRootElem = createXdPool();
 
-            // First transform root xsd
+            // First transform root XSD schema
             xdRootElem.appendChild(createXDef(xDefName, rootSchema, true));
 
-            for (XmlSchema schema : usedSchemas) {
-                if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace()) || rootSchema.equals(schema)) {
+            for (XmlSchema schema : schemasToBeProcessed) {
+                if (rootSchema.equals(schema)) {
                     continue;
                 }
 
@@ -92,7 +83,6 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 xdRootElem.appendChild(createXDef(schemaName, schema, true));
             }
         } else {
-            XsdLogger.print(LOG_INFO, PREPROCESSING, xDefName, "Creating x-definition. Name=" + xDefName);
             xdRootElem = createXDef(xDefName, rootSchema, false);
         }
 
@@ -144,7 +134,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
     private void initializeSchemaName(final XmlSchema schema, final String schemaLocation, final Map<XmlSchema, String> schemaNames) {
         final String refSchemaSavedName = schemaNames.get(schema);
-        final String refSchemaFileName = Xsd2XdUtils.getSchemaName(schemaLocation);
+        final String refSchemaFileName = XdNameUtils.getSchemaName(schemaLocation);
         if (refSchemaSavedName == null) {
             schemaNames.put(schema, refSchemaFileName);
             XsdLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER, "Add schema name. Name=" + refSchemaFileName);
@@ -162,7 +152,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         final Map<XmlSchema, String> schemaNames = initializeSchemaNames(schemas, rootSchema, xDefName);
         final Map<String, Pair<String, XmlSchema>> xmlSchemaContent = new HashMap<String, Pair<String, XmlSchema>>();
-        final ArrayList<XmlSchema> realSchemas = new ArrayList<XmlSchema>();
+        final ArrayList<XmlSchema> schemasToBeProcessed = new ArrayList<XmlSchema>();
 
         for (int i = 0; i < schemas.length; i++) {
             final XmlSchema schema = schemas[i];
@@ -181,14 +171,14 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                 final Pair<String, XmlSchema> contentInfo = xmlSchemaContent.get(xsdStr);
                 if (contentInfo == null) {
                     xmlSchemaContent.put(xsdStr, new Pair<String, XmlSchema>(schemaName, schema));
-                    realSchemas.add(schema);
+                    schemasToBeProcessed.add(schema);
                     XsdLogger.print(LOG_DEBUG, PREPROCESSING, XD_ADAPTER, "Add schema to be processed. Name=" + schemaName);
                 } else {
                     if (rootSchema.equals(schema)) {
-                        realSchemas.remove(contentInfo.getValue());
+                        schemasToBeProcessed.remove(contentInfo.getValue());
                         XsdLogger.print(LOG_DEBUG, PREPROCESSING, XD_ADAPTER, "Remove schema from processing. Name=" + contentInfo.getKey());
                         xmlSchemaContent.put(xsdStr, new Pair<String, XmlSchema>(schemaName, schema));
-                        realSchemas.add(schema);
+                        schemasToBeProcessed.add(schema);
                         XsdLogger.print(LOG_DEBUG, PREPROCESSING, XD_ADAPTER, "Add schema to be processed. Name=" + schemaName);
                     } else {
                         xmlSchemaContent.put(xsdStr, contentInfo);
@@ -198,53 +188,41 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
                 adapterCtx.addXmlSchemaName(schema, schemaName);
             } catch (UnsupportedEncodingException e) {
-                XsdLogger.print(LOG_ERROR, INITIALIZATION, XD_ADAPTER, "Unsuccessful loading of XSD schema");
+                XsdLogger.print(LOG_ERROR, PREPROCESSING, XD_ADAPTER, "Unsuccessful loading of XSD schema. Name=" + schemaName);
             }
         }
 
-        XsdLogger.print(LOG_DEBUG, INITIALIZATION, XD_ADAPTER, "Total input schemas: " + schemas.length);
-        XsdLogger.print(LOG_DEBUG, INITIALIZATION, XD_ADAPTER, "Total used schemas: " + realSchemas.size());
+        XsdLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER, "Schemas to be processed." +
+                " Count=" + schemasToBeProcessed.size() + ", InputCount=" + (rootSchema.getParent() != null ? schemas.length - 1 : schemas.length));
 
-        return realSchemas;
+        return schemasToBeProcessed;
     }
 
-    private void initializeNamespaces(ArrayList<XmlSchema> realSchemas, final String xDefName, final XmlSchema rootSchema) {
+    private void initializeNamespaces(ArrayList<XmlSchema> schemaToBeProcessed) {
         XsdLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
         XsdLogger.printG(LOG_INFO, XD_ADAPTER, "Namespace initialization");
         XsdLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
 
-        initializeNamespaces(xDefName, rootSchema);
-
-        for (XmlSchema schema : realSchemas) {
-            if (Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace()) || rootSchema.equals(schema)) {
-                continue;
+        for (XmlSchema schema : schemaToBeProcessed) {
+            final String xDefName = adapterCtx.getXmlSchemaName(schema);
+            final Pair<String, String> targetNamespace = getTargetNamespace(schema);
+            if (targetNamespace != null) {
+                adapterCtx.addTargetNamespace(xDefName, targetNamespace);
+            } else {
+                adapterCtx.addTargetNamespace(xDefName, new Pair<String, String>("", ""));
             }
 
-            final String schemaName = adapterCtx.getXmlSchemaName(schema);
-            initializeNamespaces(schemaName, schema);
-        }
-    }
+            final NodeNamespaceContext namespaceCtx = (NodeNamespaceContext)schema.getNamespaceContext();
+            for (String prefix : namespaceCtx.getDeclaredPrefixes()) {
+                if (XdNamespaceUtils.isDefaultNamespacePrefix(prefix)) {
+                    continue;
+                }
 
-    private void initializeNamespaces(final String xDefName, final XmlSchema schema) {
-
-        final Pair<String, String> targetNamespace = getTargetNamespace(schema);
-        if (targetNamespace != null) {
-            adapterCtx.addTargetNamespace(xDefName, targetNamespace);
-        } else {
-            adapterCtx.addTargetNamespace(xDefName, new Pair<String, String>("", ""));
-        }
-
-        final NodeNamespaceContext namespaceCtx = (NodeNamespaceContext)schema.getNamespaceContext();
-        for (String prefix : namespaceCtx.getDeclaredPrefixes()) {
-            if (XdNamespaceUtils.isDefaultNamespacePrefix(prefix)) {
-                continue;
+                final String uri = namespaceCtx.getNamespaceURI(prefix);
+                adapterCtx.addNamespace(xDefName, prefix, uri);
             }
-
-            final String uri = namespaceCtx.getNamespaceURI(prefix);
-            adapterCtx.addNamespace(xDefName, prefix, uri);
         }
     }
-
 
     private Pair<String, String> getTargetNamespace(final XmlSchema schema) {
         if (schema.getTargetNamespace() == null || schema.getTargetNamespace().isEmpty()) {
@@ -270,7 +248,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
     }
 
     private Element createXdPool() {
-        XsdLogger.printG(LOG_INFO, XD_ADAPTER, "Creating x-definition pool ...");
+        XsdLogger.print(LOG_INFO, TRANSFORMATION, XD_ADAPTER, "Creating x-definition pool ...");
         final Document doc = elementFactory.createPool();
         elementFactory.setDoc(doc);
         return doc.getDocumentElement();
