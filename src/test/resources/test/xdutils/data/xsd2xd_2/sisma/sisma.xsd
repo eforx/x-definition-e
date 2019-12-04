@@ -1,0 +1,111 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:include schemaLocation="RegistraceSU.xsd"/>
+   <xs:include schemaLocation="ZmenaSU.xsd"/>
+   <xs:include schemaLocation="UzavreniSU.xsd"/>
+   <xs:include schemaLocation="ReaktivaceSU.xsd"/>
+   <xs:include schemaLocation="ZruseniSU.xsd"/>
+   <xs:include schemaLocation="NovaIdentSU.xsd"/>
+   <xs:include schemaLocation="RegistracePU.xsd"/>
+   <xs:include schemaLocation="ZmenaPU.xsd"/>
+   <xs:include schemaLocation="UzavreniPU.xsd"/>
+   <xs:include schemaLocation="ReaktivacePU.xsd"/>
+   <xs:include schemaLocation="ZruseniPU.xsd"/>
+   <xs:include schemaLocation="NovaIdentPU.xsd"/>
+   <xs:include schemaLocation="Naroky.xsd"/>
+   <xs:include schemaLocation="ZruseniNaroku.xsd"/>
+   <xs:include schemaLocation="Regres.xsd"/>
+   <xs:include schemaLocation="DotazSU.xsd"/>
+   <xs:element name="SouborL1A">
+      <xs:complexType>
+         <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>Original group particle: all</xs:documentation>
+            </xs:annotation>
+            <xs:element name="RegistraceSU" type="RegistraceSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="ZmenaSU" type="ZmenaSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="UzavreniSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="ReaktivaceSU" type="ReaktivaceSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="ZruseniSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="NovaIdentSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="RegistracePU" type="RegistracePU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="ZmenaPU" type="ZmenaPU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="UzavreniPU" type="UzavreniPU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="ReaktivacePU" type="ReaktivacePU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="ZruseniPU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="NovaIdentPU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="Naroky">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="ZruseniNaroku">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="Regres">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element ref="DotazSU">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+         </xs:choice>
+         <xs:attribute name="Davka" type="xs:string" use="required"/>
+         <xs:attribute name="ZeDne" type="xs:string" use="required"/>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

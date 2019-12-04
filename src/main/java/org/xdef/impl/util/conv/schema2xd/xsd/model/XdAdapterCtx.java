@@ -120,7 +120,7 @@ public class XdAdapterCtx {
         return xDefTargetNamespaces.get(nsUri);
     }
 
-    public void addXmlSchema(final XmlSchema schema, final String schemaName) {
+    public void addXmlSchemaName(final XmlSchema schema, final String schemaName) {
         XsdLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER_CTX, "Add x-definition. Name=" + schemaName);
         xsdNames.put(schema, schemaName);
     }

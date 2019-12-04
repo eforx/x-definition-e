@@ -1,0 +1,36 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:element name="DotazSU">
+      <xs:complexType>
+         <xs:attribute name="IdentZaznamu" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:minLength value="1"/>
+                  <xs:maxLength value="19"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute name="KodPojistitele" type="xs:string" use="optional"/>
+         <xs:attribute name="CisloSU" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:minLength value="3"/>
+                  <xs:maxLength value="35"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+         <xs:attribute name="Hist" use="required">
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:annotation>
+                     <xs:documentation>Original x-definition parser: enum</xs:documentation>
+                  </xs:annotation>
+                  <xs:enumeration value="A"/>
+                  <xs:enumeration value="N"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:attribute>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

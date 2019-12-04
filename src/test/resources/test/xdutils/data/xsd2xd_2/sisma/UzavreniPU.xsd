@@ -1,0 +1,10 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="unqualified">
+   <xs:include schemaLocation="L1_common.xsd"/>
+   <xs:complexType name="UzavreniPU">
+      <xs:complexContent>
+         <xs:extension base="PU"/>
+      </xs:complexContent>
+   </xs:complexType>
+</xs:schema>

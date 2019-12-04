@@ -413,6 +413,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XdPoolNoRef ("refTest1", Arrays.asList(new String[] {"refTest1_valid_1"}), null);
         convertXsd2XdPoolNoRef ("refTest2", Arrays.asList(new String[] {"refTest2_valid_1"}), null);
         convertXsd2XdPoolNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
+        convertXsd2XdPoolNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
 
         // TODO: mixed
 //        convertXsd2XdPoolNoRef ("Sisma_RegistraceSU", Arrays.asList(new String[] {"Sisma_RegistraceSU"}), null);

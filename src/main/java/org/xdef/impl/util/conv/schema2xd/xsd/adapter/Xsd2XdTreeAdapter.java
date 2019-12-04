@@ -135,7 +135,9 @@ public class Xsd2XdTreeAdapter {
                 if (xsdElementNode.getSchemaType() != null) {
                     if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
                         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to complex type. Reference=" + xsdElemQName);
-                        Xsd2XdUtils.addRefAttribute(xdElem, xsdElemQName);
+                        if (!externalRef(xsdElemQName, xdElem, false)) {
+                            Xsd2XdUtils.addRefAttribute(xdElem, xsdElemQName);
+                        }
                     } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
                         XsdLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
                         final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) xsdElementNode.getSchemaType();
