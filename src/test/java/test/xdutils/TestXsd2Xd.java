@@ -4,10 +4,10 @@ import buildtools.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDDocument;
-import org.xdef.impl.util.conv.schema.util.XsdLogger;
-import org.xdef.impl.util.conv.schema2xd.xsd.Xsd2XDefAdapter;
-import org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature;
-import org.xdef.impl.util.conv.schema2xd.xsd.util.Xsd2XdUtils;
+import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.impl.util.conv.schema.schema2xd.Xsd2XDefAdapter;
+import org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdFeature;
+import org.xdef.impl.util.conv.schema.schema2xd.util.Xsd2XdUtils;
 import org.xdef.sys.ArrayReporter;
 import org.xdef.util.XValidate;
 import org.xmlunit.builder.DiffBuilder;
@@ -16,14 +16,11 @@ import org.xmlunit.diff.Diff;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.schema.util.XsdLoggerDefs.LOG_WARN;
-import static org.xdef.impl.util.conv.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
 
 public class TestXsd2Xd extends TesterXdSchema {
 
@@ -39,7 +36,7 @@ public class TestXsd2Xd extends TesterXdSchema {
         _dataFilesRoot = initFolder(dataDir, "xsd2xd_2");
         _outputFilesRoot = initFolder(dataDir, "xsd2xd_2\\output");
 
-        XsdLogger.setLogLevel(LOG_INFO);
+        SchemaLogger.setLogLevel(LOG_INFO);
     }
 
     private File getInputSchemaFile(final String fileName) {
