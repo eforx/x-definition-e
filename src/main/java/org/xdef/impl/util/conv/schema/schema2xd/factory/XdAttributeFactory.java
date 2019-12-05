@@ -134,7 +134,11 @@ public class XdAttributeFactory {
             valueBuilder.append(xsdAttr.getSchemaTypeName().getLocalPart() + "()");
         } else if (xsdAttr.getSchemaType() != null) {
             if (xsdAttr.getSchemaType().getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                valueBuilder.append(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction)xsdAttr.getSchemaType().getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL, null));
+                final XdDeclarationBuilder b = xdDeclarationFactory.createBuilder()
+                        .setSimpleType(xsdAttr.getSchemaType())
+                        .setMode(IDeclarationTypeFactory.Mode.DATATYPE_DECL);
+
+                valueBuilder.append(xdDeclarationFactory.createDeclarationContent(b));
             }
         }
 

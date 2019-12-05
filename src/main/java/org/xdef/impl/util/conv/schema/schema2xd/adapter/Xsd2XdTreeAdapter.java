@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Element;
+import org.xdef.impl.util.conv.schema.schema2xd.factory.XdDeclarationBuilder;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.XdDeclarationFactory;
@@ -101,7 +102,12 @@ public class Xsd2XdTreeAdapter {
             createElement((XmlSchemaElement)xsdNode, parentNode);
         } else if (xsdNode instanceof XmlSchemaType) {
             if (xsdNode instanceof XmlSchemaSimpleType) {
-                xdDeclarationFactory.createTopDeclaration((XmlSchemaSimpleType) xsdNode, parentNode);
+                XdDeclarationBuilder builder = xdDeclarationFactory.createBuilder()
+                        .setSimpleType((XmlSchemaSimpleType)xsdNode)
+                        .setParentNode(parentNode)
+                        .setMode(IDeclarationTypeFactory.Mode.TOP_DECL);
+
+                xdDeclarationFactory.createDeclaration(builder);
             } else if (xsdNode instanceof XmlSchemaComplexType) {
                 createTopNonRootElement((XmlSchemaComplexType)xsdNode, parentNode);
             }
@@ -148,7 +154,12 @@ public class Xsd2XdTreeAdapter {
                         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
                         final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) xsdElementNode.getSchemaType();
                         if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                            xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration(simpleType.getContent(), xsdElemQName));
+                            final XdDeclarationBuilder b = xdDeclarationFactory.createBuilder()
+                                    .setSimpleType(simpleType)
+                                    .setBaseType(xsdElemQName)
+                                    .setMode(IDeclarationTypeFactory.Mode.TEXT_DECL);
+
+                            xdElem.setTextContent(xdDeclarationFactory.createDeclarationContent(b));
                         }
                     }
                 } else {
@@ -163,7 +174,12 @@ public class Xsd2XdTreeAdapter {
                 if (xsdElemQName != null && (Constants.XSD_NMTOKENS.equals(xsdElemQName) || Constants.XSD_IDREFS.equals(xsdElemQName))) {
                     xdElem.setTextContent(xdDeclarationFactory.createSimpleTextDeclaration(xsdElemQName));
                 } else {
-                    xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration(simpleType.getContent(), xsdElemQName));
+                    final XdDeclarationBuilder b = xdDeclarationFactory.createBuilder()
+                            .setSimpleType(simpleType)
+                            .setBaseType(xsdElemQName)
+                            .setMode(IDeclarationTypeFactory.Mode.TEXT_DECL);
+
+                    xdElem.setTextContent(xdDeclarationFactory.createDeclarationContent(b));
                 }
             }
         }
