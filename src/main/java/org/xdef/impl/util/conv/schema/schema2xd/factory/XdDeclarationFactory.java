@@ -35,18 +35,18 @@ public class XdDeclarationFactory {
         this.xdFactory = xdFactory;
     }
 
-    public Element createTopDeclaration(final XmlSchemaSimpleType simpleType) {
+    public void createTopDeclaration(final XmlSchemaSimpleType simpleType, final Element parentNode) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, simpleType, "Creating declaration ...");
         final Element xdDeclaration = xdFactory.createEmptyDeclaration();
-        xdDeclaration.setTextContent(_createTopDeclaration(simpleType));
-        return xdDeclaration;
+        xdDeclaration.setTextContent(_createTopDeclaration(simpleType, parentNode));
+        parentNode.appendChild(xdDeclaration);
     }
 
-    private String _createTopDeclaration(final XmlSchemaSimpleType simpleType) {
+    private String _createTopDeclaration(final XmlSchemaSimpleType simpleType, final Element parentNode) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, simpleType, "Creating top declaration content ...");
         final String name = simpleType.getName();
         if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-            return _createTopDeclaration((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name);
+            return _createTopDeclaration((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), name, parentNode);
         } else if (simpleType.getContent() instanceof XmlSchemaSimpleTypeList) {
             return _createTopDeclaration((XmlSchemaSimpleTypeList) simpleType.getContent(), name);
         }
@@ -56,8 +56,8 @@ public class XdDeclarationFactory {
         return "";
     }
 
-    private String _createTopDeclaration(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name) {
-        return create(simpleTypeRestriction, name, IDeclarationTypeFactory.Mode.TOP_DECL);
+    private String _createTopDeclaration(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name, final Element parentNode) {
+        return create(simpleTypeRestriction, name, IDeclarationTypeFactory.Mode.TOP_DECL, parentNode);
     }
 
     private String _createTopDeclaration(final XmlSchemaSimpleTypeList simpleTypeList, final String name) {
@@ -92,14 +92,15 @@ public class XdDeclarationFactory {
         }
 
         if (baseType != null) {
-            final IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
-            if (xdDeclarationFactory == null) {
-                SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeRestriction, "Unknown XSD data type! QName=" + baseType);
-                return null;
+            IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
+            if (xdDeclarationFactory != null) {
+                xdDeclarationFactory.setMode(IDeclarationTypeFactory.Mode.TEXT_DECL);
+                return xdDeclarationFactory.build(simpleTypeRestriction.getFacets());
             }
 
+            xdDeclarationFactory = new DefaultTypeFactory(baseType.getLocalPart());
             xdDeclarationFactory.setMode(IDeclarationTypeFactory.Mode.TEXT_DECL);
-            return xdDeclarationFactory.build(simpleTypeRestriction.getFacets());
+            return xdDeclarationFactory.build("");
         } else if (simpleTypeRestriction.getBaseType() != null) {
             return _createTextDeclaration(simpleTypeRestriction.getBaseType().getContent(), simpleTypeRestriction.getFacets());
         }
@@ -137,7 +138,7 @@ public class XdDeclarationFactory {
                             if (facetStringBuilder.length() > 0) {
                                 facetStringBuilder.append(", ");
                             }
-                            facetStringBuilder.append(create((XmlSchemaSimpleTypeRestriction) itemSimpleSchemaType.getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL));
+                            facetStringBuilder.append(create((XmlSchemaSimpleTypeRestriction) itemSimpleSchemaType.getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL, null));
                         }
                     }
                 }
@@ -181,11 +182,11 @@ public class XdDeclarationFactory {
         return emptyTypeFactory.build("");
     }
 
-    public String create(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name, final IDeclarationTypeFactory.Mode mode) {
+    public String create(final XmlSchemaSimpleTypeRestriction simpleTypeRestriction, final String name, final IDeclarationTypeFactory.Mode mode, final Element parentNode) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, simpleTypeRestriction, "Creating declaration content. Name=" + name + ", Mode=" + mode);
 
         final QName baseType = simpleTypeRestriction.getBaseTypeName();
-        final IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
+        IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.getDefaultDataTypeFactory(baseType);
 
         if (xdDeclarationFactory == null) {
             final XmlSchemaType itemSchemaType = Xsd2XdUtils.getSchemaTypeByQName(schema, baseType);
@@ -194,14 +195,19 @@ public class XdDeclarationFactory {
                 if (IDeclarationTypeFactory.Mode.TEXT_DECL.equals(mode)) {
                     return createTextDeclaration(schemaSimpleType.getContent(), null);
                 } else if (IDeclarationTypeFactory.Mode.TOP_DECL.equals(mode)) {
-                    return _createTopDeclaration(schemaSimpleType);
+                    final String res = _createTopDeclaration(schemaSimpleType, parentNode);
+                    if (parentNode != null && res != null) {
+                        final Element xdDeclaration = xdFactory.createEmptyDeclaration();
+                        xdDeclaration.setTextContent(res);
+                        parentNode.appendChild(xdDeclaration);
+                    }
                 }
             }
-        }
 
-        if (xdDeclarationFactory == null) {
-            SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeRestriction, "Unknown XSD data type! QName=" + baseType);
-            return null;
+            xdDeclarationFactory = new DefaultTypeFactory(name);
+            xdDeclarationFactory.setName(name);
+            xdDeclarationFactory.setMode(IDeclarationTypeFactory.Mode.TOP_DECL);
+            return xdDeclarationFactory.build(baseType.getLocalPart(), "");
         }
 
         if (IDeclarationTypeFactory.Mode.TOP_DECL.equals(mode) && !processedTopDeclarations.add(name)) {
@@ -224,12 +230,12 @@ public class XdDeclarationFactory {
             if (itemSchemaType instanceof XmlSchemaSimpleType) {
                 final XmlSchemaSimpleType itemSimpleSchemaType = (XmlSchemaSimpleType) itemSchemaType;
                 if (itemSimpleSchemaType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                    facetString = create((XmlSchemaSimpleTypeRestriction) itemSimpleSchemaType.getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL);
+                    facetString = create((XmlSchemaSimpleTypeRestriction) itemSimpleSchemaType.getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL, null);
                 }
             }
         } else if (simpleTypeList.getItemType() != null) {
             if (simpleTypeList.getItemType().getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                facetString = create((XmlSchemaSimpleTypeRestriction)simpleTypeList.getItemType().getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL);
+                facetString = create((XmlSchemaSimpleTypeRestriction)simpleTypeList.getItemType().getContent(), null, IDeclarationTypeFactory.Mode.DATATYPE_DECL, null);
             }
         }
 

@@ -96,12 +96,12 @@ public class Xsd2XdTreeAdapter {
         return rootElemSb.toString();
     }
 
-    public void convertTree(final XmlSchemaObjectBase xsdNode, Element parentNode) {
+    public void convertTree(final XmlSchemaObjectBase xsdNode, final Element parentNode) {
         if (xsdNode instanceof XmlSchemaElement) {
             createElement((XmlSchemaElement)xsdNode, parentNode);
         } else if (xsdNode instanceof XmlSchemaType) {
             if (xsdNode instanceof XmlSchemaSimpleType) {
-                parentNode.appendChild(xdDeclarationFactory.createTopDeclaration((XmlSchemaSimpleType) xsdNode));
+                xdDeclarationFactory.createTopDeclaration((XmlSchemaSimpleType) xsdNode, parentNode);
             } else if (xsdNode instanceof XmlSchemaComplexType) {
                 createTopNonRootElement((XmlSchemaComplexType)xsdNode, parentNode);
             }
@@ -148,15 +148,7 @@ public class Xsd2XdTreeAdapter {
                         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
                         final XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) xsdElementNode.getSchemaType();
                         if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                            final QName baseType = ((XmlSchemaSimpleTypeRestriction) simpleType.getContent()).getBaseTypeName();
-                            if (baseType != null) {
-                                final Element xdTextRefElem = xdFactory.createTextRef();
-                                if (externalRef(baseType, xdTextRefElem, true)) {
-                                    xdElem.appendChild(xdTextRefElem);
-                                } else {
-                                    xdElem.setTextContent(xdDeclarationFactory.create((XmlSchemaSimpleTypeRestriction) simpleType.getContent(), null, IDeclarationTypeFactory.Mode.TEXT_DECL));
-                                }
-                            }
+                            xdElem.setTextContent(xdDeclarationFactory.createTextDeclaration(simpleType.getContent(), xsdElemQName));
                         }
                     }
                 } else {
