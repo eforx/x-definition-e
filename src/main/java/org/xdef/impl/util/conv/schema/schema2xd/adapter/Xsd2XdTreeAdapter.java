@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 
+import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.XD_ATTR_TEXT;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.PREPROCESSING;
@@ -105,7 +106,7 @@ public class Xsd2XdTreeAdapter {
                 createTopNonRootElement((XmlSchemaComplexType)xsdNode, parentNode);
             }
         } else if (xsdNode instanceof XmlSchemaGroupParticle) {
-            createGroupParticle((XmlSchemaGroupParticle)xsdNode, parentNode);
+            createGroupParticle((XmlSchemaGroupParticle)xsdNode, parentNode, false);
         } else if (xsdNode instanceof XmlSchemaGroup) {
             createGroup((XmlSchemaGroup)xsdNode, parentNode);
         } else if (xsdNode instanceof XmlSchemaGroupRef) {
@@ -118,6 +119,7 @@ public class Xsd2XdTreeAdapter {
     private void createElement(final XmlSchemaElement xsdElementNode, Element parentNode) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Creating element ...");
         final Element xdElem = xdFactory.createElement(xsdElementNode, xDefName);
+
         final QName xsdElemQName = xsdElementNode.getSchemaTypeName();
         if (xsdElemQName != null && XSD_NAMESPACE_PREFIX_EMPTY.equals(xsdElemQName.getPrefix())) {
             // TODO: Make reference if possible!
@@ -135,7 +137,12 @@ public class Xsd2XdTreeAdapter {
                     if (xsdElementNode.getSchemaType() instanceof XmlSchemaComplexType) {
                         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to complex type. Reference=" + xsdElemQName);
                         if (!externalRef(xsdElemQName, xdElem, false)) {
-                            XdAttributeFactory.addAttrRef(xdElem, xsdElemQName);
+                            xdAttrFactory.addAttrRef(xdElem, xsdElemQName);
+                        }
+
+                        final XmlSchemaComplexType complexType = XdNamespaceUtils.getReferenceComplexType(schema.getParent(), xsdElemQName);
+                        if (complexType != null && complexType.isMixed()) {
+                            xdAttrFactory.addAttrText(xdElem);
                         }
                     } else if (xsdElementNode.getSchemaType() instanceof XmlSchemaSimpleType) {
                         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdElementNode, "Element is referencing to simple type. Reference=" + xsdElemQName);
@@ -187,9 +194,16 @@ public class Xsd2XdTreeAdapter {
     private void createElementFromComplex(final Element xdElem, final XmlSchemaComplexType xsdComplexNode) {
         addAttrsToElem(xdElem, xsdComplexNode.getAttributes());
 
-        // TODO: mixed
         if (xsdComplexNode.getParticle() != null) {
-            convertTree(xsdComplexNode.getParticle(), xdElem);
+            if (xsdComplexNode.getParticle() instanceof XmlSchemaGroupParticle) {
+                createGroupParticle((XmlSchemaGroupParticle)xsdComplexNode.getParticle(), xdElem, xsdComplexNode.isMixed());
+            } else {
+                convertTree(xsdComplexNode.getParticle(), xdElem);
+            }
+        }
+
+        if (xsdComplexNode.isMixed()) {
+            xdAttrFactory.addAttrText(xdElem);
         }
 
         if (xsdComplexNode.getContentModel() != null) {
@@ -223,7 +237,7 @@ public class Xsd2XdTreeAdapter {
 
                     if (xsdComplexExtension.getParticle() != null) {
                         if (xsdComplexExtension.getParticle() instanceof XmlSchemaGroupParticle) {
-                            createGroupParticle((XmlSchemaGroupParticle)xsdComplexExtension.getParticle(), xdElem);
+                            createGroupParticle((XmlSchemaGroupParticle)xsdComplexExtension.getParticle(), xdElem, false);
                         }
                     }
 
@@ -234,7 +248,7 @@ public class Xsd2XdTreeAdapter {
         }
     }
 
-    private void createGroupParticle(final XmlSchemaGroupParticle xsdParticleNode, Element parentNode) {
+    private void createGroupParticle(final XmlSchemaGroupParticle xsdParticleNode, final Element parentNode, final boolean mixed) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xsdParticleNode, "Creating group particle ...");
         Element xdParticle = null;
         if (xsdParticleNode instanceof XmlSchemaSequence) {
@@ -242,10 +256,27 @@ public class Xsd2XdTreeAdapter {
             xdParticle = xdFactory.createEmptySequence();
             final List<XmlSchemaSequenceMember> xsdSequenceMembers = xsdSequence.getItems();
             if (xsdSequenceMembers != null && !xsdSequenceMembers.isEmpty()) {
+                // If xs:sequence contains only element nodes, then remove sequence from x-definition
+                boolean onlyElems = true;
+                for (XmlSchemaSequenceMember xsdSequenceMember : xsdSequenceMembers) {
+                    if (!(xsdSequenceMember instanceof XmlSchemaElement)) {
+                        onlyElems = false;
+                        break;
+                    }
+                }
+
+                if (onlyElems) {
+                    xdParticle = parentNode;
+                }
+
                 for (XmlSchemaSequenceMember xsdSequenceMember : xsdSequenceMembers) {
                     if (xsdSequenceMember instanceof XmlSchemaParticle) {
                         convertTree(xsdSequenceMember, xdParticle);
                     }
+                }
+
+                if (onlyElems) {
+                    xdParticle = null;
                 }
             }
         } else if (xsdParticleNode instanceof XmlSchemaChoice) {
@@ -274,9 +305,12 @@ public class Xsd2XdTreeAdapter {
 
         if (xdParticle != null) {
             xdAttrFactory.addOccurrence(xdParticle, xsdParticleNode);
-        }
+            if (mixed) {
+                xdAttrFactory.addAttrText(xdParticle);
+            }
 
-        parentNode.appendChild(xdParticle);
+            parentNode.appendChild(xdParticle);
+        }
     }
 
     private void createGroup(final XmlSchemaGroup xsdGroupNode, Element parentNode) {
@@ -284,7 +318,7 @@ public class Xsd2XdTreeAdapter {
 
         final Element group = xdFactory.createEmptyNamedMixed(xsdGroupNode.getName());
         if (xsdGroupNode.getParticle() != null) {
-            createGroupParticle(xsdGroupNode.getParticle(), group);
+            createGroupParticle(xsdGroupNode.getParticle(), group, false);
         }
         parentNode.appendChild(group);
     }

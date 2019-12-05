@@ -67,4 +67,13 @@ public class XdNamespaceUtils {
         return schemaName;
     }
 
+    public static XmlSchemaComplexType getReferenceComplexType(final XmlSchemaCollection schemaCollection, final QName refQName) {
+        final XmlSchemaType refSchemaType = schemaCollection.getTypeByQName(refQName);
+        if (refSchemaType instanceof XmlSchemaComplexType) {
+            return (XmlSchemaComplexType)refSchemaType;
+        }
+
+        return null;
+    }
+
 }

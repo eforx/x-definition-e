@@ -381,8 +381,12 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         // ============ Mixed content ============
 
-//        convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
-//        convertXsd2XDefNoRef("t021a", Arrays.asList(new String[] {"t021"}), null);
+        convertXsd2XdPoolNoRef ("t022", Arrays.asList(new String[] {"t022", "t022_1", "t022_2"
+//                , "t022_3"
+        }), null);
+
+        convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
+        convertXsd2XDefNoRef("t021a", Arrays.asList(new String[] {"t021"}), null);
 
         // ============ Basic namespace ============
 
@@ -412,8 +416,9 @@ public class TestXsd2Xd extends TesterXdSchema {
         convertXsd2XdPoolNoRef ("refTest3", Arrays.asList(new String[] {"refTest3_valid_1"}), null);
         convertXsd2XdPoolNoRef ("sisma", Arrays.asList(new String[] {"sisma"}), null);
 
-        // TODO: mixed
+        // TODO: mixed - text after last child node
 //        convertXsd2XdPoolNoRef ("Sisma_RegistraceSU", Arrays.asList(new String[] {"Sisma_RegistraceSU"}), null);
+
     }
 
     /** Run test

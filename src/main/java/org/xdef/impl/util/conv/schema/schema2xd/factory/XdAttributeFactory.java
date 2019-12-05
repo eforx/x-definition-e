@@ -10,9 +10,9 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 
 import javax.xml.namespace.QName;
 
-import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.XD_ATTR_SCRIPT;
-import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.XD_NAMESPACE_URI;
+import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.*;
 import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdFeature.XD_EXPLICIT_OCCURRENCE;
+import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdFeature.XD_MIXED_REQUIRED;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.TRANSFORMATION;
@@ -72,6 +72,10 @@ public class XdAttributeFactory {
         } else {
             el.setAttributeNS(XD_NAMESPACE_URI, qName, value);
         }
+    }
+
+    public void addAttrText(final Element el) {
+        addAttrXDef(el, XD_ATTR_TEXT, (!adapterCtx.hasEnableFeature(XD_MIXED_REQUIRED) ? "? " : "") + "string()");
     }
 
     public void addOccurrence(final Element xdParticle, final XmlSchemaParticle xsdParicle) {

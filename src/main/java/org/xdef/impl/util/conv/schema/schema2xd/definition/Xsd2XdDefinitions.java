@@ -19,5 +19,6 @@ public interface Xsd2XdDefinitions {
     String XD_ATTR_NAME = "xd:name";
     String XD_ATTR_ROOT_ELEMT = "xd:root";
     String XD_ATTR_SCRIPT = "xd:script";
+    String XD_ATTR_TEXT = "xd:text";
 
 }
