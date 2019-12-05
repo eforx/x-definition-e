@@ -245,7 +245,7 @@ public class Xd2XsdTreeAdapter {
                         "Element=" + xData.getName() + ", Type=" + qName);
             } else if (XD_PARSER_EQ.equals(xData.getParserName())) {
                 qName = Xd2XsdParserMapping.getDefaultParserQName(xData.getValueTypeName(), adapterCtx);
-                final String fixedValue = xData.getFixedValue();
+                final String fixedValue = xData.getFixedValue() != null ? xData.getFixedValue().stringValue() : null;
                 if (fixedValue != null) {
                     attr.setFixedValue(fixedValue);
                 }
@@ -269,7 +269,7 @@ public class Xd2XsdTreeAdapter {
                 }
             }
 
-            final String defaultValue = xData.getDefaultValue();
+            final String defaultValue = xData.getDefaultValue() != null ? xData.getDefaultValue().stringValue() : null;
             if (defaultValue != null) {
                 attr.setDefaultValue(defaultValue);
             }
