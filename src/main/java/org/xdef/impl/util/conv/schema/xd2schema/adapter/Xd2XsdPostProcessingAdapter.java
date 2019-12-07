@@ -237,75 +237,39 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 
                             final XmlSchemaElement rootElem = rootSchemaNode.toXsdElem();
                             final String keyFieldPath = buildFieldXPath(pathKeys.getValue());
-                            boolean createUnique = varRefs == null || varRefs.isEmpty();
+                            final boolean createUnique = varRefs == null || varRefs.isEmpty();
+                            final String keyName = "key_" + u.getName() + "_" + i;
 
-                            XmlSchemaIdentityConstraint identityConstraint = createUnique ? new XmlSchemaUnique() : new XmlSchemaKey();
-                            final XmlSchemaXPath xPathSelector = new XmlSchemaXPath();
-                            final XmlSchemaXPath xPathField = new XmlSchemaXPath();
+                            SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set - key/unique. XPath=" + xPath + ", XPathParent=" + xPathParentNode);
 
-                            identityConstraint.setName("key_" + u.getName() + "_" + i);
-                            xPathSelector.setXPath(Xd2XsdUtils.relativeXPath(xPath, xPathParentNode));
-                            xPathField.setXPath(keyFieldPath);
+                            final XmlSchemaIdentityConstraint identityConstraint = createUnique ? new XmlSchemaUnique() : new XmlSchemaKey();
+                            identityConstraint.setName(keyName);
+                            addConstraintInfo(identityConstraint, Xd2XsdUtils.relativeXPath(xPath, xPathParentNode), keyFieldPath);
 
-                            SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set - key/unique. XPath=" + xPath + ", XPathParent=" + xPathParentNode + ", XPathSelector=" + xPathSelector.getXPath());
-
-                            boolean unsupported = false;
-
-                            for (Map.Entry<String, List<Pair<String, XmlSchemaAttribute>>> varRefEntry : varRefs.entrySet()) {
-                                if (varRefEntry.getValue().size() > 1) {
-                                    SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set reference is used in multiple attributes - not supported now. UniqueSet=" + u.getPath() + "Variable=" + varName);
-                                    continue;
-                                }
-
-                                final String xPathRef = varRefEntry.getKey();
-                                final String xPathParentNodeRef = getParentNodePath(varRefEntry.getKey(), xPathRef);
-
-                                if (pathKeys.getValue().size() > 1 && xPathParentNode.contains("/")) {
-                                    SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set variable has multiple keys in child node - not supported now.");
-                                    unsupported = true;
-                                    continue;
-                                }
-
-                                if (pathKeys.getValue().size() > 1 && !xPathParentNode.equals(xPathParentNodeRef)) {
-                                    SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set variable has multiple keys and ref in different XPath - not supported now.");
-                                    unsupported = true;
-                                    continue;
-                                }
-
-                                SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Creating keyref for unique set. UniqueSet=" + u.getPath() + ", Variable=" + varName);
-
-                                final String refFieldPath = buildFieldXPath(varRefEntry.getValue());
-                                final XmlSchemaKeyref ref = new XmlSchemaKeyref();
-                                final XmlSchemaXPath xPathSelectorRef = new XmlSchemaXPath();
-                                final XmlSchemaXPath xPathFieldRef = new XmlSchemaXPath();
-
-                                ref.setName("ref_" + u.getName() + "_" + i + "_" + j);
-                                ref.setSelector(xPathSelectorRef);
-                                ref.getFields().add(xPathFieldRef);
-                                ref.setRefer(new QName(identityConstraint.getName()));
-
-                                xPathSelectorRef.setXPath(Xd2XsdUtils.relativeXPath(xPathRef, xPathParentNode));
-                                xPathFieldRef.setXPath(refFieldPath);
-
-                                SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set - keyref. XPath=" + xPathRef + ", XPathParent=" + xPathParentNode + ", XPathSelector=" + xPathSelectorRef.getXPath());
-
-                                rootElem.getConstraints().add(ref);
-                                j++;
-                            }
-
-                            if (unsupported) {
-                                identityConstraint = new XmlSchemaUnique();
-                                identityConstraint.setName("key_" + u.getName() + "_" + i);
-                            }
-
-                            identityConstraint.setSelector(xPathSelector);
-                            identityConstraint.getFields().add(xPathField);
-
-                            if (uniqueInfoEntry.getKey().isEmpty()) {
-                                identityConstraint.setAnnotation(XsdNodeFactory.createAnnotation("Unique set was placed in root of x-definition", adapterCtx));
+                            if (uniqueInfoEntry.getKey().isEmpty() && systemId.isEmpty()) {
+                                identityConstraint.setAnnotation(XsdNodeFactory.createAnnotation("Unique set was placed in global declaration inside x-definition", adapterCtx));
                             }
 
                             rootElem.getConstraints().add(identityConstraint);
+
+                            for (Map.Entry<String, List<Pair<String, XmlSchemaAttribute>>> varRefEntry : varRefs.entrySet()) {
+                                final String xPathRef = varRefEntry.getKey();
+
+                                SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Creating keyref for unique set. UniqueSet=" + u.getPath() + ", Variable=" + varName);
+
+                                for (Pair<String, XmlSchemaAttribute> varRef : varRefEntry.getValue()) {
+                                    final XmlSchemaKeyref ref = new XmlSchemaKeyref();
+                                    ref.setName("ref_" + u.getName() + "_" + i + "_" + j);
+                                    ref.setRefer(new QName(keyName));
+                                    addConstraintInfo(ref, Xd2XsdUtils.relativeXPath(xPathRef, xPathParentNode), "@" + varRef.getKey());
+
+                                    SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Unique set - keyref. XPath=" + xPathRef + ", XPathParent=" + xPathParentNode);
+
+                                    rootElem.getConstraints().add(ref);
+                                    j++;
+                                }
+                            }
+
                             i++;
                         }
                     }
@@ -362,5 +326,22 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         }
 
         return pathStringBuilder.toString();
+    }
+
+    /**
+     * Creates, initializes and inserts xs:selector and xs:field nodes into constraint node
+     * @param identityConstraint    Constraint node where created nodes will be placed
+     * @param selectorXPath         xs:selector xpath value
+     * @param fieldXPath            xs:field xpath value
+     */
+    private void addConstraintInfo(final XmlSchemaIdentityConstraint identityConstraint, final String selectorXPath, final String fieldXPath) {
+        final XmlSchemaXPath xPathSelectorRef = new XmlSchemaXPath();
+        final XmlSchemaXPath xPathFieldRef = new XmlSchemaXPath();
+
+        identityConstraint.setSelector(xPathSelectorRef);
+        identityConstraint.getFields().add(xPathFieldRef);
+
+        xPathSelectorRef.setXPath(selectorXPath);
+        xPathFieldRef.setXPath(fieldXPath);
     }
 }

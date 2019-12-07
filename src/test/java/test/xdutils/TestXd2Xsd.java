@@ -552,23 +552,25 @@ public class TestXd2Xsd extends TesterXdSchema {
 
         // ============ UniqueSets ============
 
-        // ID, IDREF, IDREFS, CHKID, CHKIDS with uniqueSet in root
+        // ID, IDREF, IDREFS, CHKID, CHKIDS with uniqueSet declaration in root
         convertXdDef2XsdNoRef ("keyAndRef1", Arrays.asList(new String[] {"keyAndRef1_valid_1"}), null);
         convertXdDef2XsdNoRef ("keyAndRef1B", Arrays.asList(new String[] {"keyAndRef1B_valid_1"}), /*Arrays.asList(new String[] {"keyAndRef1B_invalid_1"})*/ null);
-        convertXdDef2XsdNoRef ("keyAndRef1C", Arrays.asList(new String[] {"keyAndRef1C_valid_1"}), /*Arrays.asList(new String[] {"keyAndRef1C_invalid_1"})*/ null);
+        convertXdDef2XsdNoRef ("keyAndRef1C", Arrays.asList(new String[] {"keyAndRef1C_valid_1"}), Arrays.asList(new String[] {"keyAndRef1C_invalid_1"}));
         convertXdDef2XsdNoRef ("keyAndRef1G", Arrays.asList(new String[] {"keyAndRef1G_valid_1"}), /*Arrays.asList(new String[] {"keyAndRef1G_invalid_1"})*/ null);
         convertXdDef2XsdNoRef ("keyAndRef1H", Arrays.asList(new String[] {"keyAndRef1H_valid_1"}), Arrays.asList(new String[] {"keyAndRef1H_invalid_1"}));
         convertXdDef2XsdNoRef ("keyAndRef3", Arrays.asList(new String[] {"keyAndRef3_valid_1"}), null);
-        convertXdDef2XsdNoRef ("keyAndRef4", Arrays.asList(new String[] {"keyAndRef4_valid_1"}), null);
-        convertXdDef2XsdNoRef ("keyAndRef4B", Arrays.asList(new String[] {"keyAndRef4B_valid_1"}), null);
         convertXdDef2XsdNoRef ("keyAndRef7", Arrays.asList(new String[] {"keyAndRef7_valid_1"}), Arrays.asList(new String[] {"keyAndRef7_invalid_2"}));
 
-        // ID, IDREF, IDREFS in different path with uniqueSet in root
+        // ID, IDREF, IDREFS, CHKID, CHKIDS with uniqueSet local declaration in root
+        convertXdDef2XsdNoRef ("keyAndRef4", Arrays.asList(new String[] {"keyAndRef4_valid_1"}), null);
+        convertXdDef2XsdNoRef ("keyAndRef4B", Arrays.asList(new String[] {"keyAndRef4B_valid_1"}), null);
+
+        // ID, IDREF, IDREFS in different path with uniqueSet declaration in root
         convertXdDef2XsdNoRef ("keyAndRef1D", Arrays.asList(new String[] {"keyAndRef1D_valid_1"}), null);
         convertXdDef2XsdNoRef ("keyAndRef1E", Arrays.asList(new String[] {"keyAndRef1E_valid_1", "keyAndRef1E_valid_2"}), Arrays.asList(new String[] {"keyAndRef1E_invalid_1"}));
         convertXdDef2XsdNoRef ("keyAndRef1F", Arrays.asList(new String[] {"keyAndRef1F_valid_1"}), null);
 
-        // ID, IDREF, IDREFS with uniqueSet in element
+        // ID, IDREF, IDREFS with uniqueSet declaration in element
         convertXdDef2XsdNoRef ("keyAndRef2", Arrays.asList(new String[] {"keyAndRef2_valid_1", "keyAndRef2_valid_2"}), null);
         convertXdDef2XsdNoRef ("keyAndRef2B", Arrays.asList(new String[] {"keyAndRef2B_valid_1"}), null);
         convertXdDef2XsdNoRef ("keyAndRef2C", Arrays.asList(new String[] {"keyAndRef2C_valid_1"}), Arrays.asList(new String[] {"keyAndRef2C_invalid_1"}));
