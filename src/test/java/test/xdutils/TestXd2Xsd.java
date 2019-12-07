@@ -6,10 +6,10 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.*;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
-import org.xdef.impl.util.conv.schema.xd2schema.XdPool2XsdAdapter;
-import org.xdef.impl.util.conv.schema.xd2schema.XDef2XsdAdapter;
-import org.xdef.impl.util.conv.schema.xd2schema.definition.Xd2XsdFeature;
-import org.xdef.impl.util.conv.schema.xd2schema.util.Xd2XsdUtils;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.XDef2XsdAdapter;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.proc.XXElement;
 import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
@@ -581,6 +581,7 @@ public class TestXd2Xsd extends TesterXdSchema {
 
         // UniqueSet without variable name
         convertXdDef2XsdNoRef ("keyAndRef6", Arrays.asList(new String[] {"keyAndRef6_valid_1"}), null);
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////

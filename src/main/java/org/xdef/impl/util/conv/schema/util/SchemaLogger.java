@@ -4,7 +4,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Node;
 import org.xdef.impl.XNode;
-import org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
