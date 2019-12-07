@@ -8,10 +8,8 @@ import org.xdef.impl.util.conv.schema.schema2xd.util.Xsd2XdUtils;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 
 import javax.xml.namespace.QName;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.TRANSFORMATION;
@@ -26,7 +24,7 @@ public class XdDeclarationBuilder {
     /**
      * X-definition XML element factory
      */
-    private XdElementFactory xdFactory;
+    private XdNodeFactory xdFactory;
 
     private XdDeclarationFactory xdDeclarationFactory;
 
@@ -42,7 +40,7 @@ public class XdDeclarationBuilder {
 
     XdDeclarationBuilder() {}
 
-    XdDeclarationBuilder init(XmlSchema schema, XdElementFactory xdFactory, XdDeclarationFactory xdDeclarationFactory) {
+    XdDeclarationBuilder init(XmlSchema schema, XdNodeFactory xdFactory, XdDeclarationFactory xdDeclarationFactory) {
         this.schema = schema;
         this.xdFactory = xdFactory;
         this.xdDeclarationFactory = xdDeclarationFactory;

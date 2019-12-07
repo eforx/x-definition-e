@@ -8,7 +8,7 @@ import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.SchemaNodeFactory;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.model.SchemaNode;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdAdapterCtx;
@@ -47,7 +47,7 @@ public class XsdPostProcessor {
             SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
 
             final XmlSchema xmlSchema = adapterCtx.findSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
-            final XsdElementFactory xsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
+            final XsdNodeFactory xsdFactory = new XsdNodeFactory(xmlSchema, adapterCtx);
             final Set<String> schemaRootNodeNames = adapterCtx.getSchemaRootNodeNames(systemRefEntry.getKey());
 
             for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
@@ -121,7 +121,7 @@ public class XsdPostProcessor {
      * @param node          node to be transformed
      * @param xsdFactory    XSD element factory
      */
-    private void elementRootRef(final SchemaNode node, final XsdElementFactory xsdFactory) {
+    private void elementRootRef(final SchemaNode node, final XsdNodeFactory xsdFactory) {
         final SchemaNode refNode = node.getReference();
         if (refNode == null || (refNode.isXsdComplexType() && !node.hasAnyPointer())) {
             return;
@@ -134,7 +134,7 @@ public class XsdPostProcessor {
         if (isTopElement(refNode)) {
             final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(refNode.getXdNode().getXDPosition());
             final XmlSchema xmlSchema = adapterCtx.findSchema(systemId, true, POSTPROCESSING);
-            final XsdElementFactory refXsdFactory = new XsdElementFactory(xmlSchema, adapterCtx);
+            final XsdNodeFactory refXsdFactory = new XsdNodeFactory(xmlSchema, adapterCtx);
             if (refNode.toXsdElem().isRef()) {
                 elementRootRef(refNode, refXsdFactory);
             } else {
@@ -148,7 +148,7 @@ public class XsdPostProcessor {
      * @param node          node to be transformed
      * @param xsdFactory    XSD element factory
      */
-    private void elementTopToComplex(final SchemaNode node, final XsdElementFactory xsdFactory) {
+    private void elementTopToComplex(final SchemaNode node, final XsdNodeFactory xsdFactory) {
         SchemaLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Converting top-level element to complex-type ...");
 
         final XmlSchemaElement xsdElem = node.toXsdElem();
@@ -322,7 +322,7 @@ public class XsdPostProcessor {
                 //Xd2XsdUtils.removeItem(schema, complexType.getContentModel());
                 complexType.setContentModel(null);
                 complexType.setMixed(true);
-                complexType.setAnnotation(XsdElementFactory.createAnnotation("Text content has been originally restricted by x-definition", adapterCtx));
+                complexType.setAnnotation(XsdNodeFactory.createAnnotation("Text content has been originally restricted by x-definition", adapterCtx));
             }
         }
     }
@@ -373,7 +373,7 @@ public class XsdPostProcessor {
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
 
         final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
-        newGroupChoice.setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all", adapterCtx));
+        newGroupChoice.setAnnotation(XsdNodeFactory.createAnnotation("Original group particle: all", adapterCtx));
 
         long elementMinOccursSum = 0;
         long elementMaxOccursSum = 0;
@@ -444,7 +444,7 @@ public class XsdPostProcessor {
             if (memberParticle.getMinOccurs() != 1 || memberParticle.getMaxOccurs() != 1) {
                 final String minOcc = memberParticle.getMinOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMinOccurs());
                 final String maxOcc = memberParticle.getMaxOccurs() == Long.MAX_VALUE ? "unbounded" : String.valueOf(memberParticle.getMaxOccurs());
-                memberParticle.setAnnotation(XsdElementFactory.createAnnotation("Occurrence: [" + minOcc + ", " + maxOcc + "]", adapterCtx));
+                memberParticle.setAnnotation(XsdNodeFactory.createAnnotation("Occurrence: [" + minOcc + ", " + maxOcc + "]", adapterCtx));
             }
 
             memberParticle.setMaxOccurs(1);
@@ -463,7 +463,7 @@ public class XsdPostProcessor {
         }
         final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
         newGroupChoice.setTransformDirection(transformDirection);
-        newGroupChoice.xsd().setAnnotation(XsdElementFactory.createAnnotation("Original group particle: all", adapterCtx));
+        newGroupChoice.xsd().setAnnotation(XsdNodeFactory.createAnnotation("Original group particle: all", adapterCtx));
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
         return newGroupChoice;
     }

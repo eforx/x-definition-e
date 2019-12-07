@@ -11,7 +11,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.adapter.AbstractXd2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.adapter.Xd2XsdPostProcessingAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.adapter.Xd2XsdReferenceAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.adapter.Xd2XsdTreeAdapter;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.util.XsdNamespaceUtils;
@@ -69,7 +69,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
             schema = adapterCtx.findSchema(xDef.getName(), false, INITIALIZATION);
         }
 
-        final XsdElementFactory xsdFactory = new XsdElementFactory(schema, adapterCtx);
+        final XsdNodeFactory xsdFactory = new XsdNodeFactory(schema, adapterCtx);
         final Xd2XsdTreeAdapter treeAdapter = new Xd2XsdTreeAdapter(schema, xDef.getName(), xsdFactory, adapterCtx);
         final Xd2XsdReferenceAdapter referenceAdapter = new Xd2XsdReferenceAdapter(schema, xDef.getName(), xsdFactory, treeAdapter, adapterCtx);
 

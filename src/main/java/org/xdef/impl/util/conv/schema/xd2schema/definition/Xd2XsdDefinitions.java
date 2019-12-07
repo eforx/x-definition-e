@@ -52,4 +52,5 @@ public interface Xd2XsdDefinitions {
     String XD_UNIQUE_IDREF = "IDREF";
     String XD_UNIQUE_IDREFS = "IDREFS";
     String XD_UNIQUE_CHKID = "CHKID";
+    String XD_UNIQUE_CHKIDS = "CHKIDS";
 }

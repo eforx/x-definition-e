@@ -5,7 +5,7 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.impl.XDefinition;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.util.XsdNamespaceUtils;
 
@@ -145,7 +145,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
 
             final String schemaName = createOrGetXsdSchema(namespaceCtx, targetNsUri, importLocation);
 
-            final XsdElementFactory xsdFactory = new XsdElementFactory(schema, adapterCtx);
+            final XsdNodeFactory xsdFactory = new XsdNodeFactory(schema, adapterCtx);
             final Xd2XsdTreeAdapter treeAdapter = new Xd2XsdTreeAdapter(schema, schemaName, xsdFactory, adapterCtx);
             final Xd2XsdReferenceAdapter referenceAdapter = new Xd2XsdReferenceAdapter(schema, schemaName, xsdFactory, treeAdapter, adapterCtx);
 

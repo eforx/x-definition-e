@@ -7,6 +7,7 @@ import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
 import org.xdef.impl.XElement;
+import org.xdef.impl.util.conv.schema.xd2schema.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdAdapterCtx;
 
 import javax.xml.namespace.QName;
@@ -188,7 +189,7 @@ public class XsdNameUtils {
 
     /**
      * Parse x-definition unique set variable name
-     * @param varTypeName   x-definition unique set variable type
+     * @param varTypeName   x-definition unique set variable type name
      * @return  x-definition unique set variable name
      */
     public static String getUniqueSetVarName(final String varTypeName) {
@@ -202,7 +203,29 @@ public class XsdNameUtils {
             }
         }
 
-        return null;
+        return "";
+    }
+
+    /**
+     * Parse x-definition unique set variable type
+     * @param varTypeName   x-definition unique set variable type name
+     * @return  x-definition unique set variable type
+     */
+    public static UniqueConstraint.Type getUniqueSetVarType(final String varTypeName) {
+        UniqueConstraint.Type ucType = UniqueConstraint.Type.UNK;
+        if (varTypeName.endsWith(XD_UNIQUE_CHKID)) {
+            ucType = UniqueConstraint.Type.CHKID;
+        } else if (varTypeName.endsWith(XD_UNIQUE_ID)) {
+            ucType = UniqueConstraint.Type.ID;
+        }else if (varTypeName.endsWith(XD_UNIQUE_CHKIDS)) {
+            ucType = UniqueConstraint.Type.CHKIDS;
+        } else if (varTypeName.endsWith(XD_UNIQUE_IDREF)) {
+            ucType = UniqueConstraint.Type.IDREF;
+        } else if (varTypeName.endsWith(XD_UNIQUE_IDREFS)) {
+            ucType = UniqueConstraint.Type.IDREFS;
+        }
+
+        return ucType;
     }
 
     /**

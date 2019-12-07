@@ -58,12 +58,12 @@ public class SchemaNode {
      */
     private List<SchemaNode> pointers = null;
 
-    public SchemaNode(String name) {
-        this.xdPosition = name;
+    public SchemaNode(String xdPosition) {
+        this.xdPosition = xdPosition;
     }
 
-    public SchemaNode(String name, XmlSchemaObject xsdNode, XMNode xdNode) {
-        this.xdPosition = name;
+    public SchemaNode(String xdPosition, XmlSchemaObject xsdNode, XMNode xdNode) {
+        this.xdPosition = xdPosition;
         this.xsdNode = xsdNode;
         this.xdNode = xdNode;
     }

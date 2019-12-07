@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='A' name="keyAndRef2B">
+    <A>
+        <a xd:script='var uniqueSet v {x:int()}; occurs *'>
+            <b x='v.x.ID()' y='v.x.ID()'/>
+            <c z='v.x.IDREF();' xd:script='occurs +'/>
+        </a>
+    </A>
+</xd:def>
+

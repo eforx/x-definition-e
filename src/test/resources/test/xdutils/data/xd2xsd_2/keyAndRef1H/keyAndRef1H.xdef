@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xd:def xmlns:xd="http://www.xdef.org/xdef/3.2" root='a' name="keyAndRef1H">
+    <xd:declaration>
+        uniqueSet u {x: int()}
+    </xd:declaration>
+    <a>
+        <b m='u.x.IDREF'/>
+        <c o='u.x.ID()' xd:script='occurs +'/>
+    </a>
+</xd:def>
+

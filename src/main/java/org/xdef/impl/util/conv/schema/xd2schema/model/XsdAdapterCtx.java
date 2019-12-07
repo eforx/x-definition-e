@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.schema.xd2schema.model;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
 import org.xdef.impl.XData;
 import org.xdef.impl.XNode;
@@ -18,6 +19,7 @@ import java.util.*;
 
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.definition.Xd2XsdDefinitions.*;
 
 /**
  * Basic XSD context for transformation x-definition to XSD schema
@@ -389,12 +391,12 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Get schema node defined by {@paramref systemId} and {@paramref nodePath}
+     * Find schema node defined by {@paramref systemId} and {@paramref nodePath}
      * @param systemId  XSD schema identifier
      * @param nodePath  x-definition path
      * @return  schema node if exists, otherwise null
      */
-    public SchemaNode getSchemaNode(final String systemId, final String nodePath) {
+    public SchemaNode findSchemaNode(final String systemId, final String nodePath) {
         final Map<String, SchemaNode> xsdSystemRefs = nodes.get(systemId);
         if (xsdSystemRefs == null) {
             return null;
@@ -493,33 +495,6 @@ public class XsdAdapterCtx {
         return uniqueConstraint;
     }
 
-    /**
-     * Add variable into unique constraint
-     * @param xData                 x-definition node of unique constraint's variable
-     * @param uniqueConstraint     unique constraint's where variable should be saved
-     */
-    public void addVarToUniqueConst(final XData xData, final UniqueConstraint uniqueConstraint) {
-        final String varName = XsdNameUtils.getUniqueSetVarName(xData.getValueTypeName());
-//        final String nodePath = XsdNameUtils.getXNodePath(xData.getXDPosition());
-        final String parserName = xData.getParserName();
-        final QName qName = Xd2XsdParserMapping.getDefaultParserQName(parserName, this);
-
-        SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Add variable to unique set. Unique=" + uniqueConstraint.getPath() + ", VarName=" + varName + ", QName=" + qName);
-
-        if (qName != null) {
-            uniqueConstraint.addVar(varName, qName);
-        }
-
-        // TODO: Attributes using ID(), IDREF(), ... don't contain ID, IDREF in valueTypeName
-//        if (XD_UNIQUE_ID.equals(varName)) {
-//            uniqueConstraint.addKey(nodePath);
-//        } else if (XD_UNIQUE_IDREF.equals(varName)) {
-//            uniqueConstraint.addRef(nodePath);
-//        } else if (XD_UNIQUE_IDREFS.equals(varName)) {
-//            uniqueConstraint.addRef(nodePath);
-//        }
-    }
-
     private UniqueConstraint getUniqueConstraint(final Map<String, List<UniqueConstraint>> uniqueConstraintMap, final String name, final String path) {
         if (!uniqueConstraintMap.isEmpty()) {
             final List<UniqueConstraint> uniqueInfoList = uniqueConstraintMap.get(path);
@@ -543,6 +518,7 @@ public class XsdAdapterCtx {
     public UniqueConstraint findUniqueConst(final XData xData) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xData, "Finding unique set. Name=" + xData.getValueTypeName());
 
+        // TODO: Finding of unique set not using variable name, ie. uniqueSet u int();
         final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xData.getXDPosition());
         final String uniqueInfoName = XsdNameUtils.getUniqueSetName(xData.getValueTypeName());
         final String uniquestSetPath = "/" + XsdNameUtils.getXNodePath(xData.getXDPosition());

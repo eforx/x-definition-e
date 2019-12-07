@@ -9,7 +9,7 @@ import org.xdef.impl.util.conv.schema.schema2xd.factory.XdDeclarationBuilder;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.XdDeclarationFactory;
-import org.xdef.impl.util.conv.schema.schema2xd.factory.XdElementFactory;
+import org.xdef.impl.util.conv.schema.schema2xd.factory.XdNodeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.declaration.IDeclarationTypeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.util.XdNamespaceUtils;
@@ -19,7 +19,6 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 
-import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.XD_ATTR_TEXT;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.PREPROCESSING;
@@ -41,7 +40,7 @@ public class Xsd2XdTreeAdapter {
     /**
      * X-definition XML element factory
      */
-    final private XdElementFactory xdFactory;
+    final private XdNodeFactory xdFactory;
 
     /**
      * XSD adapter context
@@ -63,7 +62,7 @@ public class Xsd2XdTreeAdapter {
      */
     private String targetNsPrefix;
 
-    public Xsd2XdTreeAdapter(String xDefName, XmlSchema schema, XdElementFactory xdFactory, XdAdapterCtx adapterCtx) {
+    public Xsd2XdTreeAdapter(String xDefName, XmlSchema schema, XdNodeFactory xdFactory, XdAdapterCtx adapterCtx) {
         this.xDefName = xDefName;
         this.schema = schema;
         this.xdFactory = xdFactory;

@@ -14,7 +14,7 @@ public interface SchemaLoggerDefs {
 
     String XSD_XDEF_ADAPTER = "XsdXDefinitionAdapter";
     String XSD_XDEF_EXTRA_ADAPTER = "XsdXDefinitionExtraAdapter";
-    String XSD_ELEM_FACTORY = "XsdElementFactory";
+    String XSD_ELEM_FACTORY = "XsdNodeFactory";
     String XSD_DPOOL_ADAPTER = "XsdXPoolAdapter";
     String XSD_PP_ADAPTER = "XsdPPAdapter";
     String XSD_PP_PROCESOR = "XsdPPProcesor";
@@ -22,6 +22,7 @@ public interface SchemaLoggerDefs {
     String XSD_ADAPTER_CTX = "XsdAdapterCtx";
     String XSD_REFERENCE = "SchemaNode";
     String XSD_NAME_FACTORY = "NameFactory";
+    String XSD_KEY_AND_REF = "UniqueConstraint";
 
 
     String XD_ADAPTER = "XdAdapter";

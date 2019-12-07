@@ -11,7 +11,7 @@ import org.xdef.impl.util.conv.schema.schema2xd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.adapter.AbstractXsd2XdAdapter;
 import org.xdef.impl.util.conv.schema.schema2xd.adapter.Xsd2XdTreeAdapter;
-import org.xdef.impl.util.conv.schema.schema2xd.factory.XdElementFactory;
+import org.xdef.impl.util.conv.schema.schema2xd.factory.XdNodeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.schema2xd.util.XdNamespaceUtils;
@@ -29,7 +29,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.*;
 
 public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDefAdapter<XmlSchema> {
 
-    private XdElementFactory elementFactory;
+    private XdNodeFactory elementFactory;
 
     @Override
     public String createXDefinition(final XmlSchema rootSchema, final String xDefName) {
@@ -52,7 +52,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
 
         adapterCtx = new XdAdapterCtx(features);
-        elementFactory = new XdElementFactory(adapterCtx);
+        elementFactory = new XdNodeFactory(adapterCtx);
 
         adapterCtx.init();
 

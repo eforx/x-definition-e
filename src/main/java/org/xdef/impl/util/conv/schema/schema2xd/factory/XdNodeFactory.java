@@ -18,7 +18,7 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema.schema2xd.definition.Xsd2XdDefinitions.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.definition.AlgPhase.TRANSFORMATION;
 
-public class XdElementFactory {
+public class XdNodeFactory {
 
     private final XdAdapterCtx adapterCtx;
 
@@ -27,7 +27,7 @@ public class XdElementFactory {
      */
     private Document doc;
 
-    public XdElementFactory(XdAdapterCtx adapterCtx) {
+    public XdNodeFactory(XdAdapterCtx adapterCtx) {
         this.adapterCtx = adapterCtx;
     }
 

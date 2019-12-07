@@ -3,7 +3,7 @@ package org.xdef.impl.util.conv.schema.xd2schema.factory.facet.xdef;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.XmlSchemaPatternFacet;
 import org.xdef.XDNamedValue;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.facet.AbstractXsdFacetFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.util.DateTimeFormatAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.util.Xd2XsdUtils;
@@ -50,7 +50,7 @@ public class DateTimeFormatFacetFactory extends AbstractXsdFacetFactory {
         final Set<String> patterns = DateTimeFormatAdapter.getRegexes(value);
         final String pattern = Xd2XsdUtils.regexCollectionToSingle(patterns);
         XmlSchemaPatternFacet facet = super.pattern(pattern);
-        facet.setAnnotation(XsdElementFactory.createAnnotation("Original pattern value: '" + value + "'", adapterCtx));
+        facet.setAnnotation(XsdNodeFactory.createAnnotation("Original pattern value: '" + value + "'", adapterCtx));
         facets.add(facet);
     }
 }

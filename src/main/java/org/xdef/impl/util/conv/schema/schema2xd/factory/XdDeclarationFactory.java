@@ -4,13 +4,9 @@ import org.apache.ws.commons.schema.*;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.factory.declaration.*;
-import org.xdef.impl.util.conv.schema.schema2xd.util.Xsd2XdTypeMapping;
-import org.xdef.impl.util.conv.schema.schema2xd.util.Xsd2XdUtils;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
@@ -26,11 +22,11 @@ public class XdDeclarationFactory {
     /**
      * X-definition XML element factory
      */
-    final private XdElementFactory xdFactory;
+    final private XdNodeFactory xdFactory;
 
     final Set<String> processedTopDeclarations = new HashSet<String>();
 
-    public XdDeclarationFactory(XmlSchema schema, XdElementFactory xdFactory) {
+    public XdDeclarationFactory(XmlSchema schema, XdNodeFactory xdFactory) {
         this.schema = schema;
         this.xdFactory = xdFactory;
     }

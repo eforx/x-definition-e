@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.schema.xd2schema.adapter;
 
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.xdef.XDPool;
 import org.xdef.impl.XData;
@@ -9,7 +10,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.SchemaNodeFactory;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.model.SchemaNode;
 import org.xdef.impl.util.conv.schema.xd2schema.model.UniqueConstraint;
@@ -49,7 +50,7 @@ public class Xd2XsdTreeAdapter {
     /**
      * XSD element factory
      */
-    final private XsdElementFactory xsdFactory;
+    final private XsdNodeFactory xsdFactory;
 
     /**
      * XSD adapter context
@@ -71,7 +72,7 @@ public class Xd2XsdTreeAdapter {
      */
     private Set<XMNode> xdProcessedNodes = null;
 
-    public Xd2XsdTreeAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx) {
+    public Xd2XsdTreeAdapter(XmlSchema schema, String schemaName, XsdNodeFactory xsdFactory, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
@@ -216,14 +217,27 @@ public class Xd2XsdTreeAdapter {
                 adapterCtx.addOrUpdateNode(node);
             }
         } else {
+            QName qName = null;
+            attr.setName(xData.getName());
+
             final UniqueConstraint uniqueConstraint = adapterCtx.findUniqueConst(xData);
             if (uniqueConstraint != null) {
-                attr.setAnnotation(XsdElementFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath(), adapterCtx));
-            }
-            attr.setName(xData.getName());
-            QName qName;
+                SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Attribute is using unique set. UniqueSet=" + uniqueConstraint.getName());
+                final UniqueConstraint.Type type = XsdNameUtils.getUniqueSetVarType(xData.getValueTypeName());
+                if (UniqueConstraint.isStringConstraint(type)) {
+                    qName = Constants.XSD_STRING;
+                }
 
-            if (xData.getRefTypeName() != null && uniqueConstraint == null) {
+                final String varName = XsdNameUtils.getUniqueSetVarName(xData.getValueTypeName());
+                final String nodePath = XsdNameUtils.getXNodePath(xData.getXDPosition());
+                uniqueConstraint.addConstraint(varName, attr, nodePath, type);
+
+                attr.setAnnotation(XsdNodeFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath() + " (" + xData.getValueTypeName() + ")", adapterCtx));
+            }
+
+            if (qName != null) {
+                attr.setSchemaTypeName(qName);
+            } else if (xData.getRefTypeName() != null && uniqueConstraint == null) {
                 String refTypeName = adapterCtx.getNameFactory().findTopLevelName(xData, false);
                 if (refTypeName == null) {
                     refTypeName = XsdNameFactory.createLocalSimpleTypeName(xData);
@@ -315,7 +329,7 @@ public class Xd2XsdTreeAdapter {
                     xsdAny.setMinOccurs(0);
                     xsdAny.setProcessContent(XmlSchemaContentProcessing.LAX);
                     if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
-                        xsdAny.setAnnotation(XsdElementFactory.createAnnotation("Original any element contains children nodes/attributes", adapterCtx));
+                        xsdAny.setAnnotation(XsdNodeFactory.createAnnotation("Original any element contains children nodes/attributes", adapterCtx));
                         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "!Lossy transformation! Any type with attributes/children nodes is not supported!");
                     }
 
@@ -743,7 +757,7 @@ public class Xd2XsdTreeAdapter {
             refNodePath = refNodePath.substring(0, refNodePath.lastIndexOf("/"));
         }
 
-        final SchemaNode refNode = adapterCtx.getSchemaNode(systemId, refNodePath);
+        final SchemaNode refNode = adapterCtx.findSchemaNode(systemId, refNodePath);
 
         if (refNode == null || refNode.getXsdNode() == null) {
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());

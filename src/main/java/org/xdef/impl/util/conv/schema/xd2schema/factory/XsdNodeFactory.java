@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.schema.xd2schema.factory;
 
 import org.apache.ws.commons.schema.*;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xdef.XDParser;
@@ -10,6 +11,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.definition.Xd2XsdFeature;
+import org.xdef.impl.util.conv.schema.xd2schema.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.model.xsd.CXmlSchemaAll;
 import org.xdef.impl.util.conv.schema.xd2schema.model.xsd.CXmlSchemaChoice;
@@ -33,7 +35,7 @@ import static org.xdef.model.XMNode.XMATTRIBUTE;
 /**
  * Basic factory for creating elementary XSD nodes
  */
-public class XsdElementFactory {
+public class XsdNodeFactory {
 
     /**
      * Output XSD schema
@@ -45,7 +47,7 @@ public class XsdElementFactory {
      */
     private final XsdAdapterCtx adapterCtx;
 
-    public XsdElementFactory(XmlSchema schema, XsdAdapterCtx adapterCtx) {
+    public XsdNodeFactory(XmlSchema schema, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.adapterCtx = adapterCtx;
     }
@@ -161,31 +163,46 @@ public class XsdElementFactory {
     public XmlSchemaSimpleContent createSimpleContentWithExtension(final XData xDataText) {
         SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xDataText, "Simple-content with extension");
 
-        QName qName;
-        if (xDataText.getRefTypeName() != null) {
-            final String refTypeName = XsdNameFactory.createLocalSimpleTypeName(xDataText);
-            final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
-            final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            qName = new QName(nsUri, refTypeName);
-            SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
-        } else {
-            qName = Xd2XsdParserMapping.getDefaultSimpleParserQName(xDataText, adapterCtx);
+        QName qName = null;
+
+        final UniqueConstraint uniqueConstraint = adapterCtx.findUniqueConst(xDataText);
+        if (uniqueConstraint != null) {
+            SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xDataText, "Simple-content is using unique set. UniqueSet=" + uniqueConstraint.getName());
+            final UniqueConstraint.Type type = XsdNameUtils.getUniqueSetVarType(xDataText.getValueTypeName());
+            if (UniqueConstraint.isStringConstraint(type)) {
+                qName = Constants.XSD_STRING;
+            }
         }
 
         if (qName == null) {
-            final String refParserName = XsdNameUtils.createRefNameFromParser(xDataText, adapterCtx);
-            if (refParserName != null) {
-                qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
-                SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using parser. Parser=" + refParserName);
+            if (xDataText.getRefTypeName() != null) {
+                final String refTypeName = XsdNameFactory.createLocalSimpleTypeName(xDataText);
+                final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
+                final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
+                qName = new QName(nsUri, refTypeName);
+                SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
+            } else {
+                qName = Xd2XsdParserMapping.getDefaultSimpleParserQName(xDataText, adapterCtx);
             }
-        } else {
-            SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using simple parser. Parser=" + qName.getLocalPart());
+
+            if (qName == null) {
+                final String refParserName = XsdNameUtils.createRefNameFromParser(xDataText, adapterCtx);
+                if (refParserName != null) {
+                    qName = new QName(XSD_NAMESPACE_PREFIX_EMPTY, refParserName);
+                    SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using parser. Parser=" + refParserName);
+                }
+            } else {
+                SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using simple parser. Parser=" + qName.getLocalPart());
+            }
         }
 
         if (qName != null) {
             final XmlSchemaSimpleContentExtension contentExtension = createEmptySimpleContentExtension(qName);
             final XmlSchemaSimpleContent content = createSimpleContent(contentExtension);
             SchemaLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xDataText, "Simple-content extending type. QName=" + qName);
+            if (uniqueConstraint != null) {
+                contentExtension.setAnnotation(XsdNodeFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath() + " (" + xDataText.getValueTypeName() + ")", adapterCtx));
+            }
             return content;
         }
 

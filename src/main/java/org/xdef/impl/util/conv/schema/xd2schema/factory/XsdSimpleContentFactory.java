@@ -32,7 +32,7 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
  */
 public class XsdSimpleContentFactory {
 
-    private final XsdElementFactory xsdFactory;
+    private final XsdNodeFactory xsdFactory;
     private final XsdAdapterCtx adapterCtx;
     /**
      * Source x-definition node
@@ -52,7 +52,7 @@ public class XsdSimpleContentFactory {
      * @param adapterCtx    XSD adapter context
      * @param xData         source x-definition node
      */
-    public XsdSimpleContentFactory(XsdElementFactory xsdFactory, XsdAdapterCtx adapterCtx, XData xData) {
+    public XsdSimpleContentFactory(XsdNodeFactory xsdFactory, XsdAdapterCtx adapterCtx, XData xData) {
         this.xsdFactory = xsdFactory;
         this.adapterCtx = adapterCtx;
         this.xData = xData;
@@ -111,7 +111,7 @@ public class XsdSimpleContentFactory {
         }
 
         if (!annotations.isEmpty()) {
-            res.setAnnotation(XsdElementFactory.createAnnotation(annotations, adapterCtx));
+            res.setAnnotation(XsdNodeFactory.createAnnotation(annotations, adapterCtx));
         }
 
         return res;
@@ -254,7 +254,7 @@ public class XsdSimpleContentFactory {
 
         final XmlSchemaSimpleTypeRestriction restriction = simpleTypeRestriction(parserInfo.getKey(), parserInfo.getValue(), xParser.getNamedParams().getXDNamedItems());
         if (unknownParser) {
-            restriction.setAnnotation(XsdElementFactory.createAnnotation("Original x-definition parser: " + xParser.parserName(), adapterCtx));
+            restriction.setAnnotation(XsdNodeFactory.createAnnotation("Original x-definition parser: " + xParser.parserName(), adapterCtx));
         }
 
         String refName = XsdNameFactory.createUnionRefTypeName(nodeName, parserInfo.getKey().getLocalPart());

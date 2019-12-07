@@ -6,7 +6,7 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
-import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdElementFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.model.XsdAdapterCtx;
@@ -27,7 +27,7 @@ public class Xd2XsdReferenceAdapter {
 
     private final XmlSchema schema;
     private final String schemaName;
-    private final XsdElementFactory xsdFactory;
+    private final XsdNodeFactory xsdFactory;
     private final Xd2XsdTreeAdapter treeAdapter;
     private final XsdAdapterCtx adapterCtx;
 
@@ -40,7 +40,7 @@ public class Xd2XsdReferenceAdapter {
      */
     private Set<String> namespaceIncludes;
 
-    public Xd2XsdReferenceAdapter(XmlSchema schema, String schemaName, XsdElementFactory xsdFactory, Xd2XsdTreeAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
+    public Xd2XsdReferenceAdapter(XmlSchema schema, String schemaName, XsdNodeFactory xsdFactory, Xd2XsdTreeAdapter treeAdapter, XsdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.schemaName = schemaName;
         this.xsdFactory = xsdFactory;
@@ -290,7 +290,7 @@ public class Xd2XsdReferenceAdapter {
                 final UniqueConstraint uniqueConstraint = adapterCtx.findUniqueConst(xData);
                 // Do not create reference if attribute is using unique set
                 if (uniqueConstraint != null) {
-                    adapterCtx.addVarToUniqueConst(xData, uniqueConstraint);
+                    uniqueConstraint.addVar(xData, adapterCtx);
                     return;
                 }
             }

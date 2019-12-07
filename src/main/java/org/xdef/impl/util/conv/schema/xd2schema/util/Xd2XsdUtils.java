@@ -89,23 +89,34 @@ public class Xd2XsdUtils {
         return stringBuilder.toString();
     }
 
-//    public static Pair<String, String> xPathSplitByAttr(final String xdPos) {
-//        final int paramPos = xdPos.lastIndexOf("/@");
-//        if (paramPos != -1) {
-//            return new Pair(xdPos.substring(0, paramPos), xdPos.substring(paramPos + 1));
-//        }
-//
-//        return null;
-//    }
-//
-//    public static String relativeXPath(final String xPath, final String xPathNode) {
-//        final int pos = xPath.indexOf(xPathNode);
-//        if (pos != -1) {
-//            return xPath.substring(pos + xPathNode.length() + 1);
-//        }
-//
-//        return xPath;
-//    }
+    /**
+     * Parse given x-definition pos without attribute at the end
+     * @param xdPos     x-definition position
+     * @return x-definition position without attribute
+     */
+    public static String xPathWithoutAttr(final String xdPos) {
+        final int paramPos = xdPos.lastIndexOf("/@");
+        if (paramPos != -1) {
+            return xdPos.substring(0, paramPos);
+        }
+
+        return xdPos;
+    }
+
+    /**
+     * Creates relative xpath from given absolute xpaths
+     * @param xPath         absolute full xpath
+     * @param xPathNode     absolute current xpath (part of {@paramref xPath})
+     * @return relative xpath
+     */
+    public static String relativeXPath(final String xPath, final String xPathNode) {
+        final int pos = xPath.indexOf(xPathNode);
+        if (pos != -1) {
+            return xPath.substring(pos + xPathNode.length() + 1);
+        }
+
+        return xPath;
+    }
 
     /**
      * Checks if given x-definition element is any type
