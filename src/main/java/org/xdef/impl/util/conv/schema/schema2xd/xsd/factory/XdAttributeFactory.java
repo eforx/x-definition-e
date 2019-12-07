@@ -206,6 +206,10 @@ public class XdAttributeFactory {
             valueBuilder.append("; default \"" + xsdAttr.getDefaultValue() + "\"");
         }
 
+        if (xsdAttr.getFixedValue() != null && !xsdAttr.getFixedValue().isEmpty()) {
+            valueBuilder.append("; fixed \"" + xsdAttr.getFixedValue() + "\"");
+        }
+
         return valueBuilder.toString();
     }
 }
