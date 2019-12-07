@@ -381,9 +381,8 @@ public class TestXsd2Xd extends TesterXdSchema {
 
         // ============ Mixed content ============
 
-        convertXsd2XdPoolNoRef ("t022", Arrays.asList(new String[] {"t022", "t022_1", "t022_2"
-//                , "t022_3"
-        }), null);
+        convertXsd2XdPoolNoRef ("t022", Arrays.asList(new String[] {"t022", "t022_1", "t022_2", "t022_3"}), null);
+        convertXsd2XdPoolNoRef ("t023", Arrays.asList(new String[] {"t023", "t023_1", "t023_2", "t023_3", "t023_4", "t023_5", "t023_6"}), null);
 
         convertXsd2XDefNoRef ("simpleRefTest", Arrays.asList(new String[] {"simpleRefTest_valid_1"}), null);
         convertXsd2XDefNoRef("t021a", Arrays.asList(new String[] {"t021"}), null);
