@@ -37,7 +37,7 @@ public class UniqueConstraint {
     private final String name;
 
     /**
-     * XSD schema name, where uniqueSet should be placed
+     * XSD document name, where uniqueSet should be placed
      */
     private final String systemId;
 

@@ -21,6 +21,9 @@ import java.util.*;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
 
+/**
+ * Makes post processing transformation on created XSD documents
+ */
 public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
 
     /**
@@ -104,7 +107,7 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
     }
 
     /**
-     * Updates XSD references which are breaking XSD schema rules
+     * Updates XSD references which are breaking XSD document rules
      */
     private void processReferences() {
         if (!adapterCtx.hasEnableFeature(Xd2XsdFeature.POSTPROCESSING_REFS)) {

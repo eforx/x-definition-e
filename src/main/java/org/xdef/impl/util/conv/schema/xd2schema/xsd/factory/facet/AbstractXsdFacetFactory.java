@@ -12,9 +12,19 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.T
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.*;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
+/**
+ * Base class for transformation of facets
+ */
 public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
 
+    /**
+     * XSD adapter context
+     */
     protected XsdAdapterCtx adapterCtx;
+
+    /**
+     * X-definition value type
+     */
     protected ValueType valueType;
 
     @Override
@@ -122,6 +132,11 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         this.valueType = valueType;
     }
 
+    /**
+     * Creates facet from given x-definition parameter
+     * @param facets    list of facets, where newly created facet will be inserted
+     * @param param     x-definition parameter
+     */
     protected void build(final List<XmlSchemaFacet> facets, final XDNamedValue param) {
         SchemaLogger.print(LOG_DEBUG, TRANSFORMATION, this.getClass().getSimpleName(), "Creating Facet. Type=" + param.getName());
 
@@ -162,6 +177,11 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         }
     }
 
+    /**
+     * Check if given x-definition parameter is internal and should not be transformed
+     * @param param     x-definition parameter
+     * @return true, if given parameter is internal
+     */
     private boolean isInternalFacet(XDNamedValue param) {
         return XD_INTERNAL_FACET_OUTFORMAT.equals(param.getName());
     }

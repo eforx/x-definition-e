@@ -44,7 +44,7 @@ public class SchemaNode {
     private XMNode xdNode;
 
     /**
-     * XSD schema node
+     * XSD document node
      */
     private XmlSchemaObjectBase xsdNode;
 
@@ -276,7 +276,7 @@ public class SchemaNode {
 
     /**
      * Get x-definition reference node position for post processing
-     * @param systemId  XSD schema name
+     * @param systemId  XSD document name
      * @param path
      * @return
      */

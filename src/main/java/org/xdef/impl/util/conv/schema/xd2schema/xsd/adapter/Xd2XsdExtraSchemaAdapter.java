@@ -48,7 +48,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     }
 
     /**
-     * Transform given x-definition nodes {@paramref allNodesToResolve} into XSD nodes and then insert them into related XSD schemas
+     * Transform given x-definition nodes {@paramref allNodesToResolve} into XSD nodes and then insert them into related XSD documents
      * @param allNodesToResolve     nodes to be transformed
      */
     protected Set<String> transformNodes(final Map<String, Map<String, XNode>> allNodesToResolve) {
@@ -110,7 +110,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
     }
 
     /**
-     * Internal class for transformation of given x-definition nodes into related XSD schema
+     * Internal class for transformation of given x-definition nodes into related XSD document
      */
     class SchemaAdapter extends AbstractXd2XsdAdapter {
 
@@ -120,7 +120,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         private final XDefinition sourceXDefinition;
 
         /**
-         * Output xsd schema
+         * Output XSD document
          */
         private XmlSchema schema = null;
 
@@ -129,18 +129,18 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         }
 
         /**
-         * Creates or updates XSD schema and then inserts into it given nodes
+         * Creates or updates XSD document and then inserts into it given nodes
          * @param namespaceCtx              X-definition namespace context
          * @param nodesInSchemaToResolve    Nodes to be created
-         * @param targetNsUri               XSD schema target namespace URI
-         * @param importLocation            XSD schema location
+         * @param targetNsUri               XSD document target namespace URI
+         * @param importLocation            XSD document location
          */
         protected void createOrUpdateSchema(final NamespaceMap namespaceCtx,
                                             final ArrayList<XNode> nodesInSchemaToResolve,
                                             final String targetNsUri,
                                             final XsdSchemaImportLocation importLocation) {
             SchemaLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
-            SchemaLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing xsd schema. TargetNamespace=" + targetNsUri);
+            SchemaLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "Post-processing XSD document. TargetNamespace=" + targetNsUri);
             SchemaLogger.printG(LOG_INFO, XSD_XDEF_EXTRA_ADAPTER, "====================");
 
             final String schemaName = createOrGetXsdSchema(namespaceCtx, targetNsUri, importLocation);
@@ -157,7 +157,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         }
 
         /**
-         * Creates or find XSD schema. Then initialize XSD schema
+         * Creates or find XSD document. Then initialize XSD document
          *
          * @param namespaceCtx
          * @param targetNsUri
@@ -181,11 +181,11 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         }
 
         /**
-         * Creates or find XSD schema
+         * Creates or find XSD document
          * If schema already exists, return value is reference to already existing schema.
          *
          * @param targetNsUri   target namespace Uri
-         * @param schemaName    xsd schema name
+         * @param schemaName    XSD document name
          * @return instance of xml schema
          */
         private XmlSchema createOrGetXsdSchema(final String targetNsUri, final String schemaName) {
@@ -194,7 +194,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
             if (schema == null) {
                 adapterCtx.addSchemaName(schemaName);
                 schema = new XmlSchema(targetNsUri, schemaName, adapterCtx.getXmlSchemaCollection());
-                SchemaLogger.print(LOG_INFO, PREPROCESSING, schemaName, "Initialize new XSD schema");
+                SchemaLogger.print(LOG_INFO, PREPROCESSING, schemaName, "Initialize new XSD document");
             } else {
                 SchemaLogger.print(LOG_INFO, PREPROCESSING, schemaName, "Schema already exists");
             }
@@ -203,14 +203,14 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
         }
 
         /**
-         * Initializes xsd schema namespace
+         * Initializes XSD document namespace
          *
          * If schema namespace context already exist, then merge it with {@paramref namespaceCtx)
          *
-         * @param schemaName        XSD schema name
+         * @param schemaName        XSD document name
          * @param namespaceCtx      current x-definition namespace context
-         * @param targetNsUri       XSD schema target namespace URI
-         * @param importLocation    XSD schema location
+         * @param targetNsUri       XSD document target namespace URI
+         * @param importLocation    XSD document location
          * @return
          */
         private void initSchemaNamespace(final String schemaName,

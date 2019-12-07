@@ -33,12 +33,12 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
 /**
- * Basic factory for creating elementary XSD nodes
+ * Basic factory for creating XSD nodes
  */
 public class XsdNodeFactory {
 
     /**
-     * Output XSD schema
+     * Output XSD document
      */
     private final XmlSchema schema;
 
@@ -129,7 +129,7 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD simple-type node on top level of XSD schema
+     * Creates XSD simple-type node on top level of XSD document
      * @param xData             x-definition attribute/text node
      * @param refTypeName       reference type name
      */
@@ -274,7 +274,7 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD complex type node with complex extension on top level of XSD schema
+     * Creates XSD complex type node with complex extension on top level of XSD document
      * @param complexTypeName       complex type name
      * @param extQName              complex extension QName
      * @return  <xs:complexType name="@{paramref complexTypeName}">
@@ -305,7 +305,7 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD complex type node with complex extension on top level of XSD schema
+     * Creates XSD complex type node with complex extension on top level of XSD document
      * @param complexTypeName       complex type name
      * @param extQName              simple extension QName
      * @return  <xs:complexType name="@{paramref simpleTypeName}">
@@ -397,8 +397,8 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD schema import node
-     * @param schema        output XSD schema
+     * Creates XSD document import node
+     * @param schema        output XSD document
      * @param nsUri         import namespace URI
      * @param location      import schema location
      */
@@ -409,8 +409,8 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD schema include node
-     * @param schema        output XSD schema
+     * Creates XSD document include node
+     * @param schema        output XSD document
      * @param location      include schema location
      */
     public void createSchemaInclude(final XmlSchema schema, final String location) {

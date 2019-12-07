@@ -4,6 +4,9 @@ import org.apache.ws.commons.schema.XmlSchemaFacet;
 
 import java.util.List;
 
+/**
+ * Transform XSD restrictions/facets into x-definition declaration type
+ */
 public interface IDeclarationTypeFactory {
 
     String FACET_MIN_INCLUSIVE = "MIN_INCLUSIVE";
@@ -19,18 +22,43 @@ public interface IDeclarationTypeFactory {
     String FACET_WHITESPACE = "WHITESPACE";
     String FACET_ENUMERATION = "ENUMERATION";
 
-    enum Mode {
+    enum Type {
         TOP_DECL,           // Used for top level xd:declaration nodes
         TEXT_DECL,          // Used for definition of text value of element
         DATATYPE_DECL       // Used for building only data type from facets (ie. attribute type, list item type)
     }
 
-    void setMode(final Mode mode);
+    /**
+     * Set type of x-definition declaration
+     * @param type      type of x-definition declaration
+     */
+    void setType(final Type type);
+
+    /**
+     * Set declaration variable name.
+     * Use only with mode {@link Type.TOP_DECL}
+     * @param typeName      x-definition declaration variable name
+     */
     void setName(final String typeName);
 
+    /**
+     * Get variable data type
+     * @return x-definition variable data type
+     */
     String getDataType();
 
+    /**
+     * Creates x-definition declaration type restrictions based on given XSD facets
+     * @param facets    list of XSD facets
+     * @return x-definition restriction
+     */
     String build(final List<XmlSchemaFacet> facets);
+
+    /**
+     * Creates x-definition declaration type restrictions from given facets string
+     * @param facets    list of XSD facets
+     * @return x-definition restriction
+     */
     String build(final String facets);
-    String build(final String type, final String facets);
+
 }

@@ -8,22 +8,47 @@ import java.util.*;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
+/**
+ * Base class for transformation of facets
+ */
 public abstract class AbstractDeclarationTypeFactory implements IDeclarationTypeFactory {
 
-    // TODO: default/fixed value?
+    /**
+     * X-definition output declaration type
+     */
+    private Type type;
 
-    private Mode mode;
+    /**
+     * X-definition variable declaration name.
+     * Used only with type={@link Type.TOP_DECL}
+     */
     protected String typeName = null;
-    protected List<XmlSchemaFacet> facets = null;
 
+    /**
+     * Map of facets with single value, which should be transformed.
+     * Content is filled by {@link #parseFacets}
+     */
     private final Map<String, Object> facetSingleValues = new HashMap<String, Object>();
+
+    /**
+     * Map of facets with possible multiple values, which should be transformed.
+     * Content is filled by {@link #parseFacets}
+     */
     private final Map<String, List<Object>> facetMultipleValues = new HashMap<String, List<Object>>();
-    private boolean firstFacet;
-    protected Set<String> facetsToRemove = null;
+
+    /**
+     * Flag of x-definition declaration builder, if first XSD facet has been converted
+     */
+    private boolean builderFirstFacet;
+
+    /**
+     * Set of marked facet names, which should be removed or have been already transformed
+     */
+    private Set<String> facetsToRemove = null;
 
     @Override
-    public void setMode(Mode mode) {
-        this.mode = mode;
+    public void setType(Type type) {
+        this.type = type;
     }
 
     @Override
@@ -33,8 +58,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
 
     @Override
     public String build(final List<XmlSchemaFacet> facets) {
-        this.facets = facets;
-        parseFacets();
+        parseFacets(facets);
 
         if (facetsToRemove != null) {
             for (String facet : facetsToRemove) {
@@ -56,17 +80,22 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return build(getDataType(), facets);
     }
 
-    @Override
-    public String build(final String type, final String facets) {
+    /**
+     * Creates x-definition declaration type restrictions based on given type and facet string
+     * @param type      X-definition output declaration type
+     * @param facets    X-definition facet string
+     * @return x-definition declaration type
+     */
+    private String build(final String type, final String facets) {
         StringBuilder sb = new StringBuilder();
 
-        if (Mode.TOP_DECL.equals(mode)) {
+        if (Type.TOP_DECL.equals(this.type)) {
             SchemaLogger.print(LOG_INFO, TRANSFORMATION, typeName, "Building top declaration. Type=" + type);
             sb.append("type " + typeName + " " + type);
-        } else if (Mode.TEXT_DECL.equals(mode)) {
+        } else if (Type.TEXT_DECL.equals(this.type)) {
             SchemaLogger.print(LOG_INFO, TRANSFORMATION, null, "Building text declaration. Type=" + type);
             sb.append("required " + type);
-        } else if (Mode.DATATYPE_DECL.equals(mode)) {
+        } else if (Type.DATATYPE_DECL.equals(this.type)) {
             SchemaLogger.print(LOG_INFO, TRANSFORMATION, null, "Building data type declaration. Type=" + type);
             sb.append(type);
         }
@@ -86,7 +115,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
             sb.append("]");
         }
         sb.append(")");
-        if (!Mode.DATATYPE_DECL.equals(mode)) {
+        if (!Type.DATATYPE_DECL.equals(this.type)) {
             sb.append(";");
         }
 
@@ -95,6 +124,11 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return sb.toString();
     }
 
+    /**
+     * Marks facet as resolved
+     * @param facetToRemove     facet to be removed
+     * @return current instance
+     */
     public AbstractDeclarationTypeFactory removeFacet(final String facetToRemove) {
         if (this.facetsToRemove == null) {
             this.facetsToRemove = new HashSet<String>();
@@ -103,6 +137,11 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return this;
     }
 
+    /**
+     * Marks multiple facets as resolved
+     * @param facetsToRemove    facets to be removed
+     * @return current instance
+     */
     public AbstractDeclarationTypeFactory removeFacets(final Set<String> facetsToRemove) {
         if (this.facetsToRemove == null) {
             this.facetsToRemove = new HashSet<String>();
@@ -111,10 +150,14 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return this;
     }
 
-    protected void parseFacets() {
+    /**
+     * Parse given XSD facet nodes into internal state
+     * @param facets    XSD facet nodes to be transformed
+     */
+    private void parseFacets(final List<XmlSchemaFacet> facets) {
         reset();
 
-        if (facets != null) {
+        if (facets != null && !facets.isEmpty()) {
             for (XmlSchemaFacet facet : facets) {
                 if (facet instanceof XmlSchemaFractionDigitsFacet) {
                     facetSingleValues.put(FACET_FRACTIONS_DIGITS, (facet).getValue());
@@ -161,38 +204,77 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         }
     }
 
+    /**
+     * Check if facet of given name is stored internally
+     * @param facetName     facet to be found
+     * @return true, if facet is stored internally
+     */
     protected boolean hasFacet(final String facetName) {
         return facetSingleValues.containsKey(facetName);
     }
 
+    /**
+     * Remove facet of given name from internal storage and return value of facet
+     * @param facetName     facet to be removed
+     * @return value of removed facet, null if facet is not stored
+     */
     protected Object useFacet(final String facetName) {
         return facetSingleValues.remove(facetName);
     }
 
+    /**
+     * Get value of internally stored facet
+     * @param facetName     facet's value to be returned
+     * @return value of facet, null if facet is not stored
+     */
     protected Object getFacet(final String facetName) {
         return facetSingleValues.get(facetName);
     }
 
+    /**
+     * Check if facet using multiple values of given name is stored internally
+     * @param facetName     facet to be found
+     * @return true, if facet is stored internally
+     */
     protected boolean hasMultipleFacet(final String facetName) {
         return facetMultipleValues.containsKey(facetName);
     }
 
+    /**
+     * Remove facet using multiple values of given name from internal storage and return value of facet
+     * @param facetName     facet to be removed
+     * @return value of removed facet, null if facet is not stored
+     */
     protected List<Object> useMultipleFacet(final String facetName) {
         return facetMultipleValues.remove(facetName);
     }
 
+    /**
+     * Custom implementation of converting XSD facet into x-definition declaration.
+     * Called before {@link #defaultBuildFacets}
+     * @param sb string builder where should be custom string appended
+     */
     protected void buildFacets(final StringBuilder sb) {
     }
 
+    /**
+     * X-definition declaration builder helper for concatenating facets values
+     * @param sb        facet string builder
+     * @param value     facet value to be appended
+     */
     protected void facetBuilder(final StringBuilder sb, final Object value) {
-        if (!firstFacet) {
+        if (!builderFirstFacet) {
             sb.append(", " + value);
         } else {
             sb.append(value);
-            firstFacet = false;
+            builderFirstFacet = false;
         }
     }
 
+    /**
+     * Default implementation of transforming XSD facets to x-definition declaration
+     * @param sb
+     */
     protected void defaultBuildFacets(final StringBuilder sb) {
         if (hasFacet(FACET_FRACTIONS_DIGITS)) {
             facetBuilder(sb, "%fractionDigits='" + useFacet(FACET_FRACTIONS_DIGITS) + "'");
@@ -258,6 +340,11 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         }
     }
 
+    /**
+     * Get or create new list for facet using multiple values
+     * @param facet     facet name using multiple values
+     * @return list of facet's values
+     */
     protected List<Object> getOrCreateValueList(final String facet) {
         List<Object> list = facetMultipleValues.get(facet);
         if (list == null) {
@@ -268,9 +355,12 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
         return list;
     }
 
+    /**
+     * Resets internal state of factory
+     */
     private void reset() {
         facetSingleValues.clear();
         facetMultipleValues.clear();
-        firstFacet = true;
+        builderFirstFacet = true;
     }
 }

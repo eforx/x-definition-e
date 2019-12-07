@@ -17,10 +17,19 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 
+/**
+ * Creates x-definition node's attributes
+ */
 public class XdAttributeFactory {
 
+    /**
+     * X-definition adapter context
+     */
     final private XdAdapterCtx adapterCtx;
 
+    /**
+     * X-definition declaration node factory
+     */
     final private XdDeclarationFactory xdDeclarationFactory;
 
     public XdAttributeFactory(XdAdapterCtx adapterCtx, XdDeclarationFactory xdDeclarationFactory) {
@@ -28,41 +37,73 @@ public class XdAttributeFactory {
         this.xdDeclarationFactory = xdDeclarationFactory;
     }
 
+    /**
+     * Add attribute to given x-definition node
+     * @param el            x-definition node
+     * @param attrName      attribute name
+     * @param attrValue     attribute value
+     */
     public static void addAttr(final Element el, final String attrName, final String attrValue) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. Name=" + attrName + ", Value=" + attrValue);
         el.setAttribute(attrName, attrValue);
     }
 
-    public static void addAttr(final Element el, final XmlSchemaAttribute xsdAttr, final String attrValue, final String xDefName, final XdAdapterCtx xdAdapterCtx) {
+    /**
+     * Add attribute based on input XSD attribute to given x-definition node
+     * @param el                x-definition node
+     * @param xsdAttr           XSD attribute node
+     * @param xDefName          XSD document name
+     */
+    public void addAttr(final Element el, final XmlSchemaAttribute xsdAttr, final String xDefName) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add attribute. QName=" + xsdAttr.getQName());
+
+        final String attribute = createAttribute(xsdAttr);
 
         if (xsdAttr.isRef()) {
             final QName xsdQName = xsdAttr.getRef().getTargetQName();
             if (xsdQName != null) {
-                final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, xdAdapterCtx);
-                el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attrValue);
+                final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
+                el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attribute);
             } else {
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdAttr, "Unknown attribute reference QName!");
             }
         } else {
             final QName xsdQName = xsdAttr.getQName();
             if (xsdQName != null && xsdQName.getNamespaceURI() != null && !XmlSchemaForm.UNQUALIFIED.equals(xsdAttr.getForm())) {
-                final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, xdAdapterCtx);
-                el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attrValue);
+                final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
+                el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attribute);
             } else {
-                el.setAttribute(xsdAttr.getName(), attrValue);
+                el.setAttribute(xsdAttr.getName(), attribute);
             }
         }
     }
 
+    /**
+     * Add reference attribute into given x-definition element node
+     * @param el        x-definition element node
+     * @param qName     reference qualified name
+     */
     public static void addAttrRef(final Element el, final QName qName) {
         addAttrXDef(el, XD_ATTR_SCRIPT, "ref " + qName.getLocalPart());
     }
 
+    /**
+     * Add reference (in different x-definition) attribute into given x-definition element node
+     * @param el        x-definition element node
+     * @param xDefName  x-definition name
+     * @param qName     reference qualified name
+     */
     public static void addAttrRefInDiffXDef(final Element el, final String xDefName, final QName qName) {
         addAttrXDef(el, XD_ATTR_SCRIPT, "ref " + xDefName + '#' + XdNameUtils.createQualifiedName(qName));
     }
 
+    /**
+     * Add or append value to currently existing x-definition attribute (using namespace {@value Xsd2XdDefinitions.XD_NAMESPACE_URI})
+     * to given x-definition element node
+     * @param el        x-definition element node
+     * @param qName     reference qualified name
+     * @param value     attribute value
+     */
     private static void addAttrXDef(final Element el, final String qName, final String value) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, el, "Add x-definition attribute. QName=" + qName + ", Value=" + value);
         final String localName = XdNameUtils.getLocalName(qName);
@@ -74,53 +115,72 @@ public class XdAttributeFactory {
         }
     }
 
+    /**
+     * Add x-definition occurrence attribute into given x-definition element node
+     * @param xdNode        x-definition node
+     * @param xsdNode       XSD document node containing occurrence info
+     */
+    public void addOccurrence(final Element xdNode, final XmlSchemaParticle xsdNode) {
+        if (xsdNode.getMaxOccurs() == 1 && xsdNode.getMinOccurs() == 1) {
+            if (adapterCtx.hasEnableFeature(XD_EXPLICIT_OCCURRENCE)) {
+                addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs 1");
+            }
+            return;
+        }
+
+        if (xsdNode.getMaxOccurs() == Long.MAX_VALUE) {
+            if (xsdNode.getMinOccurs() == 0) {
+                addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs *");
+                return;
+            }
+
+            if (xsdNode.getMinOccurs() == 1) {
+                addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs +");
+                return;
+            }
+
+            addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs " + xsdNode.getMinOccurs() + "..*");
+            return;
+        }
+
+        if (xsdNode.getMinOccurs() == 0 && xsdNode.getMaxOccurs() == 1) {
+            addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs ?");
+            return;
+        }
+
+        if (xsdNode.getMinOccurs() == xsdNode.getMaxOccurs()) {
+            addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs " + xsdNode.getMinOccurs());
+            return;
+        }
+
+        addAttrXDef(xdNode, XD_ATTR_SCRIPT, "occurs " + xsdNode.getMinOccurs() + ".." + xsdNode.getMaxOccurs());
+    }
+
+    /**
+     * Add x-definition text attribute into given x-definition element node
+     * @param el        x-definition element node
+     */
     public void addAttrText(final Element el) {
         addAttrXDef(el, XD_ATTR_TEXT, (!adapterCtx.hasEnableFeature(XD_MIXED_REQUIRED) ? "? " : "") + "string()");
     }
 
-    public void addOccurrence(final Element xdParticle, final XmlSchemaParticle xsdParicle) {
-        if (xsdParicle.getMaxOccurs() == 1 && xsdParicle.getMinOccurs() == 1) {
-            if (adapterCtx.hasEnableFeature(XD_EXPLICIT_OCCURRENCE)) {
-                addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs 1");
-            }
-            return;
-        }
-
-        if (xsdParicle.getMaxOccurs() == Long.MAX_VALUE) {
-            if (xsdParicle.getMinOccurs() == 0) {
-                addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs *");
-                return;
-            }
-
-            if (xsdParicle.getMinOccurs() == 1) {
-                addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs +");
-                return;
-            }
-
-            addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs " + xsdParicle.getMinOccurs() + "..*");
-            return;
-        }
-
-        if (xsdParicle.getMinOccurs() == 0 && xsdParicle.getMaxOccurs() == 1) {
-            addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs ?");
-            return;
-        }
-
-        if (xsdParicle.getMinOccurs() == xsdParicle.getMaxOccurs()) {
-            addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs " + xsdParicle.getMinOccurs());
-            return;
-        }
-
-        addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "occurs " + xsdParicle.getMinOccurs() + ".." + xsdParicle.getMaxOccurs());
-    }
-
-    public void addAttrNillable(final Element xdParticle, final XmlSchemaElement xsdElem) {
+    /**
+     * Add x-definition nillable attribute into given x-definition element node
+     * @param el        x-definition element node
+     * @param xsdElem   XSD element node
+     */
+    public void addAttrNillable(final Element el, final XmlSchemaElement xsdElem) {
         if (xsdElem.isNillable()) {
-            addAttrXDef(xdParticle, XD_ATTR_SCRIPT, "options nillable");
+            addAttrXDef(el, XD_ATTR_SCRIPT, "options nillable");
         }
     }
 
-    public String createAttribute(final XmlSchemaAttribute xsdAttr) {
+    /**
+     * Creates x-definition attribute based on given XSD attribute node
+     * @param xsdAttr   XSD attribute node
+     * @return x-definition attribute
+     */
+    private String createAttribute(final XmlSchemaAttribute xsdAttr) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdAttr, "Creating attribute.");
 
         final StringBuilder valueBuilder = new StringBuilder();
@@ -136,7 +196,7 @@ public class XdAttributeFactory {
             if (xsdAttr.getSchemaType().getContent() instanceof XmlSchemaSimpleTypeRestriction) {
                 final XdDeclarationBuilder b = xdDeclarationFactory.createBuilder()
                         .setSimpleType(xsdAttr.getSchemaType())
-                        .setMode(IDeclarationTypeFactory.Mode.DATATYPE_DECL);
+                        .setType(IDeclarationTypeFactory.Type.DATATYPE_DECL);
 
                 valueBuilder.append(xdDeclarationFactory.createDeclarationContent(b));
             }

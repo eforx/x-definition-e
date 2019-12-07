@@ -51,7 +51,7 @@ public class XsdNameUtils {
 
     /**
      * Parse x-definition node name without target namespace (if using it)
-     * @param schema    XSD schema
+     * @param schema    XSD document
      * @param name      x-definition node name
      * @return  x-definition node name
      */
@@ -66,7 +66,7 @@ public class XsdNameUtils {
 
     /**
      * Resolve XSD attribute node name and schema form
-     * @param schema    XSD schema
+     * @param schema    XSD document
      * @param attr      XSD attribute node
      * @param xName     x-definition node name
      */
@@ -90,7 +90,7 @@ public class XsdNameUtils {
 
     /**
      * Resolve XSD element node name and schema form
-     * @param schema        XSD schema
+     * @param schema        XSD document
      * @param xElem         x-definition element node
      * @param elem          XSD element node
      * @param adapterCtx    XSD adapter context
@@ -123,7 +123,7 @@ public class XsdNameUtils {
 
     /**
      * Resolve XSD attribute node type
-     * @param schema        XSD schema
+     * @param schema        XSD document
      * @param xsdAttr       XSD attribute node
      */
     public static void resolveAttributeSchemaTypeQName(final XmlSchema schema, final XmlSchemaAttribute xsdAttr) {
@@ -137,7 +137,7 @@ public class XsdNameUtils {
 
     /**
      * Resolve XSD element node type
-     * @param schema        XSD schema
+     * @param schema        XSD document
      * @param xsdElem       XSD attribute node
      */
     public static void resolveElementSchemaTypeQName(final XmlSchema schema, final XmlSchemaElement xsdElem) {
@@ -150,10 +150,10 @@ public class XsdNameUtils {
     }
 
     /**
-     * Check if x-definition node name is not using namespace prefix while XSD schema is using target namespace prefix
-     * @param schema    XSD schema
+     * Check if x-definition node name is not using namespace prefix while XSD document is using target namespace prefix
+     * @param schema    XSD document
      * @param name      x-definition node name
-     * @return true if x-definition node name is not using namespace prefix while XSD schema yes
+     * @return true if x-definition node name is not using namespace prefix while XSD document yes
      */
     public static boolean isUnqualifiedName(final XmlSchema schema, final String name) {
         return !XsdNamespaceUtils.containsNsPrefix(name) && schema.getSchemaNamespacePrefix() != null && !XSD_NAMESPACE_PREFIX_EMPTY.equals(schema.getSchemaNamespacePrefix());

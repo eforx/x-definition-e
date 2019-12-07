@@ -3,29 +3,29 @@ package org.xdef.impl.util.conv.schema.xd2schema.xsd.model;
 import java.util.Arrays;
 
 /**
- * Definition of XSD schema import.
+ * Definition of XSD document import.
  *
  * Source data model for creating XSD xs:import node.
  */
 public class XsdSchemaImportLocation {
 
     /**
-     * XSD schema namespace URI
+     * XSD document namespace URI
      */
     private String namespaceUri;
 
     /**
-     * XSD schema path
+     * XSD document path
      */
     private String path;
 
     /**
-     * XSD schema file name
+     * XSD document file name
      */
     private String fileName;
 
     /**
-     * XSD schema file extension
+     * XSD document file extension
      */
     private String fileExt = ".xsd";
 
@@ -48,8 +48,8 @@ public class XsdSchemaImportLocation {
 
     /**
      * Creates XSD import path based on internal variable state
-     * @param schemaName    XSD schema name which will be used if fileName is not set
-     * @return XSD schema import path
+     * @param schemaName    XSD document name which will be used if fileName is not set
+     * @return XSD document import path
      */
     public String buildLocation(final String schemaName) {
         String res = "";

@@ -36,7 +36,7 @@ public class XsdPostProcessor {
     }
 
     /**
-     * Updates XSD references which are currently breaking XSD schema rules
+     * Updates XSD references which are currently breaking XSD document rules
      */
     public void processRefs() {
         SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"*** Updating references ***");

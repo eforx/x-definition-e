@@ -25,7 +25,7 @@ public class XsdNamespaceUtils {
      * @param namespaceMap  namespace storage
      * @param nsPrefix      namespace prefix
      * @param nsUri         namespace URI
-     * @param systemId      XSD schema identifier (just for logging purposes)
+     * @param systemId      XSD document identifier (just for logging purposes)
      * @param phase         transformation algorithm phase (just for logging purposes)
      */
     public static void addNamespaceToCtx(final NamespaceMap namespaceMap, final String nsPrefix, final String nsUri, final String systemId, final AlgPhase phase) {
@@ -34,10 +34,10 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Checks if x-definition node name is using different namespace than given XSD schema (target namespace)
+     * Checks if x-definition node name is using different namespace than given XSD document (target namespace)
      * @param nodeName          x-definition node name
      * @param namespaceUri      x-definition node namespace URI
-     * @param schema            target XSD schema
+     * @param schema            target XSD document
      * @return  true is x-definition node is inside different namespace
      */
     public static boolean isNodeInDifferentNamespace(final String nodeName, final String namespaceUri, final XmlSchema schema) {
@@ -45,9 +45,9 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Checks if node name is using different namespace prefix than given XSD schema (target namespace)
+     * Checks if node name is using different namespace prefix than given XSD document (target namespace)
      * @param xNode     x-definition node
-     * @param schema    target XSD schema
+     * @param schema    target XSD document
      * @return  true if node name is using different namespace prefix
      */
     public static boolean isNodeInDifferentNamespacePrefix(final XMNode xNode, final XmlSchema schema) {
@@ -56,9 +56,9 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Checks if reference is using different namespace prefix than given XSD schema (target namespace prefix)
+     * Checks if reference is using different namespace prefix than given XSD document (target namespace prefix)
      * @param nodeRefPos    x-definition reference node position
-     * @param schema        target XSD schema
+     * @param schema        target XSD document
      * @return  true if reference is using different namespace prefix
      */
     public static boolean isRefInDifferentNamespacePrefix(final String nodeRefPos, final XmlSchema schema) {
@@ -146,10 +146,10 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Checks if node name is using XSD schema target namespace
-     * @param schema    XSD schema
+     * Checks if node name is using XSD document target namespace
+     * @param schema    XSD document
      * @param name      x-definition node name
-     * @return true if node name is using XSD schema target namespace
+     * @return true if node name is using XSD document target namespace
      */
     public static boolean usingTargetNamespace(final XmlSchema schema, final String name) {
         return schema.getSchemaNamespacePrefix() != null && name.startsWith(schema.getSchemaNamespacePrefix() + ':');
@@ -241,7 +241,7 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Creates XSD schema name based on namespace prefix
+     * Creates XSD document name based on namespace prefix
      * @param nsPrefix  namespace prefix
      * @return
      */
@@ -250,8 +250,8 @@ public class XsdNamespaceUtils {
     }
 
     /**
-     * Parse namespace prefix from XSD schema name
-     * @param schemaName    XSD schema name
+     * Parse namespace prefix from XSD document name
+     * @param schemaName    XSD document name
      * @return namespace prefix
      */
     public static String getNsPrefixFromExtraSchemaName(final String schemaName) {

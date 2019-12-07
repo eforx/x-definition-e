@@ -23,20 +23,54 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.T
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
+/**
+ * Transforms all x-definition references into XSD (complex/simple) schema types
+ */
 public class Xd2XsdReferenceAdapter {
 
+    /**
+     * Output XSD document
+     */
     private final XmlSchema schema;
+
+    /**
+     * Output XSD document name
+     */
     private final String schemaName;
+
+    /**
+     * XSD node factory
+     */
     private final XsdNodeFactory xsdFactory;
+
+    /**
+     * X-definition tree adapter
+     */
     private final Xd2XsdTreeAdapter treeAdapter;
+
+    /**
+     * XSD adapter context
+     */
     private final XsdAdapterCtx adapterCtx;
 
+    /**
+     * Flag, if current instance is used in post processing phase
+     */
     private boolean isPostProcessingPhase = false;
 
-    private Set<String> simpleTypeReferences;
-    private Set<String> namespaceImports;
     /**
-     * X-definition without target namespace
+     * Storage of names of already created XSD simple types references
+     */
+    private Set<String> simpleTypeReferences;
+
+    /**
+     * Storage of namespace URI of already created XSD imports
+     */
+    private Set<String> namespaceImports;
+
+    /**
+     * Storage of XSD document names of already created XSD includes
+     * Used for x-definition without namespace
      */
     private Set<String> namespaceIncludes;
 
@@ -48,6 +82,9 @@ public class Xd2XsdReferenceAdapter {
         this.adapterCtx = adapterCtx;
     }
 
+    /**
+     * Set flag, phase of algorithm is post processing
+     */
     public void setPostProcessing() {
         this.isPostProcessingPhase = true;
     }
@@ -324,7 +361,7 @@ public class Xd2XsdReferenceAdapter {
     }
 
     /**
-     * Add XSD schema include.
+     * Add XSD document include.
      * @param refPos    reference position of x-definition node
      */
     private void addSchemaInclude(final String refPos) {
@@ -343,7 +380,7 @@ public class Xd2XsdReferenceAdapter {
     }
 
     /**
-     * Add XSD schema import based on x-definition element node.
+     * Add XSD document import based on x-definition element node.
      * @param nsUri     x-definition node namespace URI
      * @param refPos    x-definition reference position
      */
@@ -361,7 +398,7 @@ public class Xd2XsdReferenceAdapter {
     }
 
     /**
-     * Add XSD schema import based on attribute/text x-definition node
+     * Add XSD document import based on attribute/text x-definition node
      * @param nsPrefix  x-definition node namespace prefix
      * @param nsUri     x-definition node namespace URI
      */
@@ -384,7 +421,7 @@ public class Xd2XsdReferenceAdapter {
     }
 
     /**
-     * Add XSD schema import of post processed schema
+     * Add XSD document import of post processed schema
      * @param nsPrefix  schema namespace prefix
      * @param nsUri     schema namespace URI
      */
@@ -397,7 +434,7 @@ public class Xd2XsdReferenceAdapter {
     }
 
     /**
-     * Add XSD schema import of post processed schema
+     * Add XSD document import of post processed schema
      * @param nsPrefix  schema namespace prefix
      * @param nsUri     schema namespace URI
      */

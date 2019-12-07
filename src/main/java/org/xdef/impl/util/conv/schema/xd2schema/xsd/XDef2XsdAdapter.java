@@ -25,7 +25,7 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.XSD_XDEF_ADAPTER;
 
 /**
- * Transformation of given x-definition or x-definition pool to collection of XSD schemas
+ * Transformation of given x-definition or x-definition pool to collection of XSD documents
  */
 public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2SchemaAdapter<XmlSchemaCollection> {
 
@@ -35,7 +35,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     private XDefinition xDefinition = null;
 
     /**
-     * Output xsd schema
+     * Output XSD document
      */
     private XmlSchema schema = null;
 
@@ -88,7 +88,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     }
 
     /**
-     * Transform x-definition tree to xsd schema via treeAdapter
+     * Transform x-definition tree to XSD document via treeAdapter
      * @param treeAdapter   transformation algorithm
      */
     private void transformXdef(final Xd2XsdTreeAdapter treeAdapter) {
@@ -107,12 +107,12 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     }
 
     /**
-     * Creates and initialize XSD schema
+     * Creates and initialize XSD document
      */
     private XmlSchema createXsdSchema() {
         Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition);
 
-        SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDefinition, "Creating XSD schema. " +
+        SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDefinition, "Creating XSD document. " +
                 "systemName=" + xDefinition.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());
 
         XsdSchemaFactory schemaFactory = new XsdSchemaFactory(adapterCtx);

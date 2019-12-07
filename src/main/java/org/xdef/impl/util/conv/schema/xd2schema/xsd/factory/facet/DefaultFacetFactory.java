@@ -15,7 +15,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.T
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 
 /**
- * Used for creation of restrictions
+ * Default implementation of transformation facet/restrictions
  */
 public class DefaultFacetFactory extends AbstractXsdFacetFactory {
 
@@ -129,7 +129,12 @@ public class DefaultFacetFactory extends AbstractXsdFacetFactory {
         return facet;
     }
 
-    protected void setValue(final XmlSchemaFacet facet, XDValue xdValue) {
+    /**
+     * Set given x-definition value into XSD facet
+     * @param facet     XSD facet
+     * @param xdValue   x-definition value
+     */
+    protected void setValue(final XmlSchemaFacet facet, final XDValue xdValue) {
         if (DECIMAL_INTEGER.equals(valueType)) {
             facet.setValue(xdValue.intValue());
         } else if (DECIMAL_FLOATING.equals(valueType)) {

@@ -21,17 +21,17 @@ public class Xd2XsdUtils {
     static private final Pattern ciPattern = Pattern.compile("[a-zA-Z]");
 
     /**
-     * Add XSD schema type node to top level of given XSD schema
-     * @param schema        XSD schema
-     * @param schemaType    XSD schema type node
+     * Add XSD document type node to top level of given XSD document
+     * @param schema        XSD document
+     * @param schemaType    XSD document type node
      */
     public static void addSchemaTypeNode2TopLevel(final XmlSchema schema, final XmlSchemaType schemaType) {
         schema.getItems().add(schemaType);
     }
 
     /**
-     * Removes node from given XSD schema
-     * @param schema        XSD schema
+     * Removes node from given XSD document
+     * @param schema        XSD document
      * @param xmlObj        XSD node
      */
     public static void removeNode(final XmlSchema schema, final XmlSchemaObject xmlObj) {

@@ -7,7 +7,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import java.util.List;
 
 /**
- * Converts x-defnition XDNamedValue parameters into XSD facet facets
+ * Transform x-definition XDNamedValue parameters into XSD facet facets
  */
 public interface IXsdFacetFactory {
 
@@ -22,7 +22,7 @@ public interface IXsdFacetFactory {
     /**
      * Creates facets from parameters
      * @param params
-     * @return
+     * @return list of XSD facets
      */
     List<XmlSchemaFacet> build(final XDNamedValue[] params);
 
@@ -129,5 +129,9 @@ public interface IXsdFacetFactory {
      */
     void extraFacets(final List<XmlSchemaFacet> facets);
 
+    /**
+     * Set value type
+     * @param valueType
+     */
     void setValueType(final ValueType valueType);
 }

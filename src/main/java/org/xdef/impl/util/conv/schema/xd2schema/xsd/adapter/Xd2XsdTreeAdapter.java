@@ -35,20 +35,23 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefi
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
+/**
+ * Transforms x-definition tree node structure to XSD tree node structure
+ */
 public class Xd2XsdTreeAdapter {
 
     /**
-     * Output XSD schema
+     * Output XSD document
      */
     final private XmlSchema schema;
 
     /**
-     * Output XSD schema name
+     * Output XSD document name
      */
     final private String schemaName;
 
     /**
-     * XSD element factory
+     * XSD node factory
      */
     final private XsdNodeFactory xsdFactory;
 

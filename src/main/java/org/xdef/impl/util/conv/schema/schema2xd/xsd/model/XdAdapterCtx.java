@@ -14,7 +14,7 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
 
 /**
- * Basic XSD context for transformation XSD schema to x-definition
+ * Basic XSD context for transformation XSD document to x-definition
  */
 public class XdAdapterCtx {
 

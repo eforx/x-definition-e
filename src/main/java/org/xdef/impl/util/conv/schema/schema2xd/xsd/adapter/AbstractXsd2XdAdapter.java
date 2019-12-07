@@ -6,6 +6,9 @@ import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Base class for all adapters transforming XSD document to x-definition
+ */
 public class AbstractXsd2XdAdapter {
 
     /**

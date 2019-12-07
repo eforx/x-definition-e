@@ -23,7 +23,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.P
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
 /**
- * Transformation of given x-definition pool to collection of XSD schemas
+ * Transformation of given x-definition pool to collection of XSD documents
  */
 public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2SchemaAdapter<XmlSchemaCollection> {
 
@@ -107,10 +107,10 @@ public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2S
     }
 
     /**
-     * Initializes all XSD schemas based on source x-definition from x-definition pool
+     * Initializes all XSD documents based on source x-definition from x-definition pool
      */
     private void initXsdSchemas() {
-        SchemaLogger.print(LOG_INFO, INITIALIZATION, XSD_DPOOL_ADAPTER,"Initialize xsd schemas ...");
+        SchemaLogger.print(LOG_INFO, INITIALIZATION, XSD_DPOOL_ADAPTER,"Initialize XSD documents ...");
 
         XsdSchemaFactory schemaFactory = new XsdSchemaFactory(adapterCtx);
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {

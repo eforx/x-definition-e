@@ -2,6 +2,9 @@ package org.xdef.impl.util.conv.schema.schema2xd.xsd.definition;
 
 import org.xdef.XDConstants;
 
+/**
+ * Definitions of constant used in XSD -> x-definition transform algorithm
+ */
 public interface Xsd2XdDefinitions {
 
     String XD_NAMESPACE_URI = XDConstants.XDEF32_NS_URI;

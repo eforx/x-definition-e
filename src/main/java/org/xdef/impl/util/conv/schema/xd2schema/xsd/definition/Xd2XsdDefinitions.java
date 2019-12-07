@@ -21,7 +21,7 @@ public interface Xd2XsdDefinitions {
     String XD_PARSER_REGEX = "regex";
 
     /**
-     * XSD schema facets
+     * XSD document facets
      */
     String XSD_FACET_ENUMERATION = "enumeration";
     String XSD_FACET_FRACTION_DIGITS = "fractionDigits";

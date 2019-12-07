@@ -20,7 +20,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefi
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
 /**
- * Creates and initialize XSD schema
+ * Creates and initialize XSD document
  */
 public class XsdSchemaFactory {
 
@@ -31,19 +31,19 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Creates and initialize XSD schema
+     * Creates and initialize XSD document
      * @param xDef              source x-definition
      * @param targetNamespace   target namespace (prefix, URI) of input x-definition
-     * @return empty initialized XSD schema
+     * @return empty initialized XSD document
      */
     public XmlSchema createXsdSchema(final XDefinition xDef, Pair<String, String> targetNamespace) {
-        SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Initialize xsd schema.");
+        SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Initialize XSD document.");
 
         if (targetNamespace != null) {
-            SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD schema. " +
+            SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD document. " +
                     "systemName=" + xDef.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());
         } else {
-            SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD schema. SystemName=" + xDef.getName());
+            SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDef, "Creating XSD document. SystemName=" + xDef.getName());
             targetNamespace = new Pair<String, String>(null, null);
         }
 
@@ -56,10 +56,10 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Initialize XSD schema namespace context
-     * @param xmlSchema         XSD schema to be initialized
+     * Initialize XSD document namespace context
+     * @param xmlSchema         XSD document to be initialized
      * @param xDef              source x-definition
-     * @param targetNamespace   XSD schema target namespace (prefix, URI)
+     * @param targetNamespace   XSD document target namespace (prefix, URI)
      */
     private void initSchemaNamespace(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
         SchemaLogger.printP(LOG_DEBUG, INITIALIZATION, xDef, "Initializing namespace context ...");
@@ -98,10 +98,10 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Sets attributeFormDefault and elementFormDefault to XSD schema
-     * @param xmlSchema         XSD schema to be initialized
+     * Sets attributeFormDefault and elementFormDefault to XSD document
+     * @param xmlSchema         XSD document to be initialized
      * @param xDef              source x-definition
-     * @param targetNamespace   XSD schema target namespace (prefix, URI)
+     * @param targetNamespace   XSD document target namespace (prefix, URI)
      */
     private void initSchemaFormDefault(final XmlSchema xmlSchema, final XDefinition xDef, final Pair<String, String> targetNamespace) {
         final XmlSchemaForm elemSchemaForm = getElemDefaultForm(xDef, targetNamespace.getKey());
@@ -115,7 +115,7 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Determines default element schema form for XSD schema
+     * Determines default element schema form for XSD document
      * @param xDef              input x-definition
      * @param targetNsPrefix    x-definition target namespace prefix
      * @return schema form
@@ -147,7 +147,7 @@ public class XsdSchemaFactory {
     }
 
     /**
-     * Determines default attribute schema form for XSD schema
+     * Determines default attribute schema form for XSD document
      * @param xDef              input x-definition
      * @param targetNsPrefix    x-definition target namespace prefix
      * @return schema form
