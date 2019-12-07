@@ -6,9 +6,9 @@
     </xd:declaration>
     <a>
         <b>
-            <d ar1='u.x.IDREF()'/>
+            <d ar1='u.x.IDREF()' xd:script='occurs +'/>
         </b>
-        <c ai1='u.x.ID()'/>
+        <c ai1='u.x.ID()' xd:script='occurs +'/>
     </a>
 </xd:def>
 

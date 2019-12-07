@@ -565,7 +565,7 @@ public class TestXd2Xsd extends TesterXdSchema {
 
         // ID, IDREF, IDREFS in different path with uniqueSet in root
         convertXdDef2XsdNoRef ("keyAndRef1D", Arrays.asList(new String[] {"keyAndRef1D_valid_1"}), null);
-        convertXdDef2XsdNoRef ("keyAndRef1E", Arrays.asList(new String[] {"keyAndRef1E_valid_1"}), null);
+        convertXdDef2XsdNoRef ("keyAndRef1E", Arrays.asList(new String[] {"keyAndRef1E_valid_1", "keyAndRef1E_valid_2"}), Arrays.asList(new String[] {"keyAndRef1E_invalid_1"}));
         convertXdDef2XsdNoRef ("keyAndRef1F", Arrays.asList(new String[] {"keyAndRef1F_valid_1"}), null);
 
         // ID, IDREF, IDREFS with uniqueSet in element
