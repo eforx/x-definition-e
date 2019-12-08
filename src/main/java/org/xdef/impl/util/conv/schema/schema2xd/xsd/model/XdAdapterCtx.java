@@ -2,15 +2,17 @@ package org.xdef.impl.util.conv.schema.schema2xd.xsd.model;
 
 import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
-import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdFeature;
+import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdLoggerDefs.XD_ADAPTER_CTX;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
 
 /**

@@ -14,7 +14,7 @@ import java.util.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_XDEF_EXTRA_ADAPTER;
 
 /**
  * Transforms x-definition nodes into xsd nodes

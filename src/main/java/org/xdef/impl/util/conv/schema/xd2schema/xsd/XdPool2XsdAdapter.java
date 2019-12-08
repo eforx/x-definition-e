@@ -8,8 +8,8 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter.AbstractXd2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter.Xd2XsdPostProcessingAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdSchemaFactory;
-import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 
@@ -18,9 +18,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_DPOOL_ADAPTER;
 
 /**
  * Transformation of given x-definition pool to collection of XSD documents

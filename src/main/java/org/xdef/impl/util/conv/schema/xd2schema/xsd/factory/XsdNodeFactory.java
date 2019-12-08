@@ -17,7 +17,10 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaAll;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaChoice;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaGroupParticle;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaSequence;
-import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.*;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdParserMapping;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -27,9 +30,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_ELEM_FACTORY;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
 
 /**

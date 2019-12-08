@@ -8,8 +8,8 @@ import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.SchemaNodeFactory;
-import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNameFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaChoice;
@@ -20,9 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.POSTPROCESSING;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_PP_PROCESOR;
 
 /**
  * All partial transforming algorithms for post processing of nodes structures and linking

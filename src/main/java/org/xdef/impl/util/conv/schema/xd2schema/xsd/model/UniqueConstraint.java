@@ -13,6 +13,7 @@ import java.util.*;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_KEY_AND_REF;
 
 /**
  * Model containing information gathered from x-definition uniqueSet.

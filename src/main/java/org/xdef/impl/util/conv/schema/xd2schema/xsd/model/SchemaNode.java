@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.XSD_REFERENCE;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_REFERENCE;
 
 /**
  * Couples x-definition nodes with XSD nodes. Saves binding between element references.

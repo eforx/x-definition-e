@@ -19,10 +19,10 @@ import org.xdef.model.XMDefinition;
 
 import java.util.Set;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.XSD_XDEF_ADAPTER;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_XDEF_ADAPTER;
 
 /**
  * Transformation of given x-definition or x-definition pool to collection of XSD documents

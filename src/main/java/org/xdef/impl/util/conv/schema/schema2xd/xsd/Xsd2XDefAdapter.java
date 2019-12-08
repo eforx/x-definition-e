@@ -7,14 +7,14 @@ import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.XdAttributeFactory;
-import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.adapter.AbstractXsd2XdAdapter;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.adapter.Xsd2XdTreeAdapter;
+import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.XdAttributeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.XdNodeFactory;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNamespaceUtils;
+import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdLoggerDefs.XD_ADAPTER;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.*;
 

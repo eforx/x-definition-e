@@ -14,8 +14,11 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 
 import java.util.*;
 
-import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_ADAPTER_CTX;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_REFERENCE;
 
 /**
  * Basic XSD context for transformation x-definition to XSD document

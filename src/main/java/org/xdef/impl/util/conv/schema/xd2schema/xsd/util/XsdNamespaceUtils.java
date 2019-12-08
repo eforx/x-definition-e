@@ -15,8 +15,10 @@ import org.xdef.model.XMNode;
 
 import java.util.Map;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_ERROR;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_UTILS;
 
 public class XsdNamespaceUtils {
 

@@ -17,6 +17,7 @@ import java.util.Map;
 
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature.XSD_NAME_COLISSION_DETECTOR;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_NAME_FACTORY;
 
 /**
  * Creates names of specific types of nodes.

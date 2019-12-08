@@ -13,7 +13,9 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 
 import java.util.Map;
 
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_REFERENCE;
 
 /**
  * Factory which is creating schema nodes, which pairs up x-definition nodes with XSD nodes
