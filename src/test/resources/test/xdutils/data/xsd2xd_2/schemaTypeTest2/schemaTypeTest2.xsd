@@ -92,6 +92,27 @@
                   </xs:restriction>
                </xs:simpleType>
             </xs:element>
+            <xs:element name="Test7">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:restriction>
+                     <xs:simpleType>
+                        <xs:list itemType="Test4_union_string"/>
+                     </xs:simpleType>
+                     <xs:length value="3"/>
+                  </xs:restriction>
+               </xs:simpleType>
+            </xs:element>
+            <xs:element name="Test8">
+               <xs:annotation>
+                  <xs:documentation>Occurrence: [0, unbounded]</xs:documentation>
+               </xs:annotation>
+               <xs:simpleType>
+                  <xs:union memberTypes="Test5_union_string"/>
+               </xs:simpleType>
+            </xs:element>
          </xs:choice>
       </xs:complexType>
    </xs:element>

@@ -272,37 +272,33 @@ public class XdDeclarationBuilder {
         if (qNames != null && qNames.length > 0) {
             if (qNames.length == 1) {
                 final IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.findDefaultDataTypeFactory(qNames[0]);
-                if (xdDeclarationFactory == null) {
-                    SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeUnion, "Unknown XSD union member type! QName=" + qNames[0]);
-                    return null;
-                }
-
-                final XmlSchemaSimpleTypeContent unionSimpleContent = simpleTypeUnion.getBaseTypes().get(0).getContent();
-                if (unionSimpleContent instanceof XmlSchemaSimpleTypeRestriction) {
-                    xdDeclarationFactory.setType(type);
-                    return xdDeclarationFactory.build(((XmlSchemaSimpleTypeRestriction)unionSimpleContent).getFacets());
-                }
-            } else {
-                final StringBuilder facetStringBuilder = new StringBuilder();
-                for (QName qName : qNames) {
-                    final XmlSchemaType itemSchemaType = Xsd2XdUtils.findSchemaTypeByQName(schema, qName);
-                    if (itemSchemaType instanceof XmlSchemaSimpleType) {
-                        final XmlSchemaSimpleType itemSimpleSchemaType = (XmlSchemaSimpleType) itemSchemaType;
-                        if (itemSimpleSchemaType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                            if (facetStringBuilder.length() > 0) {
-                                facetStringBuilder.append(", ");
-                            }
-
-                            final XdDeclarationBuilder b = clone().setSimpleType(itemSimpleSchemaType).setType(IDeclarationTypeFactory.Type.DATATYPE_DECL);
-                            facetStringBuilder.append(b.build());
-                        }
+                if (xdDeclarationFactory != null) {
+                    final XmlSchemaSimpleTypeContent unionSimpleContent = simpleTypeUnion.getBaseTypes().get(0).getContent();
+                    if (unionSimpleContent instanceof XmlSchemaSimpleTypeRestriction) {
+                        xdDeclarationFactory.setType(type);
+                        return xdDeclarationFactory.build(((XmlSchemaSimpleTypeRestriction)unionSimpleContent).getFacets());
                     }
                 }
-
-                final UnionTypeFactory unionTypeFactory = new UnionTypeFactory();
-                unionTypeFactory.setType(type);
-                return unionTypeFactory.build(facetStringBuilder.toString());
             }
+
+            final StringBuilder facetStringBuilder = new StringBuilder();
+            for (QName qName : qNames) {
+                final XmlSchemaType itemSchemaType = Xsd2XdUtils.findSchemaTypeByQName(schema, qName);
+                if (itemSchemaType instanceof XmlSchemaSimpleType) {
+                    final XmlSchemaSimpleType itemSimpleSchemaType = (XmlSchemaSimpleType) itemSchemaType;
+                    if (itemSimpleSchemaType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                        if (facetStringBuilder.length() > 0) {
+                            facetStringBuilder.append(", ");
+                        }
+
+                        facetStringBuilder.append(qName.getLocalPart());
+                    }
+                }
+            }
+
+            final UnionTypeFactory unionTypeFactory = new UnionTypeFactory();
+            unionTypeFactory.setType(type);
+            return unionTypeFactory.build(facetStringBuilder.toString());
         } else {
             final List<XmlSchemaSimpleType> baseTypes = simpleTypeUnion.getBaseTypes();
             if (baseTypes != null && !baseTypes.isEmpty()) {
@@ -348,8 +344,7 @@ public class XdDeclarationBuilder {
             if (itemSchemaType instanceof XmlSchemaSimpleType) {
                 final XmlSchemaSimpleType itemSimpleSchemaType = (XmlSchemaSimpleType) itemSchemaType;
                 if (itemSimpleSchemaType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-                    final XdDeclarationBuilder b = clone().setSimpleType(itemSimpleSchemaType).setType(IDeclarationTypeFactory.Type.DATATYPE_DECL);
-                    facetString = b.build();
+                    facetString = baseType.getLocalPart();
                 }
             }
         } else if (simpleTypeList.getItemType() != null) {

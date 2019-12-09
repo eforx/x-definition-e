@@ -42,14 +42,7 @@
                <xs:simpleType>
                   <xs:restriction>
                      <xs:simpleType>
-                        <xs:list>
-                           <xs:simpleType>
-                              <xs:restriction base="xs:int">
-                                 <xs:minInclusive value="1"/>
-                                 <xs:maxInclusive value="10"/>
-                              </xs:restriction>
-                           </xs:simpleType>
-                        </xs:list>
+                        <xs:list itemType="Test4_union_int"/>
                      </xs:simpleType>
                      <xs:length value="3"/>
                   </xs:restriction>
