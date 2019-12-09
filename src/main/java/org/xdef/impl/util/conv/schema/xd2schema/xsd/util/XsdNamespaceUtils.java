@@ -20,6 +20,9 @@ import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_ERROR;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_UTILS;
 
+/**
+ * Utils related to working with namespaces
+ */
 public class XsdNamespaceUtils {
 
     /**

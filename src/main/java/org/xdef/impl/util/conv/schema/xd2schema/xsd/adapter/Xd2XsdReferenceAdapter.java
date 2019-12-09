@@ -155,7 +155,7 @@ public class Xd2XsdReferenceAdapter {
 
         // Extract all complex types
         SchemaLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
-        final Set<String> rootNodeNames = adapterCtx.getSchemaRootNodeNames(schemaName);
+        final Set<String> rootNodeNames = adapterCtx.findSchemaRootNodeNames(schemaName);
         for (XElement elem : xDef.getXElements()) {
             if (rootNodeNames == null || !rootNodeNames.contains(elem.getName())) {
                 transformTopLevelElem(elem);

@@ -167,11 +167,11 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Returns XSD document location if exists by given namespace URI
+     * Finds XSD document location if exists by given namespace URI
      * @param nsUri     XSD document namespace URI
      * @return XSD document location if exists, otherwise null
      */
-    public XsdSchemaImportLocation getPostProcessingNsImport(final String nsUri) {
+    public XsdSchemaImportLocation findPostProcessingNsImport(final String nsUri) {
         return extraSchemaLocationsCtx.get(nsUri);
     }
 
@@ -243,8 +243,8 @@ public class XsdAdapterCtx {
      * @return  XSD document if exists
      *          null if XSD document does not exist and {@paramref shouldExists} value is false
      */
-    public XmlSchema getSchemaByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
-        final String schemaName = getSchemaNameByNamespace(nsUri, shouldExists, phase);
+    public XmlSchema findSchemaByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
+        final String schemaName = findSchemaNameByNamespace(nsUri, shouldExists, phase);
         XmlSchema schema = null;
         if (schemaName != null) {
             schema = findSchema(schemaName, false, phase);
@@ -266,7 +266,7 @@ public class XsdAdapterCtx {
      * @return  XSD document name if XSD document exists
      *          null if XSD document does not exist and {@paramref shouldExists} value is false
      */
-    public String getSchemaNameByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
+    public String findSchemaNameByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
         XsdSchemaImportLocation schemaLocation = schemaLocationsCtx.get(nsUri);
         String schemaName = null;
         if (schemaLocation == null) {
@@ -320,7 +320,7 @@ public class XsdAdapterCtx {
      *          otherwise already existing node with same node path merged with {@paramref node}
      */
     public SchemaNode addOrUpdateNode(final String systemId, final String nodePath, final SchemaNode node) {
-        Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
+        Map<String, SchemaNode> xsdSystemRefs = findSchemaNodes(systemId);
 
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
         if (refOrig != null && refOrig.getXsdNode() != null) {
@@ -363,7 +363,7 @@ public class XsdAdapterCtx {
     private void updateNode(final String systemId, String nodePath, final XmlSchemaNamed newXsdNode) {
         SchemaLogger.printG(LOG_INFO, XSD_REFERENCE, "Updating xsd content of node. System=" + systemId + ", Path=" + nodePath + ", NewXsd=" + newXsdNode.getClass().getSimpleName());
 
-        final Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
+        final Map<String, SchemaNode> xsdSystemRefs = findSchemaNodes(systemId);
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
 
         if (refOrig == null) {
@@ -375,11 +375,11 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Get all created schema nodes in XSD document
+     * Finds all created schema nodes in XSD document
      * @param systemId  XSD document identifier
      * @return  map of schema nodes
      */
-    public Map<String, SchemaNode> getSchemaNodes(final String systemId) {
+    public Map<String, SchemaNode> findSchemaNodes(final String systemId) {
         Map<String, SchemaNode> xsdSystemRefs = nodes.get(systemId);
         if (xsdSystemRefs == null) {
             xsdSystemRefs = new HashMap<String, SchemaNode>();
@@ -390,7 +390,7 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Find schema node defined by {@paramref systemId} and {@paramref nodePath}
+     * Finds schema node defined by {@paramref systemId} and {@paramref nodePath}
      * @param systemId  XSD document identifier
      * @param nodePath  x-definition path
      * @return  schema node if exists, otherwise null
@@ -405,7 +405,7 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Delete created schema node defined by x-definition node {@paramref xNode}
+     * Deletes created schema node defined by x-definition node {@paramref xNode}
      * @param xNode     x-definition node
      */
     public void removeNode(final XNode xNode) {
@@ -415,10 +415,15 @@ public class XsdAdapterCtx {
         removeNode(systemId, nodePath);
     }
 
-    private void removeNode(final String systemId, String nodePath) {
+    /**
+     * Deletes created schema node defined by XSD document identifier and node path
+     * @param systemId      XSD document identifier
+     * @param nodePath      x-definition node path
+     */
+    private void removeNode(final String systemId, final String nodePath) {
         SchemaLogger.printG(LOG_INFO, XSD_REFERENCE, "Removing xsd node. System=" + systemId + ", Path=" + nodePath);
 
-        final Map<String, SchemaNode> xsdSystemRefs = getSchemaNodes(systemId);
+        final Map<String, SchemaNode> xsdSystemRefs = findSchemaNodes(systemId);
         final SchemaNode refOrig = xsdSystemRefs.remove(nodePath);
         if (refOrig != null) {
             SchemaLogger.printG(LOG_DEBUG, XSD_REFERENCE, "Node has been removed! System=" + systemId + ", Path=" + nodePath + ", NodeName: " + refOrig.getXdName());
@@ -426,11 +431,11 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Get XSD document root node's names by XSD document identifier
+     * Finds XSD document root node's names by XSD document identifier
      * @param systemId      XSD document identifier
-     * @return
+     * @return XSD document root node's names if exist, otherwise null
      */
-    public Set<String> getSchemaRootNodeNames(final String systemId) {
+    public Set<String> findSchemaRootNodeNames(final String systemId) {
         return rootNodeNames.get(systemId);
     }
 
@@ -440,7 +445,7 @@ public class XsdAdapterCtx {
      * @param nodeName      x-definition name
      */
     public void addRootNodeName(final String systemId, final String nodeName) {
-        Set<String> schemaRootNodeNames = getSchemaRootNodeNames(systemId);
+        Set<String> schemaRootNodeNames = findSchemaRootNodeNames(systemId);
         if (schemaRootNodeNames == null) {
             schemaRootNodeNames = new HashSet<String>();
             rootNodeNames.put(systemId, schemaRootNodeNames);
@@ -475,7 +480,7 @@ public class XsdAdapterCtx {
             path = "/" + path;
         }
 
-        UniqueConstraint uniqueConstraint = getUniqueConstraint(uniqueInfoMap, name, path);
+        UniqueConstraint uniqueConstraint = findUniqueConstraint(uniqueInfoMap, name, path);
 
         if (uniqueConstraint == null) {
             SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Creating unique set. Name=" + name + ", Path=" + path + ", System=" + systemId);
@@ -494,7 +499,14 @@ public class XsdAdapterCtx {
         return uniqueConstraint;
     }
 
-    private UniqueConstraint getUniqueConstraint(final Map<String, List<UniqueConstraint>> uniqueConstraintMap, final String name, final String path) {
+    /**
+     * Finds unique constraint
+     * @param uniqueConstraintMap   unique constraint map
+     * @param name                  unique constraint name
+     * @param path                  unique constraint path
+     * @return unique constraint if exists inside given map, otherwise null
+     */
+    private static UniqueConstraint findUniqueConstraint(final Map<String, List<UniqueConstraint>> uniqueConstraintMap, final String name, final String path) {
         if (!uniqueConstraintMap.isEmpty()) {
             final List<UniqueConstraint> uniqueInfoList = uniqueConstraintMap.get(path);
             if (uniqueInfoList != null && !uniqueInfoList.isEmpty()) {
@@ -528,6 +540,14 @@ public class XsdAdapterCtx {
         return uniqueInfo;
     }
 
+    /**
+     * Finds unique constrain in tree of unique constraints.
+     * Iterates through tree, starting at {@paramref uniquestSetPath} path and going to root of XML tree
+     * @param uniqueInfoName        unique constraint name
+     * @param systemId              XSD document identifier
+     * @param uniquestSetPath       unique constraint path
+     * @return unique constraint if exists inside given map, otherwise null
+     */
     private UniqueConstraint findUniqueConst(final String uniqueInfoName, final String systemId, String uniquestSetPath) {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, "Finding unique set. UniqueName=" + uniqueInfoName + ", SystemId=" + systemId);
 
@@ -543,7 +563,7 @@ public class XsdAdapterCtx {
                 } else {
                     uniquestSetPath = uniquestSetPath.substring(0, slashPos);
                 }
-                uniqueInfo = getUniqueConstraint(uniqueInfoMap, uniqueInfoName, uniquestSetPath);
+                uniqueInfo = findUniqueConstraint(uniqueInfoMap, uniqueInfoName, uniquestSetPath);
             }
         }
 

@@ -49,7 +49,7 @@ public class XsdPostProcessor {
 
             final XmlSchema xmlSchema = adapterCtx.findSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
             final XsdNodeFactory xsdFactory = new XsdNodeFactory(xmlSchema, adapterCtx);
-            final Set<String> schemaRootNodeNames = adapterCtx.getSchemaRootNodeNames(systemRefEntry.getKey());
+            final Set<String> schemaRootNodeNames = adapterCtx.findSchemaRootNodeNames(systemRefEntry.getKey());
 
             for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
                 final SchemaNode node = refEntry.getValue();

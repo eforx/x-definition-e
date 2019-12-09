@@ -41,7 +41,7 @@ public class Xsd2XdTreeAdapter {
     private final XmlSchema schema;
 
     /**
-     * X-definition XML element factory
+     * X-definition XML node factory
      */
     final private XdNodeFactory xdFactory;
 
@@ -77,7 +77,7 @@ public class Xsd2XdTreeAdapter {
         SchemaLogger.print(LOG_INFO, PREPROCESSING, xDefName, "Loading root elements of XSD");
 
         String targetNsPrefix = "";
-        final Pair<String, String> targetNamespace = adapterCtx.getTargetNamespace(xDefName);
+        final Pair<String, String> targetNamespace = adapterCtx.findTargetNamespace(xDefName);
         if (targetNamespace != null && targetNamespace.getKey() != null && !targetNamespace.getKey().isEmpty()) {
             targetNsPrefix = targetNamespace.getKey() + ":";
         }
@@ -361,7 +361,7 @@ public class Xsd2XdTreeAdapter {
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xsdGroupRefNode, "Creating group reference.");
 
         // TODO: mixed ref cannot be part of sequence/choice/mixed? requires advanced processing
-        final XmlSchemaGroup group = Xsd2XdUtils.getGroupByQName(schema, xsdGroupRefNode.getRefName());
+        final XmlSchemaGroup group = Xsd2XdUtils.findGroupByQName(schema, xsdGroupRefNode.getRefName());
         if (group != null) {
             // Copy group content into element
             convertTree(group.getParticle(), parentNode);
@@ -414,7 +414,7 @@ public class Xsd2XdTreeAdapter {
      */
     private boolean externalRef(final QName baseType, final Element xdNode, final boolean simple) {
         if (baseType.getNamespaceURI() != null && !baseType.getNamespaceURI().equals(schema.getTargetNamespace())) {
-            final String xDefRefName = XdNamespaceUtils.getReferenceSchemaName(schema.getParent(), baseType, adapterCtx, simple);
+            final String xDefRefName = XdNamespaceUtils.findReferenceSchemaName(schema.getParent(), baseType, adapterCtx, simple);
             return externalRef(baseType, xDefRefName, xdNode);
         }
 

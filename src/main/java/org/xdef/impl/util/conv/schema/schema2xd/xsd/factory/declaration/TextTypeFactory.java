@@ -1,5 +1,8 @@
 package org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration;
 
+/**
+ * Declaration for transforming string based values
+ */
 public class TextTypeFactory extends AbstractDeclarationTypeFactory {
 
     public final String xdType;

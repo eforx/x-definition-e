@@ -105,11 +105,11 @@ public class Xd2XsdParserMapping {
     }
 
     /**
-     * Convert x-definition parser name to XSD QName
+     * Converts x-definition parser name to XSD qualified name
      * @param parserName    x-definition parser name
      * @return  XSD QName if mapping exists, otherwise null
      */
-    public static QName getDefaultParserQName(final String parserName, final XsdAdapterCtx adapterCtx) {
+    public static QName findDefaultParserQName(final String parserName, final XsdAdapterCtx adapterCtx) {
         QName qName = defaultQNameMap.get(parserName);
         if (qName == null) {
             if (DecFacetFactory.XD_PARSER_NAME.equals(parserName) && !adapterCtx.hasEnableFeature(Xd2XsdFeature.XSD_DECIMAL_ANY_SEPARATOR)) {
@@ -121,12 +121,12 @@ public class Xd2XsdParserMapping {
     }
 
     /**
-     * Get XSD QName and XSD facet factory for specific x-definition parser
+     * Finds XSD qualified name and XSD facet factory for specific x-definition parser
      * @param parserName    x-definition parser name
      * @return  XSD data type with XSD facets factory if transformation exists
      *          otherwise null
      */
-    public static Pair<QName, IXsdFacetFactory> getCustomFacetFactory(final String parserName, final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
+    public static Pair<QName, IXsdFacetFactory> findCustomFacetFactory(final String parserName, final XDNamedValue[] parameters, final XsdAdapterCtx adapterCtx) {
         Pair<QName, IXsdFacetFactory> res = customFacetMap.get(parserName);
         // Custom dynamic facet factories
         if (res == null) {
@@ -150,14 +150,14 @@ public class Xd2XsdParserMapping {
     }
 
     /**
-     * Convert given x-definition parser name to XSD QName
+     * Converts given x-definition parser name to XSD qualified name
      * @param parserName    x-definition parser name
      * @param adapterCtx    XSD adapter context
      * @return  XSD QName with default facet factory if conversion of x-definition parser name to XSD QName exists
      *          otherwise null
      */
-    public static Pair<QName, IXsdFacetFactory> getDefaultFacetFactory(final String parserName, final XsdAdapterCtx adapterCtx) {
-        final QName qName = getDefaultParserQName(parserName, adapterCtx);
+    public static Pair<QName, IXsdFacetFactory> findDefaultFacetFactory(final String parserName, final XsdAdapterCtx adapterCtx) {
+        final QName qName = findDefaultParserQName(parserName, adapterCtx);
         if (qName != null) {
             return new Pair(qName, new DefaultFacetFactory());
         }
@@ -174,13 +174,13 @@ public class Xd2XsdParserMapping {
     public static QName getDefaultSimpleParserQName(final XData xData, final XsdAdapterCtx adapterCtx) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
-        final QName defaultQName = getDefaultParserQName(parserName, adapterCtx);
+        final QName defaultQName = findDefaultParserQName(parserName, adapterCtx);
 
         if (defaultQName != null) {
             if (parseMethod instanceof XDParser) {
                 final XDParser parser = ((XDParser) parseMethod);
                 final XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-                if (parameters.length == 0 && getCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
+                if (parameters.length == 0 && findCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
                     return defaultQName;
                 }
             } else {
@@ -192,7 +192,7 @@ public class Xd2XsdParserMapping {
     }
 
     /**
-     * Determine XSD list's QName by its values (given by x-definition {@paramref parameters})
+     * Determine XSD list's qualified names by its values (given by x-definition {@paramref parameters})
      * @param parameters    x-definition parser parameters
      * @param adapterCtx    XSD adapter context
      * @return  if all parameters are using same known parser, then its QName
@@ -226,7 +226,7 @@ public class Xd2XsdParserMapping {
             throw new RuntimeException("Expected parser type or multiple parsers used!");
         }
 
-        QName res = getDefaultParserQName(parserName, adapterCtx);
+        QName res = findDefaultParserQName(parserName, adapterCtx);
         if (res == null) {
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "Unsupported simple content parser! Parser=" + parserName);
             res = Constants.XSD_STRING;

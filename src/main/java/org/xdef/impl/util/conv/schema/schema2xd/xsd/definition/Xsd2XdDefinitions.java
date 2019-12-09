@@ -3,7 +3,7 @@ package org.xdef.impl.util.conv.schema.schema2xd.xsd.definition;
 import org.xdef.XDConstants;
 
 /**
- * Definitions of constant used in XSD -> x-definition transform algorithm
+ * Definitions of constants used in XSD -> x-definition transform algorithm
  */
 public interface Xsd2XdDefinitions {
 
@@ -17,7 +17,6 @@ public interface Xsd2XdDefinitions {
     String XD_ELEM_CHOICE = "xd:choice";
     String XD_ELEM_MIXED = "xd:mixed";
     String XD_ELEM_ANY = "xd:any";
-    String XD_ELEM_TEXT_REF = "ref";
 
     String XD_ATTR_NAME = "xd:name";
     String XD_ATTR_ROOT_ELEMT = "xd:root";

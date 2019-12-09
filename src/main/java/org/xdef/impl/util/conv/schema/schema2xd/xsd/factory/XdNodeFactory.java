@@ -20,6 +20,9 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.T
 
 public class XdNodeFactory {
 
+    /**
+     * X-definition adapter context
+     */
     private final XdAdapterCtx adapterCtx;
 
     /**
@@ -31,45 +34,62 @@ public class XdNodeFactory {
         this.adapterCtx = adapterCtx;
     }
 
-    public void setDoc(Document doc) {
-        this.doc = doc;
-    }
-
-    public String createHeader() {
+    /**
+     * Creates file header of output XML x-definition document
+     * @return file header
+     */
+    public static String createFileHeader() {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n";
     }
 
-    public Document createPool() {
-        return KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_POOL, null);
+    /**
+     * Creates x-definition pool node in root of document
+     * @return x-definition pool node
+     */
+    public Element createPool() {
+        doc = KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_POOL, null);
+        return doc.getDocumentElement();
     }
 
-    public Document createRootXdefinition(final String xDefName, final String rootElements) {
-        SchemaLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "Root x-definition node");
-        final Document res = KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_XDEF, null);
-        final Element root = res.getDocumentElement();
-        XdAttributeFactory.addAttr(root, XD_ATTR_NAME, xDefName);
-        if (rootElements != null && !rootElements.isEmpty()) {
-            XdAttributeFactory.addAttr(root, XD_ATTR_ROOT_ELEMT, rootElements);
-        }
-        return res;
+    /**
+     * Creates and initializes x-definition node in root of document
+     * @param xDefName          X-definition name
+     * @param rootNodesName     X-definition root node's names
+     * @return x-definition node
+     */
+    public Element createRootXdefinition(final String xDefName, final String rootNodesName) {
+        SchemaLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "X-definition node in root");
+        doc = KXmlUtils.newDocument(XD_NAMESPACE_URI, XD_ELEM_XDEF, null);
+        final Element xDefRoot = doc.getDocumentElement();
+        initializeXDefinitionNode(xDefRoot, xDefName, rootNodesName);
+        return xDefRoot;
     }
 
-    public Element createXDefinition(final String xDefName, final String rootElements) {
+    /**
+     * Creates and initializes x-definition node
+     * @param xDefName          X-definition name
+     * @param rootNodesName     X-definition root node's names
+     * @return x-definition node
+     */
+    public Element createXDefinition(final String xDefName, final String rootNodesName) {
         SchemaLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "X-definition node");
-        final Element xdDef = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_XDEF);
-        XdAttributeFactory.addAttr(xdDef, XD_ATTR_NAME, xDefName);
-        if (rootElements != null && !rootElements.isEmpty()) {
-            XdAttributeFactory.addAttr(xdDef, XD_ATTR_ROOT_ELEMT, rootElements);
-        }
-        return xdDef;
+        final Element xDef = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_XDEF);
+        initializeXDefinitionNode(xDef, xDefName, rootNodesName);
+        return xDef;
     }
 
+    /**
+     * Creates x-definition element node based on XSD element node
+     * @param xsdElem       XSD element node
+     * @param xDefName      X-definition name
+     * @return x-definition element node
+     */
     public Element createElement(final XmlSchemaElement xsdElem, final String xDefName) {
         if (xsdElem.isRef()) {
             final QName xsdQName = xsdElem.getRef().getTargetQName();
             if (xsdQName != null) {
                 final Element xdElem = doc.createElementNS(xsdQName.getNamespaceURI(), XdNameUtils.createQualifiedName(xsdQName));
-                final String refXDef = XdNamespaceUtils.getReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
+                final String refXDef = XdNamespaceUtils.findReferenceSchemaName(xsdElem.getParent().getParent(), xsdQName, adapterCtx, false);
                 XdAttributeFactory.addAttrRefInDiffXDef(xdElem, refXDef, xsdQName);
                 return xdElem;
             } else {
@@ -88,6 +108,12 @@ public class XdNodeFactory {
         return doc.createElement(xsdElem.getName());
     }
 
+    /**
+     * Creates empty x-definition element node based on XSD complex type node
+     * @param xsdComplex        XSD complex type node
+     * @param xDefName          X-definition name
+     * @return x-definition element node
+     */
     public Element createEmptyElement(final XmlSchemaComplexType xsdComplex, final String xDefName) {
         final QName xsdQName = xsdComplex.getQName();
         if (xsdQName.getNamespaceURI() != null) {
@@ -98,33 +124,67 @@ public class XdNodeFactory {
         }
     }
 
+    /**
+     * Creates empty x-definition declaration node
+     * @return <xd:declaration/>
+     */
     public Element createEmptyDeclaration() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_DECLARATION);
     }
 
+    /**
+     * Creates empty x-definition sequence node
+     * @return <xd:sequence/>
+     */
     public Element createEmptySequence() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_SEQUENCE);
     }
 
+    /**
+     * Creates empty x-definition choice node
+     * @return <xd:choice/>
+     */
     public Element createEmptyChoice() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_CHOICE);
     }
 
+    /**
+     * Creates empty x-definition mixed node
+     * @return <xd:mixed/>
+     */
     public Element createEmptyMixed() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_MIXED);
     }
 
+    /**
+     * Creates empty x-definition named mixed node. Used for transformation of group of elements
+     * @param name      Name of mixed node
+     * @return <xd:mixed name="{@paramref name}"/>
+     */
     public Element createEmptyNamedMixed(final String name) {
         final Element elem = doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_MIXED);
         XdAttributeFactory.addAttr(elem, XD_ATTR_NAME, name);
         return elem;
     }
 
+    /**
+     * Creates empty x-definition any node
+     * @return <xd:any/>
+     */
     public Element createEmptyAny() {
         return doc.createElementNS(XD_NAMESPACE_URI, XD_ELEM_ANY);
     }
 
-    public Element createTextRef() {
-        return doc.createElement(XD_ELEM_TEXT_REF);
+    /**
+     * Initializes given root node of x-definition. Set name and root node names
+     * @param xDef              X-definition root node
+     * @param xDefName          X-definition name
+     * @param rootNodesName     X-definition root node's names
+     */
+    private void initializeXDefinitionNode(final Element xDef, final String xDefName, final String rootNodesName) {
+        XdAttributeFactory.addAttr(xDef, XD_ATTR_NAME, xDefName);
+        if (rootNodesName != null && !rootNodesName.isEmpty()) {
+            XdAttributeFactory.addAttr(xDef, XD_ATTR_ROOT_ELEMT, rootNodesName);
+        }
     }
 }

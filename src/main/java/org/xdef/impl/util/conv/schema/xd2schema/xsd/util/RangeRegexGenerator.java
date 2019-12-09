@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Has methods for generating regular expressions to match ranges of numbers.
+ * Methods for generating regular expressions to match ranges of numbers.
  *
  * Source: https://stackoverflow.com/questions/33512037/a-regular-expression-generator-for-number-ranges
  */

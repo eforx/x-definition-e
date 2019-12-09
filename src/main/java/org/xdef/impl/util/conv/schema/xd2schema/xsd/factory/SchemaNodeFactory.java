@@ -148,7 +148,7 @@ public class SchemaNodeFactory {
      * @return schema node
      */
     private static SchemaNode createDefNode(final String systemId, final String nodePos, final String nodePath, final XsdAdapterCtx adapterCtx) {
-        final Map<String, SchemaNode> xsdSystemRefs = adapterCtx.getSchemaNodes(systemId);
+        final Map<String, SchemaNode> xsdSystemRefs = adapterCtx.findSchemaNodes(systemId);
         final String localName = XsdNameUtils.getReferenceName(nodePos);
         SchemaNode ref = xsdSystemRefs.get(nodePath);
         if (ref == null) {

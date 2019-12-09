@@ -105,7 +105,7 @@ public class UniqueConstraint {
      */
     public void addVar(final XData xData, final XsdAdapterCtx adapterCtx) {
         final String parserName = xData.getParserName();
-        final QName qName = Xd2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
+        final QName qName = Xd2XsdParserMapping.findDefaultParserQName(parserName, adapterCtx);
         final String varName = XsdNameUtils.getUniqueSetVarName(xData.getValueTypeName());
 
         if (qName != null) {

@@ -3,6 +3,10 @@ package org.xdef.impl.util.conv.schema.xd2schema.xsd;
 import org.xdef.XDPool;
 import org.xdef.model.XMDefinition;
 
+/**
+ * Transforms single x-definition to XSD/JSON schema
+ * @param <T> type of returned schema
+ */
 public interface XDef2SchemaAdapter<T> {
 
     /**

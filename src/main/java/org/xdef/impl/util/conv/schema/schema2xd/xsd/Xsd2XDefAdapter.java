@@ -5,7 +5,6 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.adapter.AbstractXsd2XdAdapter;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.adapter.Xsd2XdTreeAdapter;
@@ -28,8 +27,14 @@ import static org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdLogg
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.*;
 
+/**
+ * Transforms XSD schema to x-definition or x-definiton pool
+ */
 public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDefAdapter<XmlSchema> {
 
+    /**
+     * X-definition XML node factory
+     */
     private XdNodeFactory elementFactory;
 
     @Override
@@ -69,7 +74,8 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         Element xdRootElem;
 
         if (schemasToBeProcessed.size() > 1) {
-            xdRootElem = createXdPool();
+            SchemaLogger.print(LOG_INFO, TRANSFORMATION, XD_ADAPTER, "Creating x-definition collection ...");
+            xdRootElem = elementFactory.createPool();
 
             // First transform root XSD document
             xdRootElem.appendChild(createXDef(xDefName, rootSchema, true));
@@ -79,30 +85,41 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
                     continue;
                 }
 
-                final String schemaName = adapterCtx.getXmlSchemaName(schema);
+                final String schemaName = adapterCtx.findXmlSchemaName(schema);
                 xdRootElem.appendChild(createXDef(schemaName, schema, true));
             }
         } else {
+            SchemaLogger.print(LOG_INFO, TRANSFORMATION, XD_ADAPTER, "Creating single x-definition ...");
             xdRootElem = createXDef(xDefName, rootSchema, false);
         }
 
-        return elementFactory.createHeader() + KXmlUtils.nodeToString(xdRootElem, true);
+        return XdNodeFactory.createFileHeader() + KXmlUtils.nodeToString(xdRootElem, true);
     }
 
-    private void transformXsdTree(final Xsd2XdTreeAdapter treeAdapter, final Element xdElem, final String xDefName, final XmlSchema schema) {
+    /**
+     * Transforms given XSD node tree into x-definition node tree
+     *
+     * Output will be saved in {@paramref xdDefRootElem}
+     *
+     * @param treeAdapter       XSD to x-definition adapter to be used
+     * @param xdDefRootElem     x-definition root node
+     * @param xDefName          x-definition name
+     * @param schema            input XSD document to be transformed
+     */
+    private void transformXsdTree(final Xsd2XdTreeAdapter treeAdapter, final Element xdDefRootElem, final String xDefName, final XmlSchema schema) {
         SchemaLogger.print(LOG_INFO, TRANSFORMATION, xDefName, "*** Transformation of XSD tree ***");
 
         final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
         if (schemaTypeMap != null && !schemaTypeMap.isEmpty()) {
             for (XmlSchemaType xsdSchemaType : schemaTypeMap.values()) {
-                treeAdapter.convertTree(xsdSchemaType, xdElem);
+                treeAdapter.convertTree(xsdSchemaType, xdDefRootElem);
             }
         }
 
         final Map<QName, XmlSchemaGroup> groupMap = schema.getGroups();
         if (groupMap != null && !groupMap.isEmpty()) {
             for (XmlSchemaGroup xsdGroup : groupMap.values()) {
-                treeAdapter.convertTree(xsdGroup, xdElem);
+                treeAdapter.convertTree(xsdGroup, xdDefRootElem);
             }
         }
 
@@ -110,11 +127,18 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         if (elementMap != null && !elementMap.isEmpty()) {
             for (XmlSchemaElement xsdElem : elementMap.values()) {
-                treeAdapter.convertTree(xsdElem, xdElem);
+                treeAdapter.convertTree(xsdElem, xdDefRootElem);
             }
         }
     }
 
+    /**
+     * Initializes XSD document's name
+     * @param schemas       XSD documents
+     * @param rootSchema    XSD root document
+     * @param xDefName      output x-definition name
+     * @return XSD document name per XSD document
+     */
     private Map<XmlSchema, String> initializeSchemaNames(final XmlSchema[] schemas, final XmlSchema rootSchema, final String xDefName) {
         final Map<XmlSchema, String> schemaNames = new HashMap<XmlSchema, String>();
 
@@ -132,6 +156,12 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         return schemaNames;
     }
 
+    /**
+     * Initializes XSD document name
+     * @param schema            XSD document to be initialized
+     * @param schemaLocation    XSD document location
+     * @param schemaNames       map of XSD document names
+     */
     private void initializeSchemaName(final XmlSchema schema, final String schemaLocation, final Map<XmlSchema, String> schemaNames) {
         final String refSchemaSavedName = schemaNames.get(schema);
         final String refSchemaFileName = XdNameUtils.getSchemaName(schemaLocation);
@@ -145,6 +175,13 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
     }
 
+    /**
+     * Gather basic data from input XSD documents and initializes XSD documents
+     * @param schemas       XSD documents
+     * @param rootSchema    XSD root document
+     * @param xDefName      output x-definition name
+     * @return
+     */
     private ArrayList<XmlSchema> initializeSchemas(final XmlSchema[] schemas, final XmlSchema rootSchema, final String xDefName) {
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "Schemas pre-processing");
@@ -198,13 +235,17 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         return schemasToBeProcessed;
     }
 
+    /**
+     * Initializes XSD documents used namespaces
+     * @param schemaToBeProcessed   XSD documents to be initialized
+     */
     private void initializeNamespaces(ArrayList<XmlSchema> schemaToBeProcessed) {
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "Namespace initialization");
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
 
         for (XmlSchema schema : schemaToBeProcessed) {
-            final String xDefName = adapterCtx.getXmlSchemaName(schema);
+            final String xDefName = adapterCtx.findXmlSchemaName(schema);
             final Pair<String, String> targetNamespace = getTargetNamespace(schema);
             if (targetNamespace != null) {
                 adapterCtx.addTargetNamespace(xDefName, targetNamespace);
@@ -224,6 +265,11 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
     }
 
+    /**
+     * Gets target namespace info of given XSD document
+     * @param schema    XSD document
+     * @return target namespace info(prefix, URI) if XSD document is using target namespace, otherwise null
+     */
     private Pair<String, String> getTargetNamespace(final XmlSchema schema) {
         if (schema.getTargetNamespace() == null || schema.getTargetNamespace().isEmpty()) {
             return null;
@@ -234,8 +280,13 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         return new Pair<String, String>(nsPrefix, schema.getTargetNamespace());
     }
 
+    /**
+     * Add namespaces to x-definition root node
+     * @param xdRootElem    x-definition root node
+     * @param xDefName      x-definition name
+     */
     private void addNamespaces(final Element xdRootElem, final String xDefName) {
-        Map<String, String> namespaces = adapterCtx.getNamespaces(xDefName);
+        Map<String, String> namespaces = adapterCtx.findNamespaces(xDefName);
         if (namespaces != null && !namespaces.isEmpty()) {
             for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
                 if (!namespace.getValue().isEmpty()) {
@@ -247,19 +298,13 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
     }
 
-    private Element createXdPool() {
-        SchemaLogger.print(LOG_INFO, TRANSFORMATION, XD_ADAPTER, "Creating x-definition pool ...");
-        final Document doc = elementFactory.createPool();
-        elementFactory.setDoc(doc);
-        return doc.getDocumentElement();
-    }
-
-    private Element createXDefRoot(final String schemaName, final String rootElements) {
-        final Document doc = elementFactory.createRootXdefinition(schemaName, rootElements);
-        elementFactory.setDoc(doc);
-        return doc.getDocumentElement();
-    }
-
+    /**
+     * Creates XML node structure of x-definition from given XSD document
+     * @param schemaName    XSD document name (output x-definition name)
+     * @param schema        input XSD document
+     * @param pool          flag, if x-definition is part of x-definition pool
+     * @return root node of x-definition
+     */
     private Element createXDef(final String schemaName, final XmlSchema schema, final boolean pool) {
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "====================");
         SchemaLogger.printG(LOG_INFO, XD_ADAPTER, "Creating x-definition. Name=" + schemaName);
@@ -267,7 +312,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
         final Xsd2XdTreeAdapter treeAdapter = new Xsd2XdTreeAdapter(schemaName, schema, elementFactory, adapterCtx);
         final String rootElements = treeAdapter.loadXsdRootElementNames();
-        final Element xdDefRootElem = pool ? elementFactory.createXDefinition(schemaName, rootElements) : createXDefRoot(schemaName, rootElements);
+        final Element xdDefRootElem = pool ? elementFactory.createXDefinition(schemaName, rootElements) : elementFactory.createRootXdefinition(schemaName, rootElements);
 
         addNamespaces(xdDefRootElem, schemaName);
         transformXsdTree(treeAdapter, xdDefRootElem, schemaName, schema);

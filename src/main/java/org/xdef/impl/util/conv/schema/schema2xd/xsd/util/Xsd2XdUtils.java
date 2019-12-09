@@ -10,9 +10,18 @@ import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdFeature.XD_TEXT_REQUIRED;
 
+/**
+ * Basic utils used in transformation XSD -> x-definition
+ */
 public class Xsd2XdUtils {
 
-    public static XmlSchemaType getSchemaTypeByQName(final XmlSchema schema, final QName qName) {
+    /**
+     * Finds XSD complex/simple schema type node in given schema by qualified name
+     * @param schema    XSD document
+     * @param qName     XSD qualified name to be searched
+     * @return XSD complex/simple schema type node if exists in given schema, otherwise null
+     */
+    public static XmlSchemaType findSchemaTypeByQName(final XmlSchema schema, final QName qName) {
         final Map<QName, XmlSchemaType> schemaTypeMap = schema.getSchemaTypes();
         if (schemaTypeMap != null) {
             return schemaTypeMap.get(qName);
@@ -21,7 +30,13 @@ public class Xsd2XdUtils {
         return null;
     }
 
-    public static XmlSchemaGroup getGroupByQName(final XmlSchema schema, final QName qName) {
+    /**
+     * Finds XSD group node in given schema by qualified name
+     * @param schema    XSD document
+     * @param qName     XSD qualified name to be searched
+     * @return XSD group node if exists in given schema, otherwise null
+     */
+    public static XmlSchemaGroup findGroupByQName(final XmlSchema schema, final QName qName) {
         final Map<QName, XmlSchemaGroup> schemaTypeMap = schema.getGroups();
         if (schemaTypeMap != null) {
             return schemaTypeMap.get(qName);

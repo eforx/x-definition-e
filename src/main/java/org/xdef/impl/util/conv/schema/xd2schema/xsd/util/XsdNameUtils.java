@@ -14,6 +14,9 @@ import javax.xml.namespace.QName;
 
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.*;
 
+/**
+ * Utils related to working with node name, reference name and qualified name
+ */
 public class XsdNameUtils {
 
     /**
@@ -253,7 +256,7 @@ public class XsdNameUtils {
         final String parserName = xData.getParserName();
 
         String name;
-        QName defaultQName = Xd2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
+        QName defaultQName = Xd2XsdParserMapping.findDefaultParserQName(parserName, adapterCtx);
         if (defaultQName != null) {
             name = defaultQName.getLocalPart();
         } else {

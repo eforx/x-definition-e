@@ -94,7 +94,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     private void transformXdef(final Xd2XsdTreeAdapter treeAdapter) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xDefinition, "*** Transformation of x-definition tree ***");
 
-        final Set<String> rootNodeNames = adapterCtx.getSchemaRootNodeNames(xDefinition.getName());
+        final Set<String> rootNodeNames = adapterCtx.findSchemaRootNodeNames(xDefinition.getName());
 
         if (rootNodeNames != null) {
             for (XElement elem : xDefinition.getXElements()) {

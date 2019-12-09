@@ -1,5 +1,8 @@
 package org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration;
 
+/**
+ * Declaration for transforming integer values
+ */
 public class IntegerTypeFactory extends AbstractDeclarationTypeFactory {
 
     public final String xdType;

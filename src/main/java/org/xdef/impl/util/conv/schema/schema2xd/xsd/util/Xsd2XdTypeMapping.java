@@ -9,6 +9,9 @@ import java.util.Map;
 
 import static org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration.IDeclarationTypeFactory.FACET_PATTERN;
 
+/**
+ * Definition of transformation XSD data types to x-definition data types
+ */
 public class Xsd2XdTypeMapping {
 
     /**
@@ -17,7 +20,6 @@ public class Xsd2XdTypeMapping {
     private static final Map<QName, IDeclarationTypeFactory> defaultQNameMap = new HashMap<QName, IDeclarationTypeFactory>();
 
     static {
-
         defaultQNameMap.put(Constants.XSD_ANYURI, new TextTypeFactory("anyURI"));
         defaultQNameMap.put(Constants.XSD_BASE64, new TextTypeFactory("base64Binary"));
         defaultQNameMap.put(Constants.XSD_BOOLEAN, new DefaultTypeFactory("boolean"));
@@ -50,11 +52,14 @@ public class Xsd2XdTypeMapping {
         defaultQNameMap.put(Constants.XSD_INT, new IntegerTypeFactory("int"));
         defaultQNameMap.put(Constants.XSD_INTEGER, new IntegerTypeFactory("int"));
         defaultQNameMap.put(Constants.XSD_LONG, new IntegerTypeFactory("long"));
-
-
     }
 
-    public static IDeclarationTypeFactory getDefaultDataTypeFactory(final QName xsdType) {
+    /**
+     * Converts given XSD qualified name to x-definition data type
+     * @param xsdType   XSD qualified name
+     * @return x-definition data type if exists, otherwise null
+     */
+    public static IDeclarationTypeFactory findDefaultDataTypeFactory(final QName xsdType) {
         return defaultQNameMap.get(xsdType);
     }
 }

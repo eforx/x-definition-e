@@ -16,6 +16,9 @@ import java.util.regex.Pattern;
 
 import static org.xdef.model.XMNode.*;
 
+/**
+ * Basic utils used in transformation x-definition -> XSD
+ */
 public class Xd2XsdUtils {
 
     static private final Pattern ciPattern = Pattern.compile("[a-zA-Z]");

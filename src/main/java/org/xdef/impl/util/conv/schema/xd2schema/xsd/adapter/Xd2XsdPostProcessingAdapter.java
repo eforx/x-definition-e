@@ -129,7 +129,7 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
                 continue;
             }
 
-            final String schemaName = adapterCtx.getSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
+            final String schemaName = adapterCtx.findSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
             final XmlSchema schema = adapterCtx.findSchema(schemaName, true, POSTPROCESSING);
             final Map<String, SchemaNode> nodes = adapterCtx.getNodes().get(schemaName);
             if (nodes != null && !nodes.isEmpty()) {

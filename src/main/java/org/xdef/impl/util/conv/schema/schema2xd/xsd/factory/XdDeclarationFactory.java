@@ -23,7 +23,7 @@ public class XdDeclarationFactory {
     private final XmlSchema schema;
 
     /**
-     * X-definition XML element factory
+     * X-definition XML node factory
      */
     final private XdNodeFactory xdFactory;
 
@@ -70,9 +70,9 @@ public class XdDeclarationFactory {
      * @return x-definition declaration content
      */
     public String createSimpleTextDeclaration(final QName baseType) {
-        final EmptyTypeFactory emptyTypeFactory = new EmptyTypeFactory(baseType.getLocalPart());
-        emptyTypeFactory.setType(IDeclarationTypeFactory.Type.TEXT_DECL);
-        return emptyTypeFactory.build("");
+        final DefaultTypeFactory defaultTypeFactory = new DefaultTypeFactory(baseType.getLocalPart());
+        defaultTypeFactory.setType(IDeclarationTypeFactory.Type.TEXT_DECL);
+        return defaultTypeFactory.build("");
     }
 
     /**

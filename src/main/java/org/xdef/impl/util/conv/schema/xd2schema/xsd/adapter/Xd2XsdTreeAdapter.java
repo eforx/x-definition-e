@@ -261,7 +261,7 @@ public class Xd2XsdTreeAdapter {
                 SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype. " +
                         "Element=" + xData.getName() + ", Type=" + qName);
             } else if (XD_PARSER_EQ.equals(xData.getParserName())) {
-                qName = Xd2XsdParserMapping.getDefaultParserQName(xData.getValueTypeName(), adapterCtx);
+                qName = Xd2XsdParserMapping.findDefaultParserQName(xData.getValueTypeName(), adapterCtx);
                 final String fixedValue = xData.getFixedValue() != null ? xData.getFixedValue().stringValue() : null;
                 if (fixedValue != null) {
                     attr.setFixedValue(fixedValue);
@@ -273,7 +273,7 @@ public class Xd2XsdTreeAdapter {
                 // Attributes using unique set should not contain simple-type with name
                 if (uniqueConstraint != null) {
                     final String parserName = xData.getParserName();
-                    qName = Xd2XsdParserMapping.getDefaultParserQName(parserName, adapterCtx);
+                    qName = Xd2XsdParserMapping.findDefaultParserQName(parserName, adapterCtx);
                     attr.setSchemaTypeName(qName);
                 } else {
                     final XmlSchemaSimpleType simpleType = xsdFactory.createSimpleType(xData, attr.getName());
@@ -496,7 +496,7 @@ public class Xd2XsdTreeAdapter {
         // Post-processing
         if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
             xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-            final XsdSchemaImportLocation importLocation = adapterCtx.getPostProcessingNsImport(nsUri);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingNsImport(nsUri);
             if (importLocation != null) {
                 final String refSystemId = importLocation.getFileName();
                 adapterCtx.addNodeToPostProcessing(nsUri, xElem);
@@ -544,7 +544,7 @@ public class Xd2XsdTreeAdapter {
         if (isPostProcessingPhase) {
             String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
             String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            final XsdSchemaImportLocation importLocation = adapterCtx.getPostProcessingNsImport(nsUri);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingNsImport(nsUri);
             if (importLocation != null) {
                 final String systemId = importLocation.getFileName();
                 adapterCtx.addOrUpdateNodeInDiffNs(node, systemId);
