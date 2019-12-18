@@ -496,7 +496,7 @@ public class Xd2XsdTreeAdapter {
         // Post-processing
         if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
             xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingNsImport(nsUri);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaImport(nsUri);
             if (importLocation != null) {
                 final String refSystemId = importLocation.getFileName();
                 adapterCtx.addNodeToPostProcessing(nsUri, xElem);
@@ -544,7 +544,7 @@ public class Xd2XsdTreeAdapter {
         if (isPostProcessingPhase) {
             String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
             String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingNsImport(nsUri);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaImport(nsUri);
             if (importLocation != null) {
                 final String systemId = importLocation.getFileName();
                 adapterCtx.addOrUpdateNodeInDiffNs(node, systemId);

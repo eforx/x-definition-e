@@ -107,10 +107,6 @@ public class XsdAdapterCtx {
         return schemaNames;
     }
 
-    public Map<String, XsdSchemaImportLocation> getSchemaLocationsCtx() {
-        return schemaLocationsCtx;
-    }
-
     public Map<String, XsdSchemaImportLocation> getExtraSchemaLocationsCtx() {
         return extraSchemaLocationsCtx;
     }
@@ -171,8 +167,48 @@ public class XsdAdapterCtx {
      * @param nsUri     XSD document namespace URI
      * @return XSD document location if exists, otherwise null
      */
-    public XsdSchemaImportLocation findPostProcessingNsImport(final String nsUri) {
+    public XsdSchemaImportLocation findSchemaImport(final String nsUri) {
+        return schemaLocationsCtx.get(nsUri);
+    }
+
+    /**
+     * Finds XSD document location if exists by given namespace URI
+     * @param nsUri     XSD document namespace URI
+     * @return XSD document location if exists, otherwise null
+     */
+    public XsdSchemaImportLocation findPostProcessingSchemaImport(final String nsUri) {
         return extraSchemaLocationsCtx.get(nsUri);
+    }
+
+    /**
+     * Add XSD document into extra map. Internally creates document location.
+     * @param nsPrefix          XSD document namespace prefix
+     * @param nsUri             XSD document namespace URI
+     */
+    public void addExtraSchemaLocation(final String nsPrefix, final String nsUri) {
+        if (extraSchemaLocationsCtx.containsKey(nsUri)) {
+            SchemaLogger.printG(LOG_DEBUG, XSD_ADAPTER_CTX, "Extra schema location already exists for namespace URI. NamespaceURI=" + nsUri);
+            return;
+        }
+
+        final String schemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
+        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external schema to post-process queue. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
+        extraSchemaLocationsCtx.put(nsUri, new XsdSchemaImportLocation(nsUri, schemaName));
+    }
+
+    /**
+     * Add XSD document into extra map. Internally creates document location.
+     * @param nsUri             XSD document namespace URI
+     * @param importLocation    XSD document location definition
+     */
+    public void addExtraSchemaLocation(final String nsUri, final XsdSchemaImportLocation importLocation) {
+        if (extraSchemaLocationsCtx.containsKey(nsUri)) {
+            SchemaLogger.printG(LOG_DEBUG, XSD_ADAPTER_CTX, "Extra schema location already exists for namespace URI. NamespaceURI=" + nsUri);
+            return;
+        }
+
+        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external schema to post-process queue. NamespaceURI=" + nsUri);
+        extraSchemaLocationsCtx.put(nsUri, importLocation);
     }
 
     /**
