@@ -177,9 +177,7 @@ public class XsdNamespaceUtils {
     public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
-        boolean onlyRefs = false;
         boolean targetNamespaceError = false;
-
         // Get target namespace prefix based on root elements
         if (xDef._rootSelection != null) {
             for (Map.Entry<String, XNode> root : xDef._rootSelection.entrySet()) {
@@ -192,15 +190,7 @@ public class XsdNamespaceUtils {
                     targetNamespaceError = true;
                     break;
                 }
-
-                if (onlyRefs == false && root.getValue().getKind() == XMNode.XMELEMENT) {
-                    onlyRefs = ((XElement)root.getValue()).isReference();
-                }
             }
-        }
-
-        if (targetNamespaceError == true) {
-            return new Pair<String, String>(targetNamespacePrefix, targetNamespaceUri);
         }
 
         // Find target namespace URI based on x-definition namespaces
