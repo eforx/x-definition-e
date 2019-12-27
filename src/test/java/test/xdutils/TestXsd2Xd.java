@@ -246,41 +246,15 @@ public class TestXsd2Xd extends TesterXdSchema {
     }
 
     private void convertXsd2XdPool(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, true, null);
+        convertXsd2XDef(fileName, validTestingData, invalidTestingData, true, null);
     }
 
     private void convertXsd2XdPoolNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, false, null);
+        convertXsd2XDef(fileName, validTestingData, invalidTestingData, false, null);
     }
 
     private void convertXsd2XdPoolWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<Xsd2XdFeature> features) {
-        convertXsd2XdPool(fileName, validTestingData, invalidTestingData, false, features);
-    }
-
-    private void convertXsd2XdPool(final String fileName,
-                                   List<String> validTestingData, List<String> invalidTestingData,
-                                   boolean validateAgainstRef, Set<Xsd2XdFeature> additionalFeatures) {
-        try {
-            Xsd2XDefAdapter adapter = createXsdAdapter(additionalFeatures);
-
-            // Convert XSD -> XD Schema
-            XmlSchema inputXmlSchemaCollection = compileXsd(fileName);
-            String outputXdPool = adapter.createXDefinition(inputXmlSchemaCollection, fileName);
-
-            // Compare output x-definition to x-definition reference
-            if (validateAgainstRef) {
-                validateXDefinition(fileName, outputXdPool);
-            } else {
-                writeOutputXDefinition(fileName, outputXdPool);
-            }
-
-            // Validate XML files against input XSD schema
-            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData);
-
-            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData, validateAgainstRef);
-        } catch (Exception ex) {
-            fail(ex);
-        }
+        convertXsd2XDef(fileName, validTestingData, invalidTestingData, false, features);
     }
 
     @Override

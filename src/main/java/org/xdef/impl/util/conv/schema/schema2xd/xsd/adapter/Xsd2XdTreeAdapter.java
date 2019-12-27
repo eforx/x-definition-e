@@ -369,7 +369,7 @@ public class Xsd2XdTreeAdapter {
         } else {
             final Element groupRef = xdFactory.createEmptyMixed();
             XdAttributeFactory.addAttrRef(groupRef, xsdGroupRefNode.getRefName());
-            SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xsdGroupRefNode, "Group reference possible inside sequence/choice/mixed node");
+            SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdGroupRefNode, "Group reference possible inside sequence/choice/mixed node");
             if (xsdGroupRefNode.getMaxOccurs() > 1) {
                 SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xsdGroupRefNode, "Group reference is using multiple occurence - prohibited in x-definition.");
             }

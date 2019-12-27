@@ -165,31 +165,31 @@ public class Xd2XsdReferenceAdapter {
 
     /**
      * Transform top-level x-definition element node into XSD node (element, complex-type, simple-type, group)
-     * @param xNode
+     * @param xElem
      */
-    private void transformTopLevelElem(final XNode xNode) {
-        SchemaLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Creating definition of reference");
+    private void transformTopLevelElem(final XElement xElem) {
+        SchemaLogger.printP(LOG_DEBUG, PREPROCESSING, xElem, "Creating definition of reference");
 
-        final XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xNode);
+        final XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xElem);
         final XmlSchemaType elementType = xsdElem.getSchemaType();
 
         if (elementType == null) {
-            SchemaLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as element. Name=" + xsdElem.getName());
+            SchemaLogger.printP(LOG_INFO, PREPROCESSING, xElem, "Add definition of reference as element. Name=" + xsdElem.getName());
         } else if (elementType instanceof XmlSchemaType) {
-            if (xNode.getName().endsWith("$mixed") && elementType instanceof XmlSchemaComplexType) {
+            if (xElem.getName().endsWith("$mixed") && elementType instanceof XmlSchemaComplexType) {
                 // Convert xd:mixed to group
                 final XmlSchemaGroup schemaGroup = xsdFactory.createEmptyGroup(xsdElem.getName());
                 schemaGroup.setParticle((XmlSchemaGroupParticle)((XmlSchemaComplexType)elementType).getParticle());
-                adapterCtx.updateNode(xNode, schemaGroup);
+                adapterCtx.updateNode(xElem, schemaGroup);
                 Xd2XsdUtils.removeNode(schema, xsdElem);
-                SchemaLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of group. Name=" + xsdElem.getName());
+                SchemaLogger.printP(LOG_INFO, PREPROCESSING, xElem, "Add definition of group. Name=" + xsdElem.getName());
             } else {
                 // Move schema type (complex-type/simple-type) to top-level and remove original element
                 elementType.setName(xsdElem.getName());
-                adapterCtx.updateNode(xNode, elementType);
+                adapterCtx.updateNode(xElem, elementType);
                 Xd2XsdUtils.addSchemaTypeNode2TopLevel(schema, elementType);
                 Xd2XsdUtils.removeNode(schema, xsdElem);
-                SchemaLogger.printP(LOG_INFO, PREPROCESSING, xNode, "Add definition of reference as complex/simple type. Name=" + xsdElem.getName());
+                SchemaLogger.printP(LOG_INFO, PREPROCESSING, xElem, "Add definition of reference as complex/simple type. Name=" + xsdElem.getName());
             }
         }
     }
