@@ -4,6 +4,7 @@ import javafx.util.Pair;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
+import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 
@@ -137,6 +138,15 @@ public class Xd2XsdUtils {
      */
     public static boolean containsAnyElement(final XElement xElem) {
         return xElem.getName().endsWith("$any");
+    }
+
+    /**
+     * Checks if given x-definition element contains mixed node
+     * @param xElem     x-definition element node
+     * @return  true if x-definition element node contains mixed node
+     */
+    public static boolean containsMixedElement(final XElement xElem) {
+        return xElem.getName().endsWith("$mixed");
     }
 
     /**

@@ -58,11 +58,11 @@ public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2S
         init();
 
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {
-            XDef2XsdAdapter adapter = createXDefAdapter();
+            final XDef2XsdAdapter adapter = createXDefAdapter();
             adapter.createSchema(xDef);
         }
 
-        Xd2XsdPostProcessingAdapter postProcessingAdapter = new Xd2XsdPostProcessingAdapter();
+        final Xd2XsdPostProcessingAdapter postProcessingAdapter = new Xd2XsdPostProcessingAdapter();
         postProcessingAdapter.setAdapterCtx(adapterCtx);
         postProcessingAdapter.process(xdPool);
 

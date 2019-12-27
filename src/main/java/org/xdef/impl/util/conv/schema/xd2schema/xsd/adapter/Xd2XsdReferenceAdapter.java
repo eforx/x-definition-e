@@ -176,7 +176,7 @@ public class Xd2XsdReferenceAdapter {
         if (elementType == null) {
             SchemaLogger.printP(LOG_INFO, PREPROCESSING, xElem, "Add definition of reference as element. Name=" + xsdElem.getName());
         } else if (elementType instanceof XmlSchemaType) {
-            if (xElem.getName().endsWith("$mixed") && elementType instanceof XmlSchemaComplexType) {
+            if (Xd2XsdUtils.containsMixedElement(xElem) && elementType instanceof XmlSchemaComplexType) {
                 // Convert xd:mixed to group
                 final XmlSchemaGroup schemaGroup = xsdFactory.createEmptyGroup(xsdElem.getName());
                 schemaGroup.setParticle((XmlSchemaGroupParticle)((XmlSchemaComplexType)elementType).getParticle());

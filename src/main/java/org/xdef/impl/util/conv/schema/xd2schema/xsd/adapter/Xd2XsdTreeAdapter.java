@@ -570,13 +570,13 @@ public class Xd2XsdTreeAdapter {
 
         final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refXPos);
         final String refLocalName = XsdNameUtils.getReferenceName(refXPos);
+        final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
 
         if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), xElem.getNSUri(), schema)) {
             final String nsUri = xElem.getNSUri();
             final String nsPrefix = schema.getNamespaceContext().getPrefix(nsUri);
             if (nsPrefix == null) {
                 final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
-                final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
                 final String refNsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                 if (!XsdNamespaceUtils.isValidNsUri(refNsUri)) {
                     SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
@@ -588,23 +588,24 @@ public class Xd2XsdTreeAdapter {
             return new QName(nsUri, xElem.getName());
         } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refXPos, schema)) {
             final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
-            final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
             final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
             return new QName(nsUri, refLocalName);
         } else if (XsdNamespaceUtils.isRefInDifferentSystem(refXPos, xPos)) {
             return new QName(XSD_NAMESPACE_PREFIX_EMPTY, refLocalName);
         } else if (Xd2XsdUtils.isAnyElement(xElem)) {
-            final String refNamespace = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
             String anyLocalName = refLocalName;
             final int anyPos = anyLocalName.indexOf("$any/$any");
             if (anyPos != -1) {
                 anyLocalName = anyLocalName.substring(0, anyPos);
             }
-            return new QName(refNamespace, anyLocalName);
-        } else {
-            final String refNamespace = XsdNamespaceUtils.getReferenceNamespacePrefix(refXPos);
-            return new QName(refNamespace, refLocalName);
+            return new QName(refNsPrefix, anyLocalName);
         }
+
+        if (!XSD_NAMESPACE_PREFIX_EMPTY.equals(refNsPrefix)) {
+            SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element namespace prefix should be empty! NamespacePrefix=" + refNsPrefix);
+        }
+
+        return new QName(refNsPrefix, refLocalName);
     }
 
     /**
