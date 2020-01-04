@@ -78,7 +78,6 @@ public class TestXd2Xsd extends TesterXdSchema {
         final Set<Xd2XsdFeature> features = Xd2XsdUtils.defaultFeatures();
         features.add(Xd2XsdFeature.XSD_ANNOTATION);
         features.add(Xd2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
-        features.add(Xd2XsdFeature.POSTPROCESSING_UNIQUE);
         features.add(Xd2XsdFeature.POSTPROCESSING_KEYS_AND_REFS);
         if (additionalFeatures != null) {
             features.addAll(additionalFeatures);
@@ -92,7 +91,6 @@ public class TestXd2Xsd extends TesterXdSchema {
         final Set<Xd2XsdFeature> features = Xd2XsdUtils.defaultFeatures();
         features.add(Xd2XsdFeature.XSD_ANNOTATION);
         features.add(Xd2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
-        features.add(Xd2XsdFeature.POSTPROCESSING_UNIQUE);
         features.add(Xd2XsdFeature.POSTPROCESSING_KEYS_AND_REFS);
         if (additionalFeatures != null) {
             features.addAll(additionalFeatures);
