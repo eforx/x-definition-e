@@ -161,7 +161,7 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
      * @param xDef    input x-definition where XSD elements should be inserted
      */
     private void createKeysAndRefs(final XDefinition xDef) {
-        if (!adapterCtx.hasEnableFeature(Xd2XsdFeature.POSTPROCESSING_KEYS_AND_REFS)) {
+        if (!adapterCtx.hasEnableFeature(Xd2XsdFeature.POSTPROCESSING_UNIQUE)) {
             return;
         }
 
