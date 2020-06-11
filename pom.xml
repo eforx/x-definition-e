@@ -7,9 +7,9 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>org.xdef</groupId>
-    <artifactId>xdef</artifactId>
+    <artifactId>xdef-parent</artifactId>
     <version>${revision}${changelist}</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     
     <licenses>
         <license>
@@ -19,8 +19,8 @@
         </license>
     </licenses>
 
-    <name>xdef</name>
-    <description>X-definition ${specification.version} (Open Source Software)</description>
+    <name>xdef-parent</name>
+    <description>parent-pom for the project X-definition (Open Source Software)</description>
     <url>http://www.xdef.org</url>
     <organization>
         <name>Syntea software group a.s.</name>
@@ -40,10 +40,10 @@
     </scm>
     
     <properties>
-        <revision>32.5.6</revision><!-- when changed, change also ${release.date}, see below -->
+        <revision>40.0.0</revision><!-- when changed, change also ${release.date}, see below -->
         <changelist>-SNAPSHOT</changelist><!-- use profile "release" for build release-version -->
-        <release.date>2020-02-15</release.date><!-- update when changed version -->
-        <specification.version>3.2</specification.version>
+        <release.date>2020-04-24</release.date><!-- update when changed version -->
+        <specification.version>4.0</specification.version>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
@@ -59,17 +59,12 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <logback-testng.version>1.0.0</logback-testng.version>
-        <!-- <testng.version>6.14.3</testng.version> -->
-        <testng.version>6.8.21</testng.version>
+        <testng.version>6.8.21</testng.version> <!-- last version supports java-1.6 -->
     </properties>
-    
-    <dependencies>
-        <!-- third parties -->
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <classifier>xqj</classifier>
-        </dependency>
+
+    <modules>
+        <!-- main module X-definition -->
+        <module>xdef</module>
         <dependency>
             <groupId>org.apache.ws.xmlschema</groupId>
             <artifactId>xmlschema-core</artifactId>
@@ -77,27 +72,8 @@
         </dependency>
 
 
-        <!-- test-phase -->
-        <!-- ========== -->
-        
-        <!-- core -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        <!-- third parties -->
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- module with examples -->
+        <module>xdef-example</module>
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
@@ -111,46 +87,69 @@
         </dependency>
 
 
-        <!-- logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.sbabcoc</groupId>
-            <artifactId>logback-testng</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        
-    </dependencies>
-    
+        <!-- auxiliary module with buildtools -->
+        <module>xdef-buildtools</module>
+
+        <!-- tests executing under java-11 -->
+        <module>xdef-test11</module>
+    </modules>
+
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>org/xdef/sys/config/pominfo.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>${jdk.version}</version>
+                            <vendor>${jdk.vendor}</vendor>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <pomElements>
+                        <name/>
+                        <description/>
+                        <url/>
+                        <organization/>
+                        <developers/>
+                        <scm/>
+                    </pomElements>
+                </configuration>
+                <executions>
+                    <!-- enable flattening -->
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <!-- ensure proper cleanup -->
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -190,70 +189,21 @@
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-toolchains-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>toolchain</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <toolchains>
-                        <jdk>
-                            <version>${jdk.version}</version>
-                            <vendor>${jdk.vendor}</vendor>
-                        </jdk>
-                    </toolchains>
+                    <forkedProcessExitTimeoutInSeconds>0</forkedProcessExitTimeoutInSeconds>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
-                    <forkedProcessExitTimeoutInSeconds>0</forkedProcessExitTimeoutInSeconds>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
-                    </suiteXmlFiles>
+                    <skip>true</skip>
                 </configuration>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
-                <configuration>
-                    <updatePomFile>true</updatePomFile>
-                    <pomElements>
-                        <name/>
-                        <description/>
-                        <url/>
-                        <organization/>
-                        <developers/>
-                        <scm/>
-                    </pomElements>
-                </configuration>
-                <executions>
-                    <!-- enable flattening -->
-                    <execution>
-                        <id>flatten</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>flatten</goal>
-                        </goals>
-                    </execution>
-                    <!-- ensure proper cleanup -->
-                    <execution>
-                        <id>flatten.clean</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>clean</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
-        
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -302,6 +252,11 @@
                     <version>3.1.1</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
                     <version>1.1.0</version>
@@ -319,133 +274,27 @@
             </plugins>
         </pluginManagement>
     </build>
-    
-    <profiles>
-        <profile>
-            <id>release</id>
-            <properties>
-                <changelist/>
-            </properties>
-        </profile>
-        <profile>
-            <id>javadoc</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <excludePackageNames>org.xdef.impl*</excludePackageNames>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>maven/assembly/src.xml</descriptor>
-                                <descriptor>maven/assembly/userdoc.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>dm-ossrh</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <!-- when using plugin nexus-staging-maven-plugin release-repository isn't needed
-                <repository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-                </repository>
-                -->
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>dm-syntea</id>
-            <distributionManagement>
-                <repository>
-                    <id>private</id>
-                    <url>${mrmUrl}/private</url>
-                </repository>
-                <snapshotRepository>
-                    <id>private-snapshot</id>
-                    <url>${mrmUrl}/private-snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-    </profiles>
-    
+
     <dependencyManagement>
         <dependencies>
+            <!-- auxiliary xdef-modules -->
+            <dependency>
+                <groupId>org.xdef</groupId>
+                <artifactId>xdef</artifactId>
+                <version>${revision}${changelist}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xdef</groupId>
+                <artifactId>xdef-buildtools</artifactId>
+                <version>${revision}${changelist}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xdef</groupId>
+                <artifactId>xdef-test</artifactId>
+                <type>test-jar</type>
+                <version>${revision}${changelist}</version>
+            </dependency>
+            
             <!-- third parties -->
             <dependency>
                 <groupId>net.sf.saxon</groupId>
@@ -491,4 +340,51 @@
         </dependencies>
     </dependencyManagement>
     
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <changelist/>
+            </properties>
+        </profile>
+        <profile>
+            <id>javadoc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
