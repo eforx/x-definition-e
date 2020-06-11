@@ -83,8 +83,8 @@
       <xs:annotation>
         <xs:documentation>Original x-definition parser: enum</xs:documentation>
       </xs:annotation>
-      <xs:enumeration value="cd"/>
       <xs:enumeration value="ab"/>
+      <xs:enumeration value="cd"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="root">
@@ -222,8 +222,8 @@
               <xs:annotation>
                 <xs:documentation>Original x-definition parser: enum</xs:documentation>
               </xs:annotation>
-              <xs:enumeration value="cd"/>
               <xs:enumeration value="ab"/>
+              <xs:enumeration value="cd"/>
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
@@ -233,8 +233,8 @@
               <xs:annotation>
                 <xs:documentation>Original x-definition parser: enum</xs:documentation>
               </xs:annotation>
-              <xs:enumeration value="cd"/>
               <xs:enumeration value="ab"/>
+              <xs:enumeration value="cd"/>
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
