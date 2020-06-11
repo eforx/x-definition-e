@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.Node;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase;
+import org.xdef.model.XMNode;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.model.XMNode.XMDEFINITION;
@@ -25,7 +26,7 @@ public class SchemaLogger {
         print(level, phase, group, "", msg);
     }
 
-    public static void printP(int level, final AlgPhase phase, final XNode node, final String msg) {
+    public static void printP(int level, final AlgPhase phase, final XMNode node, final String msg) {
         print(level, phase, null, node, msg);
     }
 
@@ -45,7 +46,7 @@ public class SchemaLogger {
         print(level, null, group, "", msg);
     }
 
-    public static void printG(int level, final String group, final XNode node, final String msg) {
+    public static void printG(int level, final String group, final XMNode node, final String msg) {
         print(level, null, group, node, msg);
     }
 
@@ -57,7 +58,7 @@ public class SchemaLogger {
         print(level, null, group, node, msg);
     }
 
-    public static void print(int level, final AlgPhase phase, final String group, final XNode node, final String msg) {
+    public static void print(int level, final AlgPhase phase, final String group, final XMNode node, final String msg) {
         if (level > LOG_LEVEL) {
             return;
         }
@@ -137,7 +138,7 @@ public class SchemaLogger {
         return "";
     }
 
-    private static String getXNodeName(final XNode node) {
+    private static String getXNodeName(final XMNode node) {
         String nodeName = node.getName();
         if (node.getKind() == XMTEXT) {
             int pos = -1;

@@ -11,6 +11,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
+import org.xdef.model.XMNode;
 
 import java.util.*;
 
@@ -389,7 +390,7 @@ public class XsdAdapterCtx {
      * @param xNode         x-definition node of schema node
      * @param newXsdNode    new XSD document node
      */
-    public void updateNode(final XNode xNode, final XmlSchemaNamed newXsdNode) {
+    public void updateNode(final XMNode xNode, final XmlSchemaNamed newXsdNode) {
         final String xPos = xNode.getXDPosition();
         final String systemId = XsdNamespaceUtils.getSystemIdFromXPos(xPos);
         final String nodePath = XsdNameUtils.getXNodePath(xPos);

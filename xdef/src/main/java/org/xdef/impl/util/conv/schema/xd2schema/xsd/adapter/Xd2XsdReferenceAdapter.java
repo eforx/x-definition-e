@@ -12,6 +12,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.*;
+import org.xdef.model.XMElement;
 import org.xdef.model.XMNode;
 
 import java.util.ArrayList;
@@ -149,14 +150,14 @@ public class Xd2XsdReferenceAdapter {
 
         // Extract all simple types and imports
         SchemaLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting simple references and imports ...");
-        for (XElement elem : xDef.getXElements()) {
+        for (XMElement elem : xDef.getModels()) {
             extractSimpleRefsAndImports(elem, processed, false);
         }
 
         // Extract all complex types
         SchemaLogger.printP(LOG_INFO, PREPROCESSING, xDef, "Extracting complex references ...");
         final Set<String> rootNodeNames = adapterCtx.findSchemaRootNodeNames(schemaName);
-        for (XElement elem : xDef.getXElements()) {
+        for (XMElement elem : xDef.getModels()) {
             if (rootNodeNames == null || !rootNodeNames.contains(elem.getName())) {
                 transformTopLevelElem(elem);
             }
@@ -167,7 +168,7 @@ public class Xd2XsdReferenceAdapter {
      * Transform top-level x-definition element node into XSD node (element, complex-type, simple-type, group)
      * @param xElem
      */
-    private void transformTopLevelElem(final XElement xElem) {
+    private void transformTopLevelElem(final XMElement xElem) {
         SchemaLogger.printP(LOG_DEBUG, PREPROCESSING, xElem, "Creating definition of reference");
 
         final XmlSchemaElement xsdElem = (XmlSchemaElement) treeAdapter.convertTree(xElem);
@@ -200,7 +201,7 @@ public class Xd2XsdReferenceAdapter {
      * @param processed     already processed nodes
      * @param parentRef     flag if parent is node using reference
      */
-    private void extractSimpleRefsAndImports(final XNode xNode, final Set<XMNode> processed, boolean parentRef) {
+    private void extractSimpleRefsAndImports(final XMNode xNode, final Set<XMNode> processed, boolean parentRef) {
         if (!processed.add(xNode)) {
             SchemaLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Already processed. This node is reference probably");
             return;
@@ -292,7 +293,7 @@ public class Xd2XsdReferenceAdapter {
                 SchemaLogger.printP(LOG_DEBUG, PREPROCESSING, xNode, "Processing XDefinition node. Node=" + xNode.getName());
 
                 XDefinition def = (XDefinition)xNode;
-                XElement[] elems = def.getXElements();
+                XMElement[] elems = def.getModels();
                 for (int i = 0; i < elems.length; i++){
                     extractSimpleRefsAndImports(elems[i], processed, false);
                 }

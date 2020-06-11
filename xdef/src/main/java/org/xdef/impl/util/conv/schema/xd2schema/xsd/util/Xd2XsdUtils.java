@@ -7,6 +7,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.model.XMElement;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -145,7 +146,7 @@ public class Xd2XsdUtils {
      * @param xElem     x-definition element node
      * @return  true if x-definition element node contains mixed node
      */
-    public static boolean containsMixedElement(final XElement xElem) {
+    public static boolean containsMixedElement(final XMElement xElem) {
         return xElem.getName().endsWith("$mixed");
     }
 

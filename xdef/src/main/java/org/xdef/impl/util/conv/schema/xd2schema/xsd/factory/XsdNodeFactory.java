@@ -21,6 +21,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdParserMapping;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
+import org.xdef.model.XMNode;
 import org.xdef.model.XMOccurrence;
 
 import javax.xml.namespace.QName;
@@ -221,7 +222,7 @@ public class XsdNodeFactory {
      *          <xs:choice/>
      *          <xs:all/>
      */
-    public CXmlSchemaGroupParticle createGroupParticle(final XNode xNode) {
+    public CXmlSchemaGroupParticle createGroupParticle(final XMNode xNode) {
         final short groupType = xNode.getKind();
         final XMOccurrence occurrence = xNode.getOccurence();
 

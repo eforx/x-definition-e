@@ -1,6 +1,6 @@
 package test.xdutils;
 
-import buildtools.XDTester;
+import test.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDDocument;

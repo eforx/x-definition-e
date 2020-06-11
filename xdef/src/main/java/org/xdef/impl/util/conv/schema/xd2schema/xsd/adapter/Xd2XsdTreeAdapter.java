@@ -142,7 +142,7 @@ public class Xd2XsdTreeAdapter {
      * @param xNode     root of x-definition tree
      * @return root of XSD node tree, may return null
      */
-    public XmlSchemaObject convertTree(XNode xNode) {
+    public XmlSchemaObject convertTree(XMNode xNode) {
         xdProcessedNodes = new HashSet<XMNode>();
         return convertTreeInt(xNode, true);
     }
@@ -153,7 +153,7 @@ public class Xd2XsdTreeAdapter {
      * @param topLevel  flag if x-definition node is placed on top level
      * @return root of XSD node tree, may return null
      */
-    private XmlSchemaObject convertTreeInt(final XNode xNode, boolean topLevel) {
+    private XmlSchemaObject convertTreeInt(final XMNode xNode, boolean topLevel) {
         if (!xdProcessedNodes.add(xNode)) {
             SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xNode, "Already processed. This node should be reference definition");
             return null;

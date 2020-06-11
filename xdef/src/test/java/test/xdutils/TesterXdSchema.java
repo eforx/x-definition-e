@@ -1,6 +1,6 @@
 package test.xdutils;
 
-import buildtools.XDTester;
+import test.XDTester;
 
 import java.io.File;
 import java.io.FileNotFoundException;

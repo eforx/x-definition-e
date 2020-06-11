@@ -16,6 +16,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
+import org.xdef.model.XMElement;
 
 import java.util.Set;
 
@@ -97,7 +98,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
         final Set<String> rootNodeNames = adapterCtx.findSchemaRootNodeNames(xDefinition.getName());
 
         if (rootNodeNames != null) {
-            for (XElement elem : xDefinition.getXElements()) {
+            for (XMElement elem : xDefinition.getModels()) {
                 if (rootNodeNames.contains(elem.getName())) {
                     treeAdapter.convertTree(elem);
                     SchemaLogger.printP(LOG_INFO, TRANSFORMATION, elem, "Adding root element to schema. Element=" + elem.getName());
