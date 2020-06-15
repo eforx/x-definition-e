@@ -1,0 +1,71 @@
+<xd:collection xmlns:xd="http://www.xdef.org/xdef/4.0">
+
+   <xd:def name="importLocal02_A" root="A">
+      <xd:declaration scope="local">
+        void a() {out(xx() + xxx + yy() + yyy);}
+        uniqueSet u {c: x}
+      </xd:declaration>
+      <A a="x" b="y" c="u.c.ID" xd:script="finally a();" />
+   </xd:def>
+   
+   <xd:def name="B" root="A" importLocal="X">
+      <xd:declaration scope="local">
+        void a() {out(xx() + xxx + yy() + yyy);}
+        uniqueSet u {c: x}
+      </xd:declaration>
+      <A a="x" b="y" c="u.c.ID" xd:script="finally a();" />
+   </xd:def>
+   
+   <xd:def name="C" root="A" importLocal="Y">
+      <xd:declaration scope="local">
+        void a() {out(xx() + xxx + yy() + yyy);}
+        uniqueSet u {c: x}</xd:declaration>
+      <A a="x" b="y" c="u.c.ID" xd:script="finally a();" />
+   </xd:def>
+   
+   <xd:def name="D" root="A" importLocal="X,Y">
+      <xd:declaration scope="local">
+        void a() {out(xx() + xxx + yy() + yyy);}
+        uniqueSet u {c: x}</xd:declaration>
+      <A a="x" b="y" c="u.c.ID" xd:script="finally a();" />
+   </xd:def>
+   
+   <xd:def name="E" root="A" importLocal="X,Y">
+      <xd:declaration scope="local">
+        String xx() {return 'Exx';}
+        type x eq('Ex');
+        type y eq('Ey');
+        int xxx = 1;
+        void a() {out(xx() + xxx + yy() + yyy);}
+        uniqueSet u {c: x}
+      </xd:declaration>
+      <A a="x" b="y" c="u.c.ID" xd:script="finally a();" />
+   </xd:def>
+   
+   <xd:def name="X">
+      <xd:declaration scope="local">
+        String xx() {return 'Xxx';}
+        type x eq('Xx');
+        int xxx = 2;
+      </xd:declaration>
+   </xd:def>
+   
+   <xd:def name="Y">
+      <xd:declaration scope="local">
+        String yy() {return 'Yyy';}
+        type y eq('Yy');
+        int yyy = 3;
+      </xd:declaration>
+   </xd:def>
+   
+   <xd:def name="Z">
+      <xd:declaration scope="global">String xx() {return 'Zxx';}
+  String yy() {return 'Zyy';}
+  type x eq('Zx');
+  type y eq('Zy');
+  int xxx = 4;
+  int yyy = 2;
+  uniqueSet u {c: x}</xd:declaration>
+   </xd:def>
+   
+</xd:collection>

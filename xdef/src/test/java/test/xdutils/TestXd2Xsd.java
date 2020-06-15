@@ -96,6 +96,8 @@ public class TestXd2Xsd extends TesterXdSchema {
             features.addAll(additionalFeatures);
         }
         adapter.setFeatures(features);
+        _repWriter.clear();
+        adapter.setReportWriter(_repWriter);
         return adapter;
     }
 
@@ -550,6 +552,15 @@ public class TestXd2Xsd extends TesterXdSchema {
 
         convertXdDef2XsdNoRef ("defaultValue1", Arrays.asList(new String[] {"defaultValue1_valid_1"}), null);
         convertXdDef2XsdNoRef ("defaultValue2", Arrays.asList(new String[] {"defaultValue2_valid_1"}), null);
+
+        // ============ ImportLocal ============
+
+        convertXdPool2XsdNoRef ("importLocal01", Arrays.asList(new String[] {"importLocal01_valid01"}), null);
+        convertXdPool2XsdNoRef ("importLocal02_A", Arrays.asList(new String[] {"importLocal02_A_valid01"}), null);
+        convertXdPool2XsdNoRef ("importLocal02_B", Arrays.asList(new String[] {"importLocal02_B_valid01"}), null);
+        convertXdPool2XsdNoRef ("importLocal02_C", Arrays.asList(new String[] {"importLocal02_C_valid01"}), null);
+        convertXdPool2XsdNoRef ("importLocal02_D", Arrays.asList(new String[] {"importLocal02_D_valid01"}), null);
+        convertXdPool2XsdNoRef ("importLocal02_E", Arrays.asList(new String[] {"importLocal02_E_valid01"}), null);
 
         // ============ UniqueSets ============
 

@@ -1,0 +1,15 @@
+<xd:collection xmlns:xd='http://www.xdef.org/xdef/4.0'>
+
+  <xd:def xmlns:xd = "http://www.xdef.org/xdef/4.0" xd:name = "importLocal01" xd:root = "X" xd:importLocal = "B, #">
+    <X a="mytype()" b="_type()"/>
+  </xd:def>
+  
+  <xd:def xmlns:xd = "http://www.xdef.org/xdef/4.0" xd:name = "B">
+    <xd:declaration scope="local"> type mytype string(); </xd:declaration>
+  </xd:def>
+  
+  <xd:def xmlns:xd = "http://www.xdef.org/xdef/4.0">
+    <xd:declaration scope="local"> type _type int(); </xd:declaration>
+  </xd:def>
+
+</xd:collection>
