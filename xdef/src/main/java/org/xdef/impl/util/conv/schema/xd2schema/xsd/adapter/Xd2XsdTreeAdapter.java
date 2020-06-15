@@ -10,8 +10,8 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.SchemaNodeFactory;
-import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNameFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
@@ -24,16 +24,18 @@ import org.xdef.model.XMData;
 import org.xdef.model.XMNode;
 import org.xdef.model.XMVariable;
 import org.xdef.model.XMVariableTable;
+import org.xdef.msg.XDEF;
+import org.xdef.msg.XSD;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.xdef.impl.compile.CompileBase.UNIQUESET_M_VALUE;
 import static org.xdef.impl.compile.CompileBase.UNIQUESET_VALUE;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XD_PARSER_EQ;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
 /**
  * Transforms x-definition tree node structure to XSD tree node structure
@@ -179,10 +181,12 @@ public class Xd2XsdTreeAdapter {
                 SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xNode, "Processing Particle node. Particle=" + Xd2XsdUtils.particleXKindToString(xdElemKind));
                 return xsdFactory.createGroupParticle(xNode);
             case XNode.XMDEFINITION: {
+                adapterCtx.getReportWriter().warning(XSD.XSD017);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xNode, "XDefinition node has to be only pre-processed!");
                 return null;
             }
             default: {
+                adapterCtx.getReportWriter().warning(XSD.XSD018, xdElemKind);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xNode, "Unknown type of node. NodeType=" + xdElemKind);
             }
         }
@@ -233,7 +237,7 @@ public class Xd2XsdTreeAdapter {
 
                 final String varName = XsdNameUtils.getUniqueSetVarName(xData.getValueTypeName());
                 final String nodePath = XsdNameUtils.getXNodePath(xData.getXDPosition());
-                uniqueConstraint.addConstraint(varName, attr, nodePath, type);
+                uniqueConstraint.addConstraint(varName, attr, nodePath, type, adapterCtx.getReportWriter());
 
                 attr.setAnnotation(XsdNodeFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath() + " (" + xData.getValueTypeName() + ")", adapterCtx));
             }
@@ -333,11 +337,13 @@ public class Xd2XsdTreeAdapter {
                     xsdAny.setProcessContent(XmlSchemaContentProcessing.LAX);
                     if (xElem._attrs.size() > 0 || xElem._childNodes.length > 0) {
                         xsdAny.setAnnotation(XsdNodeFactory.createAnnotation("Original any element contains children nodes/attributes", adapterCtx));
+                        adapterCtx.getReportWriter().warning(XSD.XSD019);
                         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "!Lossy transformation! Any type with attributes/children nodes is not supported!");
                     }
 
                     return xsdAny;
                 } else if (topLevel && Xd2XsdUtils.containsAnyElement(xElem)) {
+                    adapterCtx.getReportWriter().warning(XSD.XSD020);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Any element cannot be root element of xsd!");
                 }
 
@@ -405,10 +411,12 @@ public class Xd2XsdTreeAdapter {
         XsdNameUtils.resolveElementQName(schema, xElem, xsdElem, adapterCtx);
 
         if (xdPool == null) {
+            adapterCtx.getReportWriter().error(XDEF.XDEF715);
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "XDPool is not set!");
         } else {
             XMNode xRefNode = xdPool.findModel(refXPos);
             if (xRefNode.getKind() != XNode.XMELEMENT) {
+                adapterCtx.getReportWriter().error(XSD.XSD003);
                 SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Reference to node type element is expected!");
             } else {
                 final XElement xRefElem = (XElement)xRefNode;
@@ -504,6 +512,7 @@ public class Xd2XsdTreeAdapter {
                 final String refNodePos = SchemaNode.getPostProcessingNodePos(refSystemId, refNodePath);
                 SchemaNodeFactory.createElemRefAndDefDiffNamespace(xElem, xsdElem, schemaName, nodePath, refSystemId, refNodePos, refNodePath, adapterCtx);
             } else {
+                adapterCtx.getReportWriter().warning(XSD.XSD021, nsUri);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element is in different namespace which is not marked for post-processing! Namespace=" + nsUri);
             }
         } else {
@@ -515,6 +524,7 @@ public class Xd2XsdTreeAdapter {
                 SchemaNodeFactory.createElemRefAndDefDiffNamespace(xElem, xsdElem, schemaName, nodePath, systemId, xDefPos, nodePath, adapterCtx);
             } else {
                 nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
+                adapterCtx.getReportWriter().error(XSD.XSD004, nsPrefix);
                 SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
             }
         }
@@ -579,6 +589,7 @@ public class Xd2XsdTreeAdapter {
                 final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
                 final String refNsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                 if (!XsdNamespaceUtils.isValidNsUri(refNsUri)) {
+                    adapterCtx.getReportWriter().error(XSD.XSD004, nsPrefix);
                     SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                 } else {
                     XsdNamespaceUtils.addNamespaceToCtx((NamespaceMap) schema.getNamespaceContext(), refNsPrefix, refNsUri, refSystemId, POSTPROCESSING);
@@ -602,6 +613,7 @@ public class Xd2XsdTreeAdapter {
         }
 
         if (!XSD_NAMESPACE_PREFIX_EMPTY.equals(refNsPrefix)) {
+            adapterCtx.getReportWriter().warning(XSD.XSD022, refNsPrefix);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element namespace prefix should be empty! NamespacePrefix=" + refNsPrefix);
         }
 
@@ -673,6 +685,7 @@ public class Xd2XsdTreeAdapter {
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
                 XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
                 if (complexType.getContentModel() != null) {
+                    adapterCtx.getReportWriter().warning(XSD.XSD023);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Complex type already has simple content!");
                 } else if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
                     SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add simple content with attributes to complex content of element.");
@@ -684,6 +697,7 @@ public class Xd2XsdTreeAdapter {
                             ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(xAttrs[j], false));
                     }
                 } else {
+                    adapterCtx.getReportWriter().warning(XSD.XSD024);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Content of XText is not simple!");
                 }
             } else if (childrenKind == XNode.XMSELECTOR_END) {
@@ -700,6 +714,7 @@ public class Xd2XsdTreeAdapter {
                             currParticle = particleStack.peek();
                         }
                     } else {
+                        adapterCtx.getReportWriter().warning(XSD.XSD025);
                         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Group particle stack is empty, but it should not be!");
                     }
                 }
@@ -764,8 +779,10 @@ public class Xd2XsdTreeAdapter {
         final SchemaNode refNode = adapterCtx.findSchemaNode(systemId, refNodePath);
 
         if (refNode == null || refNode.getXsdNode() == null) {
+            adapterCtx.getReportWriter().error(XSD.XSD010, xChildrenNodes[0].getXDPosition());
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());
         } else if (!refNode.isXsdGroup()) {
+            adapterCtx.getReportWriter().error(XSD.XSD011, xChildrenNodes[0].getXDPosition());
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! Path=" + xChildrenNodes[0].getXDPosition());
         } else {
             final XmlSchemaGroup group = refNode.toXsdGroup();

@@ -12,6 +12,7 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.model.XMNode;
+import org.xdef.msg.XSD;
 
 import java.util.Map;
 
@@ -174,7 +175,7 @@ public class XsdNamespaceUtils {
      * @param xDef  x-definition
      * @return target namespace prefix, target namespace URI
      */
-    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef) {
+    public static Pair<String, String> getSchemaTargetNamespace(final XDefinition xDef, final XsdAdapterCtx adapterCtx) {
         String targetNamespacePrefix = null;
         String targetNamespaceUri = null;
         boolean targetNamespaceError = false;
@@ -186,6 +187,7 @@ public class XsdNamespaceUtils {
                 if (targetNamespacePrefix == null) {
                     targetNamespacePrefix = tmpNs;
                 } else if (tmpNs != null && !targetNamespacePrefix.equals(tmpNs)) {
+                    adapterCtx.getReportWriter().error(XSD.XSD001, targetNamespacePrefix, tmpNs);
                     SchemaLogger.printG(LOG_ERROR, XSD_UTILS, xDef, "Expected different namespace prefix. Expected=" + targetNamespacePrefix + ", Actual=" + tmpNs);
                     targetNamespaceError = true;
                     break;
@@ -204,6 +206,7 @@ public class XsdNamespaceUtils {
         }
 
         if (targetNamespacePrefix != null && targetNamespaceUri == null) {
+            adapterCtx.getReportWriter().error(XSD.XSD046, targetNamespacePrefix);
             SchemaLogger.printG(LOG_ERROR, XSD_UTILS, xDef, "Target namespace URI has been not found for prefix. Prefix=" + targetNamespacePrefix);
             targetNamespaceError = true;
         }

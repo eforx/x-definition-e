@@ -11,7 +11,6 @@ public interface Xd2XsdDefinitions {
     /**
      * X-definition parsers mapped to default xsd parsers
      */
-
     String XD_PARSER_CDATA = "CDATA";
     String XD_PARSER_EQ = "eq";
     String XD_PARSER_ISODATE = "ISOdate";
@@ -47,7 +46,6 @@ public interface Xd2XsdDefinitions {
     /**
      * X-definition uniqueSet types
      */
-
     String XD_UNIQUE_ID = "ID";
     String XD_UNIQUE_IDREF = "IDREF";
     String XD_UNIQUE_IDREFS = "IDREFS";

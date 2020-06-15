@@ -2,6 +2,7 @@ package org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter;
 
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.sys.ReportWriter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,11 @@ public abstract class AbstractXd2XsdAdapter {
      * Adapter context
      */
     protected XsdAdapterCtx adapterCtx = null;
+
+    /**
+     * Output report writer
+     */
+    protected ReportWriter reportWriter = null;
 
     /**
      * Enabled algorithm features
@@ -51,5 +57,13 @@ public abstract class AbstractXd2XsdAdapter {
      */
     public void addFeature(Xd2XsdFeature feature) {
         features.add(feature);
+    }
+
+    /**
+     * Set output writer
+     * @param reportWriter
+     */
+    public void setReportWriter(ReportWriter reportWriter) {
+        this.reportWriter = reportWriter;
     }
 }

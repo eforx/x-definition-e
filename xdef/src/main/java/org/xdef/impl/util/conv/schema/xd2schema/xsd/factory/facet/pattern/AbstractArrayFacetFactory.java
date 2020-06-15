@@ -10,7 +10,9 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.DefaultFacetFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.pattern.types.EnumerationRegexFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.pattern.types.IntegerRegexFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.pattern.types.RegexFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdParserMapping;
+import org.xdef.msg.XSD;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -92,6 +94,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
             }
 
             if (!ignoredParamsStr.isEmpty()) {
+                adapterCtx.getReportWriter().warning(XSD.XSD031, ignoredParamsStr);
                 SchemaLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),
                         "List/Union facet - Using of unhandled restrictions found! Following attributes/parsers being ignored: " + ignoredParamsStr);
             }
@@ -113,14 +116,21 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
 
     protected String parserParamsToRegex(final String parserName, final XDNamedValue[] params) {
         QName parserQName = this instanceof ListRegexFacetFactory ? type : Xd2XsdParserMapping.findDefaultParserQName(parserName, adapterCtx);
+        RegexFactory regexFactory = null;
         String regex = "";
 
         if (Constants.XSD_INT.equals(parserQName)) {
-            regex = new IntegerRegexFactory().regex(params);
+            regexFactory = new IntegerRegexFactory();
         } else if (Constants.XSD_STRING.equals(parserQName)) {
-            regex = new EnumerationRegexFactory().regex(params);
+            regexFactory = new EnumerationRegexFactory();
         } else {
+            adapterCtx.getReportWriter().warning(XSD.XSD032, type);
             SchemaLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Parser params to regex - Unsupported list parser! QName=" + type);
+        }
+
+        if (regexFactory != null) {
+            regexFactory.setAdapterCtx(adapterCtx);
+            regex = regexFactory.regex(params);
         }
 
         return regex;
@@ -142,6 +152,7 @@ public abstract class AbstractArrayFacetFactory extends DefaultFacetFactory {
             createPatterns(parser.parserName(), parser.getNamedParams().getXDNamedItems());
             return true;
         } else {
+            adapterCtx.getReportWriter().warning(XSD.XSD033, xVal.getItemId());
             SchemaLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported value of simple content type. ValueId=" + xVal.getItemId());
         }
 

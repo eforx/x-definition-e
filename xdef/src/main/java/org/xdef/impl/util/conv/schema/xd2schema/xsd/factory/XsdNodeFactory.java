@@ -23,6 +23,9 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 import org.xdef.model.XMOccurrence;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
+import org.xdef.sys.SRuntimeException;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -244,7 +247,7 @@ public class XsdNodeFactory {
             }
             default: {
                 SchemaLogger.printG(LOG_ERROR, XSD_ELEM_FACTORY, "Unknown group particle!. Particle=" + Xd2XsdUtils.particleXKindToString(groupType));
-                throw new InvalidParameterException("Unknown groupType");
+                throw new SRuntimeException(XSD.XSD044, Xd2XsdUtils.particleXKindToString(groupType));
             }
         }
 
@@ -432,7 +435,7 @@ public class XsdNodeFactory {
     public static XmlSchemaAnnotation createAnnotation(final String annotationValue, final XsdAdapterCtx adapterCtx) {
         if (adapterCtx.hasEnableFeature(Xd2XsdFeature.XSD_ANNOTATION)) {
             final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
-            annotation.getItems().add(createAnnotationItem(annotationValue));
+            annotation.getItems().add(createAnnotationItem(annotationValue, adapterCtx));
             return annotation;
         }
 
@@ -454,7 +457,7 @@ public class XsdNodeFactory {
         if (adapterCtx.hasEnableFeature(Xd2XsdFeature.XSD_ANNOTATION)) {
             final XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
             for (String value : annotationValues) {
-                annotation.getItems().add(createAnnotationItem(value));
+                annotation.getItems().add(createAnnotationItem(value, adapterCtx));
             }
             return annotation;
         }
@@ -467,7 +470,7 @@ public class XsdNodeFactory {
      * @param docValue      documentation value
      * @return <xs:documentation>@{paramref docValue}</xs:documentation>
      */
-    private static XmlSchemaDocumentation createAnnotationItem(final String docValue) {
+    private static XmlSchemaDocumentation createAnnotationItem(final String docValue, final XsdAdapterCtx adapterCtx) {
         if (docValue == null || docValue.isEmpty()) {
             return null;
         }
@@ -483,6 +486,7 @@ public class XsdNodeFactory {
             rootElement.appendChild(doc.createTextNode(docValue));
             annotationItem.setMarkup(rootElement.getChildNodes());
         } catch (ParserConfigurationException e) {
+            adapterCtx.getReportWriter().warning(XSD.XSD035, e.getMessage());
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "Error occurs while creating XSD documentation node: " + e.getMessage());
         }
 

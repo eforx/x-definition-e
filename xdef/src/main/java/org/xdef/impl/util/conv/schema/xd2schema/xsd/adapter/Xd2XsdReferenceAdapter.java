@@ -14,6 +14,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocatio
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.*;
 import org.xdef.model.XMElement;
 import org.xdef.model.XMNode;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -230,6 +232,7 @@ public class Xd2XsdReferenceAdapter {
                         final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
                         final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
                         if (!XsdNamespaceUtils.isValidNsUri(nsUri)) {
+                            adapterCtx.getReportWriter().error(XSD.XSD004, refNsPrefix);
                             SchemaLogger.printP(LOG_ERROR, PREPROCESSING, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + refNsPrefix);
                         } else {
                             addSchemaImportFromElem(nsUri, refPos);
@@ -262,6 +265,7 @@ public class Xd2XsdReferenceAdapter {
                             } else {
                                 if (parentRef == false) {
                                     nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(xDefPos);
+                                    adapterCtx.getReportWriter().error(XSD.XSD004, nsPrefix);
                                     SchemaLogger.printP(LOG_ERROR, PREPROCESSING, xElem, "Element referencing to unknown namespace! NamespacePrefix=" + nsPrefix);
                                 }
                             }
@@ -376,6 +380,7 @@ public class Xd2XsdReferenceAdapter {
             SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add schema include. SchemaName=" + refSystemId);
             xsdFactory.createSchemaInclude(schema, adapterCtx.findSchemaImport(refSystemId).buildLocation(refSystemId));
         } else {
+            adapterCtx.getReportWriter().warning(XSD.XSD012, refSystemId);
             SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! SchemaName=" + refSystemId);
         }
     }
@@ -394,6 +399,7 @@ public class Xd2XsdReferenceAdapter {
             SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
             xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.findSchemaImport(nsUri).buildLocation(XsdNamespaceUtils.getSystemIdFromXPos(refPos)));
         } else {
+            adapterCtx.getReportWriter().warning(XSD.XSD013, nsUri);
             SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
         }
     }

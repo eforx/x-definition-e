@@ -21,7 +21,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs
 
 /**
  * Creates names of specific types of nodes.
- * Stores top level nodes names.
+ * Internally stores top-level nodes names.
  */
 public class XsdNameFactory {
 

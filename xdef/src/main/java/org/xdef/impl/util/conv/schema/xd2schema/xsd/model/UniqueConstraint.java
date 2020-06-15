@@ -7,6 +7,8 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdParserMapping;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -145,9 +147,10 @@ public class UniqueConstraint {
      * @param varPath   variable path
      * @param type      variable type
      */
-    public void addConstraint(final String varName, final XmlSchemaAttribute xsdAttr, final String varPath, final Type type) {
+    public void addConstraint(final String varName, final XmlSchemaAttribute xsdAttr, final String varPath, final Type type, final ReportWriter reportWriter) {
         final String xPath = Xd2XsdUtils.xPathWithoutAttr(varPath);
         if (!variables.containsKey(varName)) {
+            reportWriter.warning(XSD.XSD034, getPath(), varName);
             SchemaLogger.print(LOG_WARN, TRANSFORMATION, XSD_KEY_AND_REF, "Unique set does not contain variable with given name. Unique=" + getPath() + ", VarName=" + varName);
             return;
         }

@@ -88,6 +88,7 @@ public class Xd2XsdExtraSchemaAdapter extends AbstractXd2XsdAdapter {
                     if (!nodesToResolve.isEmpty()) {
                         final SchemaAdapter adapter = new SchemaAdapter(sourceXDefinition);
                         adapter.setAdapterCtx(adapterCtx);
+                        adapter.setReportWriter(reportWriter);
                         adapter.createOrUpdateSchema(new NamespaceMap((HashMap) sourceNamespaceCtx.clone()), nodesToResolve, schemaTargetNsUri, schemaToResolve.getValue());
                         updatedNamespaces.add(schemaTargetNsUri);
                     }

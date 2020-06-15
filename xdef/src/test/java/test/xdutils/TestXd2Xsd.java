@@ -1,13 +1,12 @@
 package test.xdutils;
 
-import test.XDTester;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.xdef.*;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
-import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.XDef2XsdAdapter;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.proc.XXElement;
@@ -15,16 +14,14 @@ import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
 import org.xdef.sys.SUtils;
 import org.xdef.util.XValidate;
-
+import test.XDTester;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends TesterXdSchema {
 
@@ -40,7 +37,9 @@ public class TestXd2Xsd extends TesterXdSchema {
         _dataFilesRoot = initFolder(dataDir, "xd2xsd_2");
         _outputFilesRoot = initFolder(dataDir, "xd2xsd_2\\output");
 
-        SchemaLogger.setLogLevel(LOG_INFO);
+        _repWriter = new ArrayReporter();
+
+        SchemaLogger.setLogLevel(LOG_WARN);
     }
 
     private File getInputXDefFile(final String fileName) throws FileNotFoundException {
@@ -84,6 +83,8 @@ public class TestXd2Xsd extends TesterXdSchema {
             features.addAll(additionalFeatures);
         }
         adapter.setFeatures(features);
+        _repWriter.clear();
+        adapter.setReportWriter(_repWriter);
         return adapter;
     }
 

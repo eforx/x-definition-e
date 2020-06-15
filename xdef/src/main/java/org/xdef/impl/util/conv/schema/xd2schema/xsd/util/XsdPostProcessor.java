@@ -13,6 +13,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNode;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.xsd.CXmlSchemaChoice;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -91,6 +93,7 @@ public class XsdPostProcessor {
         final XmlSchemaElement xsdElem = node.toXsdElem();
 
         if (xsdElem.getSchemaType() == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD041);
             SchemaLogger.printP(LOG_WARN, POSTPROCESSING, (XNode)node.getXdNode(), "Schema type has been expected!");
             return;
         }
@@ -308,6 +311,7 @@ public class XsdPostProcessor {
         // We have to use mixed attribute for root element and remove simple content
         if (adapterCtx.hasEnableFeature(Xd2XsdFeature.POSTPROCESSING_MIXED)) {
             if (complexType.getParticle() != null && complexType.getContentModel() != null && complexType.getContentModel() instanceof XmlSchemaSimpleContent) {
+                adapterCtx.getReportWriter().warning(XSD.XSD042);
                 SchemaLogger.printP(LOG_WARN, POSTPROCESSING, defEl, "!Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr.");
 
                 // Copy attributes from simple content
@@ -371,6 +375,7 @@ public class XsdPostProcessor {
         }
 
         SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, "Converting group particle xsd:all to xsd:choice ...");
+        adapterCtx.getReportWriter().warning(XSD.XSD043);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
 
         final XmlSchemaChoice newGroupChoice = new XmlSchemaChoice();
@@ -465,6 +470,7 @@ public class XsdPostProcessor {
         final CXmlSchemaChoice newGroupChoice = new CXmlSchemaChoice(new XmlSchemaChoice());
         newGroupChoice.setTransformDirection(transformDirection);
         newGroupChoice.xsd().setAnnotation(XsdNodeFactory.createAnnotation("Original group particle: all", adapterCtx));
+        adapterCtx.getReportWriter().warning(XSD.XSD043);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "!Lossy transformation! Node xsd:sequency/choice contains xsd:all node -> converting xsd:all node to xsd:choice!");
         return newGroupChoice;
     }

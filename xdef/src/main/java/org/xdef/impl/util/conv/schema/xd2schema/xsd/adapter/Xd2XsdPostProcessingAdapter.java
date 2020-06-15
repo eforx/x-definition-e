@@ -14,6 +14,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdPostProcessor;
 import org.xdef.model.XMDefinition;
+import org.xdef.msg.XSD;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -100,9 +101,10 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         }
 
         SchemaLogger.printP(LOG_INFO, POSTPROCESSING, xDef,"Creating nodes ...");
-        final Xd2XsdExtraSchemaAdapter postProcessingAdapter = new Xd2XsdExtraSchemaAdapter(xDef);
         final XmlSchema schema = adapterCtx.findSchema(xDef.getName(), true, POSTPROCESSING);
+        final Xd2XsdExtraSchemaAdapter postProcessingAdapter = new Xd2XsdExtraSchemaAdapter(xDef);
         postProcessingAdapter.setAdapterCtx(adapterCtx);
+        postProcessingAdapter.setReportWriter(reportWriter);
         postProcessingAdapter.setSourceNamespaceCtx((NamespaceMap) schema.getNamespaceContext(), schema.getSchemaNamespacePrefix());
         updatedNamespaces.addAll(postProcessingAdapter.transformNodes(adapterCtx.getNodesToBePostProcessed()));
     }
@@ -233,8 +235,10 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
                         final SchemaNode rootSchemaNode = adapterCtx.findSchemaNode(xDefName, xPathParentNode);
 
                         if (rootSchemaNode == null) {
+                            reportWriter.warning(XSD.XSD015, u.getPath(), xPathParentNode);
                             SchemaLogger.print(LOG_WARN, POSTPROCESSING, XSD_PP_ADAPTER, "Root node of unique set has not been found! UniqueSet=" + u.getPath() + ", XPath=" + xPathParentNode);
                         } else if (!rootSchemaNode.isXsdElem()) {
+                            reportWriter.warning(XSD.XSD015, u.getPath(), xPathParentNode);
                             SchemaLogger.print(LOG_WARN, POSTPROCESSING, XSD_PP_ADAPTER, "Root node of unique set is not element!. UniqueSet=" + u.getPath() + ", XPath=" + xPathParentNode);
                         } else {
                             SchemaLogger.print(LOG_DEBUG, POSTPROCESSING, XSD_PP_ADAPTER,"Creating key/unique for unique set. UniqueSet=" + u.getPath() + ", Variable=" + varName);

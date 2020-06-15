@@ -9,7 +9,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.T
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_FACET_ENUMERATION;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 
-public class EnumerationRegexFactory implements RegexFactory {
+public class EnumerationRegexFactory extends AbstractRegexFactory {
 
     @Override
     public String regex(final XDNamedValue[] params) {

@@ -15,6 +15,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.pattern.Tokens
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.xdef.TokensFacetFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.xdef.*;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.msg.XSD;
+import org.xdef.sys.SRuntimeException;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
@@ -223,11 +225,12 @@ public class Xd2XsdParserMapping {
 
         if (parserName == null || allParsersSame == false) {
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, "Expected parser type or multiple parsers used!");
-            throw new RuntimeException("Expected parser type or multiple parsers used!");
+            throw new SRuntimeException(XSD.XSD006);
         }
 
         QName res = findDefaultParserQName(parserName, adapterCtx);
         if (res == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD026, parserName);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, "Unsupported simple content parser! Parser=" + parserName);
             res = Constants.XSD_STRING;
         }

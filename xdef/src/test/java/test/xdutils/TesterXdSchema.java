@@ -1,5 +1,6 @@
 package test.xdutils;
 
+import org.xdef.sys.ReportWriter;
 import test.XDTester;
 
 import java.io.File;
@@ -17,6 +18,7 @@ public abstract class TesterXdSchema extends XDTester {
     protected File _refFilesRoot;
     protected File _dataFilesRoot;
     protected File _outputFilesRoot;
+    protected ReportWriter _repWriter;
 
     protected File initFolder(final File dataDir, final String folderPath) {
         File folder = new File(dataDir.getAbsolutePath(), folderPath);

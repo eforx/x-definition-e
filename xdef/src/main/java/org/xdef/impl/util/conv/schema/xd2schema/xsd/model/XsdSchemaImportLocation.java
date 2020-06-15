@@ -1,5 +1,8 @@
 package org.xdef.impl.util.conv.schema.xd2schema.xsd.model;
 
+import org.xdef.msg.XSD;
+import org.xdef.sys.SRuntimeException;
+
 import java.util.Arrays;
 
 /**
@@ -62,7 +65,7 @@ public class XsdSchemaImportLocation {
         } else if (schemaName != null) {
             res += schemaName;
         } else {
-            throw new RuntimeException("Unknown reference file! schemaName: " + schemaName + ", namespaceUri: " + namespaceUri);
+            throw new SRuntimeException(XSD.XSD008, schemaName, namespaceUri);
         }
 
         res += fileExt;

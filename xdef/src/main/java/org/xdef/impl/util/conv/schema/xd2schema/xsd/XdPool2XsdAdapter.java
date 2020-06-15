@@ -12,6 +12,9 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
+import org.xdef.msg.XDEF;
+import org.xdef.msg.XSD;
+import org.xdef.sys.SRuntimeException;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,11 +51,11 @@ public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2S
     @Override
     public XmlSchemaCollection createSchemas(XDPool xdPool) {
         if (xdPool == null) {
-            throw new IllegalArgumentException("xdPool = null");
+            throw new SRuntimeException(XDEF.XDEF715);
         }
 
         this.xdPool = xdPool;
-        adapterCtx = new XsdAdapterCtx(features);
+        adapterCtx = new XsdAdapterCtx(features, reportWriter);
         adapterCtx.init();
 
         init();
@@ -91,9 +94,10 @@ public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2S
 
         for (XMDefinition xDef : xdPool.getXMDefinitions()) {
             final String xDefName = xDef.getName();
-            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef);
+            Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace((XDefinition)xDef, adapterCtx);
             if (targetNamespace.getKey() != null && targetNamespace.getValue() != null) {
                 if (xDefTargetNs.containsKey(xDefName)) {
+                    reportWriter.warning(XSD.XSD014, xDefName);
                     SchemaLogger.print(LOG_WARN, PREPROCESSING, XSD_DPOOL_ADAPTER,"Target namespace of x-definition is already defined. XDefinition=" + xDefName);
                 } else {
                     xDefTargetNs.put(xDefName, new Pair(targetNamespace.getKey(), targetNamespace.getValue()));

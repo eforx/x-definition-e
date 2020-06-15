@@ -12,6 +12,9 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNameFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
+import org.xdef.sys.SRuntimeException;
 
 import java.util.*;
 
@@ -85,8 +88,14 @@ public class XsdAdapterCtx {
      */
     final private Set<Xd2XsdFeature> features;
 
-    public XsdAdapterCtx(Set<Xd2XsdFeature> features) {
+    /**
+     * Output report writer
+     */
+    final private ReportWriter reportWriter;
+
+    public XsdAdapterCtx(Set<Xd2XsdFeature> features, ReportWriter reportWriter) {
         this.features = features;
+        this.reportWriter = reportWriter;
     }
 
     /**
@@ -128,14 +137,18 @@ public class XsdAdapterCtx {
         return nameFactory;
     }
 
+    public ReportWriter getReportWriter() {
+        return reportWriter;
+    }
+
     /**
      * Add XSD document name to name set
      * @param name  x-definition name
      */
-    public void addSchemaName(final String name) throws RuntimeException {
+    public void addSchemaName(final String name) throws SRuntimeException {
         if (!schemaNames.add(name)) {
             SchemaLogger.printG(LOG_ERROR, XSD_ADAPTER_CTX, "Schema with this name has been already processed! Name=" + name);
-            throw new RuntimeException("X-definition name duplication");
+            throw new SRuntimeException(XSD.XSD005);
         }
     }
 
@@ -146,6 +159,7 @@ public class XsdAdapterCtx {
      */
     public void addSchemaLocation(final String nsUri, final XsdSchemaImportLocation importLocation) {
         if (schemaLocationsCtx.containsKey(nsUri)) {
+            reportWriter.warning(XSD.XSD036, nsUri);
             SchemaLogger.printG(LOG_WARN, XSD_ADAPTER_CTX, "Schema location already exists for namespace URI. NamespaceURI=" + nsUri);
             return;
         }
@@ -258,14 +272,16 @@ public class XsdAdapterCtx {
         XmlSchema[] schemas = xmlSchemaCollection.getXmlSchema(systemId);
         if (schemas == null || schemas.length == 0) {
             if (shouldExists == true) {
+                reportWriter.warning(XSD.XSD037, systemId);
                 SchemaLogger.printP(LOG_WARN, phase, "Schema with required name not found! Name=" + systemId);
-                throw new RuntimeException("Referenced schema does not exist! Name=" + systemId);
+                throw new SRuntimeException(XSD.XSD007, systemId);
             }
 
             return null;
         }
 
         if (schemas.length > 1) {
+            reportWriter.warning(XSD.XSD038, systemId);
             SchemaLogger.printP(LOG_WARN, phase, "Multiple schemas with required name have been found! Name=" + systemId);
         }
 
@@ -288,8 +304,9 @@ public class XsdAdapterCtx {
         }
 
         if (schema == null && shouldExists) {
+            reportWriter.warning(XSD.XSD039, nsUri);
             SchemaLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
-            throw new RuntimeException("Referenced schema does not exist! Namespace=" + nsUri);
+            throw new SRuntimeException(XSD.XSD009, nsUri);
         }
 
         return schema;
@@ -315,8 +332,9 @@ public class XsdAdapterCtx {
         }
 
         if (schemaName == null && shouldExists) {
+            reportWriter.warning(XSD.XSD039, nsUri);
             SchemaLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
-            throw new RuntimeException("Referenced schema does not exist! Namespace=" + nsUri);
+            throw new SRuntimeException(XSD.XSD009, nsUri);
         }
 
         return schemaName;
@@ -404,6 +422,7 @@ public class XsdAdapterCtx {
         final SchemaNode refOrig = xsdSystemRefs.get(nodePath);
 
         if (refOrig == null) {
+            reportWriter.warning(XSD.XSD040, systemId, nodePath);
             SchemaLogger.printG(LOG_WARN, XSD_REFERENCE, "Node does not exist in system! System=" + systemId + ", Path=" + nodePath);
             return;
         }

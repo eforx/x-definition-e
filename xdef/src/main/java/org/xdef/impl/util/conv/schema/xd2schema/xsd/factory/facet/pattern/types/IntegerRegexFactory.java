@@ -4,6 +4,7 @@ import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.RangeRegexGenerator;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
+import org.xdef.msg.XSD;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefi
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_ERROR;
 
-public class IntegerRegexFactory implements RegexFactory {
+public class IntegerRegexFactory extends AbstractRegexFactory {
 
     @Override
     public String regex(final XDNamedValue[] params) {
@@ -47,6 +48,7 @@ public class IntegerRegexFactory implements RegexFactory {
             final List<String> regex = rangeRegexGenerator.getRegex(rangeMin, rangeMax);
             pattern = Xd2XsdUtils.regexCollectionToSingle(regex);
         } catch (NumberFormatException ex) {
+            adapterCtx.getReportWriter().error(XSD.XSD045, ex.getMessage());
             SchemaLogger.print(LOG_ERROR, TRANSFORMATION, this.getClass().getSimpleName(),"Exception occurs while converting range to regex. Error=" + ex.getMessage());
         }
 

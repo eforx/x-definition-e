@@ -15,6 +15,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.xdef.ListFacet
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.facet.xdef.UnionFacetFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdParserMapping;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
@@ -85,6 +87,7 @@ public class XsdSimpleContentFactory {
         }
 
         if (parserInfo == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD026, parserName);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported simple content parser! Parser=" + parserName);
             parserInfo = new Pair(Constants.XSD_STRING, new DefaultFacetFactory());
             unknownParser = true;
@@ -176,6 +179,7 @@ public class XsdSimpleContentFactory {
         }
 
         if (restriction == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD027);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xData, "List restrictions have not been found!");
         } else {
             simpleType.setContent(restriction);
@@ -247,6 +251,7 @@ public class XsdSimpleContentFactory {
         boolean unknownParser = false;
         Pair<QName, IXsdFacetFactory> parserInfo = Xd2XsdParserMapping.findDefaultFacetFactory(xParser.parserName(), adapterCtx);
         if (parserInfo == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD026, xParser.parserName());
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xData, "Unsupported simple content parser! Parser=" + xParser.parserName());
             parserInfo = new Pair(Constants.XSD_STRING, new DefaultFacetFactory());
             unknownParser = true;
@@ -261,6 +266,7 @@ public class XsdSimpleContentFactory {
         refName = adapterCtx.getNameFactory().generateTopLevelName(xData, refName);
 
         if (!refNames.add(refName)) {
+            adapterCtx.getReportWriter().warning(XSD.XSD028, refName);
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xData, "Union reference name already exists! RefName=" + refName);
         } else {
             final XmlSchemaSimpleType simpleType = xsdFactory.createEmptySimpleType(true);

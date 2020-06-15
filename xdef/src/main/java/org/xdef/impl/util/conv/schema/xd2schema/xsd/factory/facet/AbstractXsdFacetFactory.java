@@ -4,6 +4,8 @@ import org.apache.ws.commons.schema.*;
 import org.xdef.XDNamedValue;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -169,6 +171,7 @@ public abstract class AbstractXsdFacetFactory implements IXsdFacetFactory {
         } else if (isInternalFacet(param)) {
             // Do nothing
         } else if (!customFacet(facets, param)) {
+            adapterCtx.getReportWriter().warning(XSD.XSD032, param.getName());
             SchemaLogger.print(LOG_WARN, TRANSFORMATION, this.getClass().getSimpleName(),"Unsupported restriction parameter. Parameter=" + param.getName());
         }
 

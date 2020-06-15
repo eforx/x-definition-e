@@ -12,6 +12,8 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import java.util.Map;
 
@@ -90,6 +92,7 @@ public class XsdSchemaFactory {
             if (!namespaceCtx.containsKey(nsPrefix)) {
                 XsdNamespaceUtils.addNamespaceToCtx(namespaceCtx, nsPrefix, nsUri, xDef.getName(), INITIALIZATION);
             } else {
+                adapterCtx.getReportWriter().warning(XSD.XSD029, nsPrefix, nsUri);
                 SchemaLogger.printP(LOG_WARN, INITIALIZATION, xDef, "Namespace has been already defined! Prefix=" + nsPrefix + ", Uri=" + nsUri);
             }
         }

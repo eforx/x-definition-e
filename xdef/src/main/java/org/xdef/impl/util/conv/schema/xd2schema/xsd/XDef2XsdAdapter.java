@@ -5,7 +5,6 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.xdef.XDPool;
 import org.xdef.impl.XDefinition;
-import org.xdef.impl.XElement;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter.AbstractXd2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter.Xd2XsdPostProcessingAdapter;
@@ -17,6 +16,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMElement;
+import org.xdef.msg.XDEF;
+import org.xdef.sys.SRuntimeException;
 
 import java.util.Set;
 
@@ -43,7 +44,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     @Override
     public XmlSchemaCollection createSchema(final XDPool xdPool) {
         if (xdPool == null) {
-            throw new IllegalArgumentException("xdPool = null");
+            throw new SRuntimeException(XDEF.XDEF715);
         }
         return createSchema(xdPool.getXMDefinition());
     }
@@ -51,9 +52,9 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
     @Override
     public XmlSchemaCollection createSchema(final XMDefinition xDef) {
         if (xDef == null) {
-            throw new IllegalArgumentException("xdef = null");
+            throw new SRuntimeException(XDEF.XDEF705);
         }
-
+        
         SchemaLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "====================");
         SchemaLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "Transforming x-definition. Name=" + xDef.getName());
         SchemaLogger.printG(LOG_INFO, XSD_XDEF_ADAPTER, "====================");
@@ -62,7 +63,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
 
         this.xDefinition = (XDefinition)xDef;
         if (adapterCtx == null) {
-            adapterCtx = new XsdAdapterCtx(features);
+            adapterCtx = new XsdAdapterCtx(features, reportWriter);
             adapterCtx.init();
             schema = createXsdSchema();
             poolPostProcessing = false;
@@ -83,6 +84,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
             final Xd2XsdPostProcessingAdapter postProcessingAdapter = new Xd2XsdPostProcessingAdapter();
             postProcessingAdapter.setAdapterCtx(adapterCtx);
             postProcessingAdapter.process(xDefinition);
+            postProcessingAdapter.setReportWriter(reportWriter);
         }
 
         return adapterCtx.getXmlSchemaCollection();
@@ -111,7 +113,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
      * Creates and initialize XSD document
      */
     private XmlSchema createXsdSchema() {
-        Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition);
+        Pair<String, String> targetNamespace = XsdNamespaceUtils.getSchemaTargetNamespace(xDefinition, adapterCtx);
 
         SchemaLogger.printP(LOG_INFO, INITIALIZATION, xDefinition, "Creating XSD document. " +
                 "systemName=" + xDefinition.getName() + ", targetNamespacePrefix=" + targetNamespace.getKey() + ", targetNamespaceUri=" + targetNamespace.getValue());
