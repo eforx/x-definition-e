@@ -597,6 +597,12 @@ public final class CompileXDPool implements CodeTable, XDValueID {
 	private void preCompileDeclarations() {
 		// now not generate code of external methods, make them undefined
 		_codeGenerator.setIgnoreExternalMethods(true);
+		// do not ignore unresolved externals at this point of compilation ->
+		// leads to mismatch result in case of using 'true' value for
+		// XDConstants.XDPROPERTY_IGNORE_UNDEF_EXT
+		boolean ignoreUnresolvedExternals = _codeGenerator._ignoreUnresolvedExternals;
+		_codeGenerator._ignoreUnresolvedExternals = false;
+
 		// first process BNFGrammar declarations, then declaration sections.
 		for (List<PNode> list = _listBNF; list != null;
 			list = list == _listBNF ? _listDecl : null) {
@@ -666,6 +672,9 @@ public final class CompileXDPool implements CodeTable, XDValueID {
 				}
 			}
 		}
+
+		// returns value of _ignoreUnresolvedExternals back to original
+		_codeGenerator._ignoreUnresolvedExternals = ignoreUnresolvedExternals;
 		// set normal generation of code of external methods
 		_codeGenerator.setIgnoreExternalMethods(false);
 	}

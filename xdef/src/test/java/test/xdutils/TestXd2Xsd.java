@@ -9,9 +9,8 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.XDef2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
-import org.xdef.proc.XXElement;
-import org.xdef.proc.XXNode;
 import org.xdef.sys.ArrayReporter;
+import org.xdef.sys.ReportWriter;
 import org.xdef.sys.SUtils;
 import org.xdef.util.XValidate;
 import test.XDTester;
@@ -20,7 +19,6 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.*;
 
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_DEBUG;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 
 public class TestXd2Xsd extends TesterXdSchema {
@@ -391,12 +389,15 @@ public class TestXd2Xsd extends TesterXdSchema {
         try {
             XdPool2XsdAdapter adapter = createXdPoolAdapter(features);
 
+            ReportWriter repWriter = new ArrayReporter();
+
             // Load x-definition files
             File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
-            XDBuilder xb = XDFactory.getXDBuilder(null);
-            xb.setExternals(getClass());
+            final Properties props = new Properties();
+            props.setProperty(XDConstants.XDPROPERTY_IGNORE_UNDEF_EXT, XDConstants.XDPROPERTYVALUE_IGNORE_UNDEF_EXT_TRUE);
+            final XDBuilder xb = XDFactory.getXDBuilder(repWriter, props);
             xb.setSource(defFiles);
-            XDPool inputXD = xb.compileXD();
+            final XDPool inputXD = xb.compileXD();
             // Convert XD -> XSD Schema
             XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
             int expectedShemaCount = inputXD.getXMDefinitions().length;
@@ -583,41 +584,6 @@ public class TestXd2Xsd extends TesterXdSchema {
         convertXdDef2XsdNoRef ("keyAndRef6", Arrays.asList(new String[] {"keyAndRef6_valid_1"}), null);
 
     }
-
-    ////////////////////////////////////////////////////////////////////////////////
-// External methods for the test Sisma
-////////////////////////////////////////////////////////////////////////////////
-    public static void initParams(XXElement chkElem) {}
-    public static void setErr(XXElement chkElem, XDValue[] params) {}
-    public static boolean tab(XXElement chkEl, XDValue[] params) {return true;}
-    public static void chkOpt_RC_ifEQ(XXElement chkElem, XDValue[] params) {}
-    public static void dateDavka(XXElement chkElem, XDValue[] params) {}
-    public static void chk_dec_nonNegative(XXElement chkEl, XDValue[] params) {}
-    public static void chk_RC_DatNar_ifEQ(XXElement chkEl, XDValue[] params) {}
-    public static void setDefault_ifEx(XXElement chkElem, XDValue[] params) {}
-    public static void isEqual(XXNode c, XDValue[] p) {}
-    public static void exactlyOneAttr(XXNode c, XDValue[] p){}
-    public static void emptySubjHasAddr(XXElement chkElem, XDValue[] params) {}
-    public static String getIdOsoba(XXElement chkElem) { return "1"; }
-    public static void protocol(XXElement chkElem, String role, long idXxx) {}
-    public static void protocol(XXElement chkElem, String role, String ident) {}
-    public static void outputIVR(XXElement chkElem, XDValue[] params) {}
-    public static String getKodPartnera() { return "1"; }
-    public static void chkEQ_PojistitelFuze(XXElement chkEl, XDValue[] params){}
-    public static void chk_Poj_NeexElement(XXElement chkEl, XDValue[] params) {}
-    public static void chkOpt_IC_ifEQ(XXElement chkElem, XDValue[] params) {}
-    public static void hasElement_if(XXElement chkElem, XDValue[] params) {}
-    public static void subjekt_OsobaOrFirma(XXElement chkEl, XDValue[] params){}
-    public static String getIdSubjekt(XXElement chkElem) { return "1"; }
-    public static void notEmptyMisto(XXElement chkElem, XDValue[] params) {}
-    public static void equal(XXElement chkElem, XDValue[] params) {}
-    public static void chkOpt_CisloTP_ifEQ(XXElement chkEl, XDValue[] params) {}
-    public static String getIdVozidlo(XXElement chkElem) { return "1"; }
-    public static boolean kvadrant(XXElement chkElem) { return true; }
-    public static void chk_TypMinusPlneni_Platba(XXElement chkEl,
-                                                 XDValue[] params) {}
-    public static boolean fil0(XXElement chkEl, XDValue[] params) {return true;}
-////////////////////////////////////////////////////////////////////////////////
 
     /** Run test
      * @param args ignored
