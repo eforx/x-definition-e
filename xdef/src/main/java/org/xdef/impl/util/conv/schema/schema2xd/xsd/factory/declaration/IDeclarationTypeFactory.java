@@ -1,6 +1,7 @@
 package org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration;
 
 import org.apache.ws.commons.schema.XmlSchemaFacet;
+import org.xdef.sys.ReportWriter;
 
 import java.util.List;
 
@@ -49,16 +50,18 @@ public interface IDeclarationTypeFactory {
 
     /**
      * Creates x-definition declaration type restrictions based on given XSD facets
-     * @param facets    list of XSD facets
+     * @param facets        list of XSD facets
+     * @param reportWriter  output report writer
      * @return x-definition restriction
      */
-    String build(final List<XmlSchemaFacet> facets);
+    String build(final List<XmlSchemaFacet> facets, ReportWriter reportWriter);
 
     /**
      * Creates x-definition declaration type restrictions from given facets string
      * @param facets    list of XSD facets
+     * @param reportWriter  output report writer
      * @return x-definition restriction
      */
-    String build(final String facets);
+    String build(final String facets, ReportWriter reportWriter);
 
 }

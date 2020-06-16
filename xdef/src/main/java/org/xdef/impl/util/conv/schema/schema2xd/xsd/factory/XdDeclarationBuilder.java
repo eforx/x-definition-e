@@ -6,6 +6,8 @@ import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration.*;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.Xsd2XdTypeMapping;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.Xsd2XdUtils;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import javax.xml.namespace.QName;
 import java.util.LinkedList;
@@ -54,7 +56,12 @@ public class XdDeclarationBuilder {
      */
     private QName baseType;
 
-    XdDeclarationBuilder() {}
+    /**
+     * Output report writer
+     */
+    private ReportWriter reportWriter;
+
+    XdDeclarationBuilder() { }
 
     /**
      * Initialize x-definition declaration builder with default values
@@ -62,9 +69,10 @@ public class XdDeclarationBuilder {
      * @param xdDeclarationFactory
      * @return
      */
-    XdDeclarationBuilder init(XmlSchema schema, XdDeclarationFactory xdDeclarationFactory) {
+    XdDeclarationBuilder init(XmlSchema schema, XdDeclarationFactory xdDeclarationFactory, ReportWriter reportWriter) {
         this.schema = schema;
         this.xdDeclarationFactory = xdDeclarationFactory;
+        this.reportWriter = reportWriter;
         return this;
     }
 
@@ -135,6 +143,7 @@ public class XdDeclarationBuilder {
      */
     String build() {
         if (type == null) {
+            reportWriter.error(XSD.XSD204);
             SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, simpleType, "Declaration type is not set!");
         }
 
@@ -161,6 +170,7 @@ public class XdDeclarationBuilder {
         }
 
         // TODO: union?
+        reportWriter.warning(XSD.XSD205);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleType, "Empty top declaration has been created!");
         return "";
     }
@@ -190,7 +200,7 @@ public class XdDeclarationBuilder {
             xdDeclarationTypeFactory = new DefaultTypeFactory(baseType.getLocalPart());
             xdDeclarationTypeFactory.setName(name);
             xdDeclarationTypeFactory.setType(IDeclarationTypeFactory.Type.TOP_DECL);
-            return xdDeclarationTypeFactory.build("");
+            return xdDeclarationTypeFactory.build("", reportWriter);
         }
 
         if (IDeclarationTypeFactory.Type.TOP_DECL.equals(type) && !xdDeclarationFactory.canBeProcessed(name)) {
@@ -200,7 +210,7 @@ public class XdDeclarationBuilder {
 
         xdDeclarationTypeFactory.setType(type);
         xdDeclarationTypeFactory.setName(name);
-        return xdDeclarationTypeFactory.build(simpleTypeRestriction.getFacets());
+        return xdDeclarationTypeFactory.build(simpleTypeRestriction.getFacets(), reportWriter);
     }
 
     /**
@@ -229,6 +239,7 @@ public class XdDeclarationBuilder {
             return create((XmlSchemaSimpleTypeUnion)simpleTypeContent, extraFacets);
         }
 
+        reportWriter.warning(XSD.XSD206);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleType, "Empty set text declaration has been created!");
         return "";
     }
@@ -247,16 +258,17 @@ public class XdDeclarationBuilder {
             IDeclarationTypeFactory xdDeclarationFactory = Xsd2XdTypeMapping.findDefaultDataTypeFactory(baseType);
             if (xdDeclarationFactory != null) {
                 xdDeclarationFactory.setType(type);
-                return xdDeclarationFactory.build(simpleTypeRestriction.getFacets());
+                return xdDeclarationFactory.build(simpleTypeRestriction.getFacets(), reportWriter);
             }
 
             xdDeclarationFactory = new DefaultTypeFactory(baseType.getLocalPart());
             xdDeclarationFactory.setType(type);
-            return xdDeclarationFactory.build("");
+            return xdDeclarationFactory.build("", reportWriter);
         } else if (simpleTypeRestriction.getBaseType() != null) {
             return createSetDeclaration(simpleTypeRestriction.getBaseType().getContent(), simpleTypeRestriction.getFacets());
         }
 
+        reportWriter.warning(XSD.XSD207);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeRestriction, "Empty restriction declaration has been created!");
         return "";
     }
@@ -276,7 +288,7 @@ public class XdDeclarationBuilder {
                     final XmlSchemaSimpleTypeContent unionSimpleContent = simpleTypeUnion.getBaseTypes().get(0).getContent();
                     if (unionSimpleContent instanceof XmlSchemaSimpleTypeRestriction) {
                         xdDeclarationFactory.setType(type);
-                        return xdDeclarationFactory.build(((XmlSchemaSimpleTypeRestriction)unionSimpleContent).getFacets());
+                        return xdDeclarationFactory.build(((XmlSchemaSimpleTypeRestriction)unionSimpleContent).getFacets(), reportWriter);
                     }
                 }
             }
@@ -298,7 +310,7 @@ public class XdDeclarationBuilder {
 
             final UnionTypeFactory unionTypeFactory = new UnionTypeFactory();
             unionTypeFactory.setType(type);
-            return unionTypeFactory.build(facetStringBuilder.toString());
+            return unionTypeFactory.build(facetStringBuilder.toString(), reportWriter);
         } else {
             final List<XmlSchemaSimpleType> baseTypes = simpleTypeUnion.getBaseTypes();
             if (baseTypes != null && !baseTypes.isEmpty()) {
@@ -315,15 +327,17 @@ public class XdDeclarationBuilder {
                 }
 
                 if (xdDeclarationFactory == null) {
+                    reportWriter.warning(XSD.XSD208);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeUnion, "Unknown XSD union base type!");
                     return null;
                 }
 
                 xdDeclarationFactory.setType(type);
-                return xdDeclarationFactory.build(facets);
+                return xdDeclarationFactory.build(facets, reportWriter);
             }
         }
 
+        reportWriter.warning(XSD.XSD209);
         SchemaLogger.printP(LOG_WARN, TRANSFORMATION, simpleTypeUnion, "Empty union declaration has been created!");
         return "";
     }
@@ -361,7 +375,7 @@ public class XdDeclarationBuilder {
         if (extraFacets != null && !extraFacets.isEmpty()) {
             final DefaultTypeFactory defaultTypeFactory = new DefaultTypeFactory("");
             defaultTypeFactory.setType(IDeclarationTypeFactory.Type.DATATYPE_DECL);
-            String extraFacetsString = defaultTypeFactory.build(extraFacets);
+            String extraFacetsString = defaultTypeFactory.build(extraFacets, reportWriter);
             if (!extraFacetsString.isEmpty()) {
                 extraFacetsString = extraFacetsString.substring(1).substring(0, extraFacetsString.length() - 2);
                 facetString += ", " + extraFacetsString;
@@ -376,7 +390,7 @@ public class XdDeclarationBuilder {
         final ListTypeFactory listTypeFactory = new ListTypeFactory();
         listTypeFactory.setType(type);
         listTypeFactory.setName(name);
-        return listTypeFactory.build(facetString);
+        return listTypeFactory.build(facetString, reportWriter);
     }
 
 }

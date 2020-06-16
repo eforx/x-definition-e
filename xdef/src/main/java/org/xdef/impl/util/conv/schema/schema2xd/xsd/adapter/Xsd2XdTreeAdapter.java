@@ -14,6 +14,7 @@ import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration.IDeclara
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.Xsd2XdUtils;
+import org.xdef.msg.XSD;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -65,7 +66,7 @@ public class Xsd2XdTreeAdapter {
         this.schema = schema;
         this.xdFactory = xdFactory;
         this.adapterCtx = adapterCtx;
-        xdDeclarationFactory = new XdDeclarationFactory(schema, xdFactory);
+        xdDeclarationFactory = new XdDeclarationFactory(schema, xdFactory, adapterCtx);
         xdAttrFactory = new XdAttributeFactory(adapterCtx, xdDeclarationFactory);
     }
 
@@ -159,6 +160,7 @@ public class Xsd2XdTreeAdapter {
                     }
                 }
             } else {
+                adapterCtx.getReportWriter().warning(XSD.XSD211, xsdElemQName);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdElementNode, "Element reference has not found! Reference=" + xsdElemQName);
             }
         } else if (xsdElementNode.getSchemaType() != null) {
@@ -369,8 +371,10 @@ public class Xsd2XdTreeAdapter {
         } else {
             final Element groupRef = xdFactory.createEmptyMixed();
             XdAttributeFactory.addAttrRef(groupRef, xsdGroupRefNode.getRefName());
+            adapterCtx.getReportWriter().warning(XSD.XSD212);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdGroupRefNode, "Group reference possible inside sequence/choice/mixed node");
             if (xsdGroupRefNode.getMaxOccurs() > 1) {
+                adapterCtx.getReportWriter().error(XSD.XSD203);
                 SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, xsdGroupRefNode, "Group reference is using multiple occurence - prohibited in x-definition.");
             }
 

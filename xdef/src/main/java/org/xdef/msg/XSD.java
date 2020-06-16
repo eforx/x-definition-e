@@ -95,10 +95,48 @@ public interface XSD {
 	public static final long XSD045 = 1180500012L;
 	/** Target namespace URI has been not found for prefix. Prefix="&amp;{0}" */
 	public static final long XSD046 = 1180500013L;
+	/** Input XSD document collection is empty! */
+	public static final long XSD200 = 1180500014L;
+	/** No XSD document to be processed found! */
+	public static final long XSD201 = 1180500015L;
+	/** Unsuccessful loading of XSD document. Name="&amp;{0}" */
+	public static final long XSD202 = 1180500016L;
+	/** Group reference is using multiple occurence - prohibited in x-definition. */
+	public static final long XSD203 = 1180500017L;
+	/** Declaration type is not set! */
+	public static final long XSD204 = 1180500018L;
+	/** Empty top declaration has been created! */
+	public static final long XSD205 = 1180500019L;
+	/** Empty set text declaration has been created! */
+	public static final long XSD206 = 1180500020L;
+	/** Empty restriction declaration has been created! */
+	public static final long XSD207 = 1180500021L;
+	/** Unknown XSD union base type! */
+	public static final long XSD208 = 1180500022L;
+	/** Empty union declaration has been created! */
+	public static final long XSD209 = 1180500023L;
+	/** Schema already exists, but with different name! Original="&amp;{0}", Current="&amp;{1}" */
+	public static final long XSD210 = 1180500024L;
+	/** Element reference has not found! Reference="&amp;{0}" */
+	public static final long XSD211 = 1180500025L;
+	/** Group reference possible inside sequence/choice/mixed node */
+	public static final long XSD212 = 1180500026L;
+	/** Unknown attribute reference QName! */
+	public static final long XSD213 = 1180500027L;
+	/** Parent node is not set. Created declaration will be lost! */
+	public static final long XSD214 = 1180500028L;
+	/** Unknown element reference QName! */
+	public static final long XSD215 = 1180500029L;
+	/** Declaration - Unsupported XSD facet! Clazz="&amp;{0}" */
+	public static final long XSD216 = 1180500030L;
+	/** X-definition target namespace already exists. XDefinition="&amp;{0}" */
+	public static final long XSD217 = 1180500031L;
+	/** X-definition namespace already exists. XDefinition="&amp;{0}", NsPrefix="&amp;{1}" */
+	public static final long XSD218 = 1180500032L;
 	/** Error messages for XML schema */
-	public static final long XSD_DESCRIPTION = 1180500014L;
+	public static final long XSD_DESCRIPTION = 1180500033L;
 	/** English */
-	public static final long XSD_LANGUAGE = 1180500015L;
+	public static final long XSD_LANGUAGE = 1180500034L;
 
 	/** Default language. */
 	public static final String XSD = "eng";

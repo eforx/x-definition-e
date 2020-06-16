@@ -4,6 +4,8 @@ import javafx.util.Pair;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.definition.Xsd2XdFeature;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,8 +55,18 @@ public class XdAdapterCtx {
      */
     private Map<XmlSchema, String> xsdNames;
 
-    public XdAdapterCtx(Set<Xsd2XdFeature> features) {
+    /**
+     * Output report writer
+     */
+    final private ReportWriter reportWriter;
+
+    public XdAdapterCtx(Set<Xsd2XdFeature> features, ReportWriter reportWriter) {
         this.features = features;
+        this.reportWriter = reportWriter;
+    }
+
+    public ReportWriter getReportWriter() {
+        return reportWriter;
     }
 
     /**
@@ -74,6 +86,7 @@ public class XdAdapterCtx {
      */
     public void addTargetNamespace(final String xDefName, final Pair<String, String> targetNamespace) {
         if (targetNamespaces.containsKey(xDefName)) {
+            reportWriter.warning(XSD.XSD217, xDefName);
             SchemaLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER_CTX, "X-definition target namespace already exists. XDefinition=" + xDefName);
             return;
         }
@@ -113,6 +126,7 @@ public class XdAdapterCtx {
         }
 
         if (xDefNamespaces.containsKey(nsUri)) {
+            reportWriter.warning(XSD.XSD218, xDefName, nsPrefix);
             SchemaLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER_CTX, "X-definition namespace already exists. XDefinition=" + xDefName + ", NsPrefix=" + nsPrefix);
             return;
         }

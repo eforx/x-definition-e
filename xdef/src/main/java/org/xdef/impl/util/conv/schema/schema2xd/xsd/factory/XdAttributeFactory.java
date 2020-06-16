@@ -7,6 +7,7 @@ import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration.IDeclara
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.msg.XSD;
 
 import javax.xml.namespace.QName;
 
@@ -65,6 +66,7 @@ public class XdAttributeFactory {
                 final String qualifiedName = XdNameUtils.createQualifiedName(xsdQName, xDefName, adapterCtx);
                 el.setAttributeNS(xsdQName.getNamespaceURI(), qualifiedName, attribute);
             } else {
+                adapterCtx.getReportWriter().warning(XSD.XSD213);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdAttr, "Unknown attribute reference QName!");
             }
         } else {

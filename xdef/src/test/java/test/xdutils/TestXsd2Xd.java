@@ -21,6 +21,7 @@ import java.util.Set;
 
 import static org.testng.reporters.Files.readFile;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_INFO;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
 
 public class TestXsd2Xd extends TesterXdSchema {
 
@@ -36,7 +37,9 @@ public class TestXsd2Xd extends TesterXdSchema {
         _dataFilesRoot = initFolder(dataDir, "xsd2xd_2");
         _outputFilesRoot = initFolder(dataDir, "xsd2xd_2\\output");
 
-        SchemaLogger.setLogLevel(LOG_INFO);
+        _repWriter = new ArrayReporter();
+
+        SchemaLogger.setLogLevel(LOG_WARN);
     }
 
     private File getInputSchemaFile(final String fileName) {
@@ -72,6 +75,8 @@ public class TestXsd2Xd extends TesterXdSchema {
             features.addAll(additionalFeatures);
         }
         adapter.setFeatures(features);
+        _repWriter.clear();
+        adapter.setReportWriter(_repWriter);
         return adapter;
     }
 

@@ -2,8 +2,11 @@ package org.xdef.impl.util.conv.schema.schema2xd.xsd.factory;
 
 import org.apache.ws.commons.schema.*;
 import org.w3c.dom.Element;
+import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration.*;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import javax.xml.namespace.QName;
 import java.util.HashSet;
@@ -27,14 +30,17 @@ public class XdDeclarationFactory {
      */
     final private XdNodeFactory xdFactory;
 
+    final private XdAdapterCtx adapterCtx;
+
     /**
      * Set of names of already processed top level declarations
      */
     final Set<String> processedTopDeclarations = new HashSet<String>();
 
-    public XdDeclarationFactory(XmlSchema schema, XdNodeFactory xdFactory) {
+    public XdDeclarationFactory(XmlSchema schema, XdNodeFactory xdFactory, XdAdapterCtx adapterCtx) {
         this.schema = schema;
         this.xdFactory = xdFactory;
+        this.adapterCtx = adapterCtx;
     }
 
     /**
@@ -45,6 +51,7 @@ public class XdDeclarationFactory {
     public void createDeclaration(final XdDeclarationBuilder builder) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, builder.simpleType, "Creating declaration ...");
         if (builder.parentNode == null) {
+            adapterCtx.getReportWriter().warning(XSD.XSD214);
             SchemaLogger.printP(LOG_WARN, TRANSFORMATION, builder.simpleType, "Parent node is not set. Created declaration will be lost!");
             return;
         }
@@ -72,7 +79,7 @@ public class XdDeclarationFactory {
     public String createSimpleTextDeclaration(final QName baseType) {
         final DefaultTypeFactory defaultTypeFactory = new DefaultTypeFactory(baseType.getLocalPart());
         defaultTypeFactory.setType(IDeclarationTypeFactory.Type.TEXT_DECL);
-        return defaultTypeFactory.build("");
+        return defaultTypeFactory.build("", adapterCtx.getReportWriter());
     }
 
     /**
@@ -80,7 +87,7 @@ public class XdDeclarationFactory {
      * @return
      */
     public XdDeclarationBuilder createBuilder() {
-        return new XdDeclarationBuilder().init(schema, this);
+        return new XdDeclarationBuilder().init(schema, this, adapterCtx.getReportWriter());
     }
 
     /**

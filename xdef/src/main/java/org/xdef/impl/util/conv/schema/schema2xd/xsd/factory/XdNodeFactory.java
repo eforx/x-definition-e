@@ -9,6 +9,7 @@ import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNamespaceUtils;
+import org.xdef.msg.XSD;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
@@ -93,6 +94,7 @@ public class XdNodeFactory {
                 XdAttributeFactory.addAttrRefInDiffXDef(xdElem, refXDef, xsdQName);
                 return xdElem;
             } else {
+                adapterCtx.getReportWriter().warning(XSD.XSD215);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xsdElem, "Unknown element reference QName!");
             }
         } else {

@@ -2,6 +2,8 @@ package org.xdef.impl.util.conv.schema.schema2xd.xsd.factory.declaration;
 
 import org.apache.ws.commons.schema.*;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.msg.XSD;
+import org.xdef.sys.ReportWriter;
 
 import java.util.*;
 
@@ -57,8 +59,8 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     }
 
     @Override
-    public String build(final List<XmlSchemaFacet> facets) {
-        parseFacets(facets);
+    public String build(final List<XmlSchemaFacet> facets, final ReportWriter reportWriter) {
+        parseFacets(facets, reportWriter);
 
         if (facetsToRemove != null) {
             for (String facet : facetsToRemove) {
@@ -76,7 +78,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     }
 
     @Override
-    public String build(String facets) {
+    public String build(String facets, final ReportWriter reportWriter) {
         return build(getDataType(), facets);
     }
 
@@ -154,7 +156,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
      * Parse given XSD facet nodes into internal state
      * @param facets    XSD facet nodes to be transformed
      */
-    private void parseFacets(final List<XmlSchemaFacet> facets) {
+    private void parseFacets(final List<XmlSchemaFacet> facets, final ReportWriter reportWriter) {
         reset();
 
         if (facets != null && !facets.isEmpty()) {
@@ -198,6 +200,7 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
                     enumeration.add((facet).getValue());
                     SchemaLogger.print(LOG_DEBUG, TRANSFORMATION, typeName, "Declaration - Add enumeration. Value=" + facet.getValue());
                 } else {
+                    reportWriter.warning(XSD.XSD216, facet.getClass().getSimpleName());
                     SchemaLogger.print(LOG_WARN, TRANSFORMATION, typeName, "Declaration - Unsupported XSD facet! Clazz=" + facet.getClass().getSimpleName());
                 }
             }

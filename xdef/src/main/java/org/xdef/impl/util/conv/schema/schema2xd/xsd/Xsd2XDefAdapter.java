@@ -14,6 +14,7 @@ import org.xdef.impl.util.conv.schema.schema2xd.xsd.model.XdAdapterCtx;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNamespaceUtils;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
+import org.xdef.msg.XSD;
 import org.xdef.xml.KXmlUtils;
 
 import javax.xml.namespace.QName;
@@ -40,6 +41,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
     @Override
     public String createXDefinition(final XmlSchema rootSchema, final String xDefName) {
         if (rootSchema == null) {
+            reportWriter.error(XSD.XSD002);
             SchemaLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "Input XSD document is not set!");
             return "";
         }
@@ -53,11 +55,12 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         }
 
         if (schemas == null || schemas.length < 1) {
+            reportWriter.error(XSD.XSD200);
             SchemaLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "Input XSD document collection is empty!");
             return "";
         }
 
-        adapterCtx = new XdAdapterCtx(features);
+        adapterCtx = new XdAdapterCtx(features, reportWriter);
         elementFactory = new XdNodeFactory(adapterCtx);
 
         adapterCtx.init();
@@ -65,6 +68,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
         final ArrayList<XmlSchema> schemasToBeProcessed = initializeSchemas(schemas, rootSchema, xDefName);
 
         if (schemasToBeProcessed.isEmpty()) {
+            reportWriter.error(XSD.XSD201);
             SchemaLogger.print(LOG_ERROR, INITIALIZATION, xDefName, "No XSD document to be processed found!");
             return "";
         }
@@ -169,6 +173,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
             schemaNames.put(schema, refSchemaFileName);
             SchemaLogger.print(LOG_INFO, PREPROCESSING, XD_ADAPTER, "Add schema name. Name=" + refSchemaFileName);
         } else if (!refSchemaFileName.equals(refSchemaSavedName)) {
+            reportWriter.warning(XSD.XSD210, refSchemaSavedName, refSchemaFileName);
             SchemaLogger.print(LOG_WARN, PREPROCESSING, XD_ADAPTER, "Schema already exists, but with different name! Original=" + refSchemaSavedName + ", Current=" + refSchemaFileName);
         } else {
             SchemaLogger.print(LOG_DEBUG, PREPROCESSING, XD_ADAPTER, "Schema already exists. Name=" + refSchemaFileName);
@@ -225,6 +230,7 @@ public class Xsd2XDefAdapter extends AbstractXsd2XdAdapter implements Schema2XDe
 
                 adapterCtx.addXmlSchemaName(schema, schemaName);
             } catch (UnsupportedEncodingException e) {
+                reportWriter.error(XSD.XSD202, schemaName);
                 SchemaLogger.print(LOG_ERROR, PREPROCESSING, XD_ADAPTER, "Unsuccessful loading of XSD document. Name=" + schemaName);
             }
         }

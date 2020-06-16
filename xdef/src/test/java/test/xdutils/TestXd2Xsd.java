@@ -10,7 +10,6 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.sys.ArrayReporter;
-import org.xdef.sys.ReportWriter;
 import org.xdef.sys.SUtils;
 import org.xdef.util.XValidate;
 import test.XDTester;
@@ -71,22 +70,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xsd");
     }
 
-    private XDef2XsdAdapter createXdDefAdapter(Set<Xd2XsdFeature> additionalFeatures) {
-        final XDef2XsdAdapter adapter = new XDef2XsdAdapter();
-        final Set<Xd2XsdFeature> features = Xd2XsdUtils.defaultFeatures();
-        features.add(Xd2XsdFeature.XSD_ANNOTATION);
-        features.add(Xd2XsdFeature.XSD_NAME_COLISSION_DETECTOR);
-        features.add(Xd2XsdFeature.POSTPROCESSING_UNIQUE);
-        if (additionalFeatures != null) {
-            features.addAll(additionalFeatures);
-        }
-        adapter.setFeatures(features);
-        _repWriter.clear();
-        adapter.setReportWriter(_repWriter);
-        return adapter;
-    }
-
-    private XdPool2XsdAdapter createXdPoolAdapter(Set<Xd2XsdFeature> additionalFeatures) {
+    private XdPool2XsdAdapter createXdAdapter(Set<Xd2XsdFeature> additionalFeatures) {
         final XdPool2XsdAdapter adapter = new XdPool2XsdAdapter();
         final Set<Xd2XsdFeature> features = Xd2XsdUtils.defaultFeatures();
         features.add(Xd2XsdFeature.XSD_ANNOTATION);
@@ -337,7 +321,7 @@ public class TestXd2Xsd extends TesterXdSchema {
                                    String exMsg, boolean invalidXsd,
                                    Set<Xd2XsdFeature> features) {
         try {
-            XdPool2XsdAdapter adapter = createXdPoolAdapter(features);
+            XdPool2XsdAdapter adapter = createXdAdapter(features);
 
             // Load x-definition files
             File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
