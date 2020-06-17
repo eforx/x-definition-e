@@ -7,7 +7,7 @@ import org.xdef.XDConstants;
  */
 public interface Xsd2XdDefinitions {
 
-    String XD_NAMESPACE_URI = XDConstants.XDEF32_NS_URI;
+    String XD_NAMESPACE_URI = XDConstants.XDEF40_NS_URI;
     String XSD_DEFAULT_NAMESPACE_PREFIX = "xs";
 
     String XD_ELEM_POOL = "xd:collection";

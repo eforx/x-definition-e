@@ -40,9 +40,9 @@ public class Xsd2XdTypeMapping {
 
         defaultQNameMap.put(Constants.XSD_DATE, new DefaultTypeFactory("ISOdate"));
         defaultQNameMap.put(Constants.XSD_DATETIME, new DefaultTypeFactory("ISOdateTime"));
-        defaultQNameMap.put(Constants.XSD_TIME, new DefaultTypeFactory("ISOtime"));
-        defaultQNameMap.put(Constants.XSD_LANGUAGE, new DefaultTypeFactory("ISOlanguage").removeFacet(FACET_PATTERN));
-        defaultQNameMap.put(Constants.XSD_DURATION, new DefaultTypeFactory("ISOduration"));
+        defaultQNameMap.put(Constants.XSD_TIME, new DefaultTypeFactory("time"));
+        defaultQNameMap.put(Constants.XSD_LANGUAGE, new DefaultTypeFactory("language").removeFacet(FACET_PATTERN));
+        defaultQNameMap.put(Constants.XSD_DURATION, new DefaultTypeFactory("duration"));
 
         defaultQNameMap.put(Constants.XSD_STRING, new TextTypeFactory("string"));
         defaultQNameMap.put(Constants.XSD_FLOAT, new DecimalTypeFactory("float"));

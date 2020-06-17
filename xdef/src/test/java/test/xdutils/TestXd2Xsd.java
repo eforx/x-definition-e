@@ -171,7 +171,7 @@ public class TestXd2Xsd extends TesterXdSchema {
                 outputSchemas[0].write(outputStream);
 
                 mismatch = !refOutputStream.toString().equals(outputStream.toString());
-                assertFalse(mismatch, "Same schema by sourceId, but different content, name: " + schemaName);
+                assertFalse(mismatch, "Same schema by sourceId, but different content. Schema=" + schemaName);
             }
 
             if (WRITE_OUTPUT_INTO_FILE == true) {

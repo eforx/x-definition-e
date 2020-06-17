@@ -108,7 +108,7 @@ public class TestXsd2Xd extends TesterXdSchema {
                 .build();
 
         boolean mismatch = diff.hasDifferences();
-        assertFalse(mismatch, "Output x-definition is different to reference x-definition");
+        assertFalse(mismatch, "Output x-definition is different to reference x-definition. Test=" + fileName);
 
         // Reference x-definition
         {
