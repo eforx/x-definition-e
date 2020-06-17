@@ -234,13 +234,18 @@ public class TestXd2Xsd extends TesterXdSchema {
     }
 
     private void validateXmlAgainstXDef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) throws FileNotFoundException {
+
+        final Properties props = new Properties();
+        // Do not check deprecated
+        props.setProperty(XDConstants.XDPROPERTY_WARNINGS, XDConstants.XDPROPERTYVALUE_WARNINGS_FALSE);
+
         // Validate valid XML file against XSD schema
         if (validTestingData != null) {
             for (String testingFile : validTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
                 File xDefFile = getInputXDefFile(fileName);
                 ArrayReporter reporter = new ArrayReporter();
-                XDDocument xdDocument = XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
+                XDDocument xdDocument = XValidate.validate(props, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(xdDocument != null, "XML is not valid against x-definition. Test=" + fileName + ", File=" + testingFile);
                 assertFalse(reporter.errors(), "Error occurs on x-definition validation. Test=" + fileName + ", File=" + testingFile);
             }
@@ -252,7 +257,7 @@ public class TestXd2Xsd extends TesterXdSchema {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
                 File xDefFile = getInputXDefFile(fileName);
                 ArrayReporter reporter = new ArrayReporter();
-                XValidate.validate(null, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
+                XValidate.validate(props, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(reporter.errors(), "Error does not occurs on x-definition validation (but it should). Test=" + fileName + ", File=" + testingFile);
             }
         }
@@ -326,6 +331,8 @@ public class TestXd2Xsd extends TesterXdSchema {
             // Load x-definition files
             File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
             final Properties props = new Properties();
+            // Do not check deprecated
+            props.setProperty(XDConstants.XDPROPERTY_WARNINGS, XDConstants.XDPROPERTYVALUE_WARNINGS_FALSE);
             props.setProperty(XDConstants.XDPROPERTY_IGNORE_UNDEF_EXT, XDConstants.XDPROPERTYVALUE_IGNORE_UNDEF_EXT_TRUE);
             final XDBuilder xb = XDFactory.getXDBuilder(_repWriter, props);
             xb.setSource(defFiles);
