@@ -244,6 +244,14 @@ public abstract class AbstractDeclarationTypeFactory implements IDeclarationType
     }
 
     /**
+     * Check if facet is using any multiple value
+     * @return true, if any facet is stored internally
+     */
+    protected boolean hasNoMultipleFacet() {
+        return facetMultipleValues.isEmpty();
+    }
+
+    /**
      * Remove facet using multiple values of given name from internal storage and return value of facet
      * @param facetName     facet to be removed
      * @return value of removed facet, null if facet is not stored

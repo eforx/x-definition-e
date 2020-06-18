@@ -23,6 +23,9 @@ public class TextTypeFactory extends AbstractDeclarationTypeFactory {
         } else if (hasFacet(FACET_MIN_LENGTH) && hasFacet(FACET_MAX_LENGTH)) {
             facetBuilder(sb, useFacet(FACET_MIN_LENGTH) + ", " + useFacet(FACET_MAX_LENGTH));
         }
+        else if (!hasFacet(FACET_MIN_LENGTH) && hasNoMultipleFacet() && "string".equals(xdType)) {
+            facetBuilder(sb, "0, *");
+        }
     }
 
 }
