@@ -168,7 +168,7 @@ public class Xd2XsdTreeAdapter {
             }
             case XNode.XMTEXT: {
                 SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xNode, "Creating simple (text) content ...");
-                return xsdFactory.createSimpleContentWithExtension((XData)xNode);
+                return xsdFactory.createTextBasedSimpleContent((XData)xNode);
             }
             case XNode.XMELEMENT: {
                 return createElement((XElement) xNode, topLevel);
@@ -260,7 +260,7 @@ public class Xd2XsdTreeAdapter {
                 attr.setSchemaTypeName(new QName(nsUri, refTypeName));
                 SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Creating attribute reference in same namespace/x-definition." +
                         " Name=" + xData.getName() + ", Type=" + attr.getSchemaTypeName());
-            } else if ((qName = Xd2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx)) != null) {
+            } else if ((qName = Xd2XsdParserMapping.getDefaultParserQName(xData, adapterCtx, true)) != null) {
                 attr.setSchemaTypeName(qName);
                 SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xData, "Content of attribute contains only XSD datatype. " +
                         "Element=" + xData.getName() + ", Type=" + qName);
@@ -628,7 +628,7 @@ public class Xd2XsdTreeAdapter {
     private void addSimpleTypeToElem(final XmlSchemaElement xsdElem, final XData xDataText) {
         SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xDataText, "Creating simple type of element. Element=" + xsdElem.getName());
 
-        final QName qName = Xd2XsdParserMapping.getDefaultSimpleParserQName(xDataText, adapterCtx);
+        final QName qName = Xd2XsdParserMapping.getDefaultParserQName(xDataText, adapterCtx, true);
         if (qName != null) {
             xsdElem.setSchemaTypeName(qName);
             SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xDataText, "Content of element contains only XSD datatype" +
@@ -687,14 +687,32 @@ public class Xd2XsdTreeAdapter {
                 if (complexType.getContentModel() != null) {
                     adapterCtx.getReportWriter().warning(XSD.XSD023);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Complex type already has simple content!");
-                } else if (simpleContent != null && simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension) {
-                    SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add simple content with attributes to complex content of element.");
+                } else if (simpleContent != null && (simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension)
+                        || simpleContent.getContent() instanceof XmlSchemaSimpleContentRestriction) {
+                    SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xElem, "Add simple content with attributes to complex type.");
+
+                    XmlSchemaSimpleContentExtension contentForAttrs = null;
+
+                    // Split simple content in case of containing restriction facets and parent owns attributes
+                    if (simpleContent.getContent() instanceof XmlSchemaSimpleContentRestriction && xAttrs.length > 0) {
+                        final String newSplittedName = XsdNameFactory.createTextElemName(xElem.getName());
+                        final XmlSchemaSimpleContentExtension splitted = new XmlSchemaSimpleContentExtension();
+                        splitted.setBaseTypeName(((XmlSchemaSimpleContentRestriction) simpleContent.getContent()).getBaseTypeName());
+                        xsdFactory.createComplexTypeWithSimpleContentTop(newSplittedName, splitted);
+                        ((XmlSchemaSimpleContentRestriction) simpleContent.getContent()).setBaseTypeName(new QName(schema.getTargetNamespace(), newSplittedName));
+
+                        contentForAttrs = splitted;
+                        // TODO: create ref by SchemaNodeFactory?
+                    } else if (simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension){
+                        contentForAttrs = (XmlSchemaSimpleContentExtension)simpleContent.getContent();
+                    }
 
                     complexType.setContentModel(simpleContent);
 
-                    for (int j = 0; j < xAttrs.length; j++) {
-                        if (simpleContent.getContent() instanceof XmlSchemaSimpleContentExtension)
-                            ((XmlSchemaSimpleContentExtension) simpleContent.getContent()).getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(xAttrs[j], false));
+                    if (contentForAttrs != null) {
+                        for (int j = 0; j < xAttrs.length; j++) {
+                            contentForAttrs.getAttributes().add((XmlSchemaAttributeOrGroupRef) convertTreeInt(xAttrs[j], false));
+                        }
                     }
                 } else {
                     adapterCtx.getReportWriter().warning(XSD.XSD024);

@@ -349,7 +349,7 @@ public class Xd2XsdReferenceAdapter {
                 return;
             }
 
-            if (!isAttrRef && refTypeName == null && Xd2XsdParserMapping.getDefaultSimpleParserQName(xData, adapterCtx) == null && xData.getValueTypeName() != null) {
+            if (!isAttrRef && refTypeName == null && Xd2XsdParserMapping.getDefaultParserQName(xData, adapterCtx, true) == null && xData.getValueTypeName() != null) {
                 refTypeName = XsdNameUtils.createRefNameFromParser(xData, adapterCtx);
                 if (refTypeName != null && simpleTypeReferences.add(refTypeName)) {
                     xsdFactory.createSimpleTypeTop(xData, refTypeName);

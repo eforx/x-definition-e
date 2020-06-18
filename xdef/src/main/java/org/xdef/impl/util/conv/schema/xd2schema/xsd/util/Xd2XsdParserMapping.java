@@ -168,12 +168,13 @@ public class Xd2XsdParserMapping {
     }
 
     /**
-     * Get QName for x-definition parser which can be transformed by default XSD facet factory and has no facets
+     * Get QName for x-definition parser which can be transformed by default XSD facet factory
      * @param xData         x-definition node
      * @param adapterCtx    XSD adapter context
+     * @param hasNoFacets   check if parser contains any facet
      * @return XSD QName if transformation without facets exists, otherwise null
      */
-    public static QName getDefaultSimpleParserQName(final XData xData, final XsdAdapterCtx adapterCtx) {
+    public static QName getDefaultParserQName(final XData xData, final XsdAdapterCtx adapterCtx, boolean hasNoFacets) {
         final XDValue parseMethod = xData.getParseMethod();
         final String parserName = xData.getParserName();
         final QName defaultQName = findDefaultParserQName(parserName, adapterCtx);
@@ -182,8 +183,9 @@ public class Xd2XsdParserMapping {
             if (parseMethod instanceof XDParser) {
                 final XDParser parser = ((XDParser) parseMethod);
                 final XDNamedValue parameters[] = parser.getNamedParams().getXDNamedItems();
-                if (parameters.length == 0 && findCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
-                    return defaultQName;
+                if (findCustomFacetFactory(parserName, parameters, adapterCtx) == null) {
+                    if ((hasNoFacets && parameters.length == 0) || !hasNoFacets)
+                        return defaultQName;
                 }
             } else {
                 return defaultQName;

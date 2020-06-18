@@ -283,6 +283,15 @@ public class XsdNameFactory {
     }
 
     /**
+     * Creates new name of local simple type
+     * @param nodeName          node name where text definition is located
+     * @return new name
+     */
+    public static String createTextElemName(final String nodeName) {
+        return nodeName + "_text";
+    }
+
+    /**
      * Creates element node prefix based on schema type
      * @param schemaType    input schema type
      * @return  "ct_" if input schema type is complex

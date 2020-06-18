@@ -4,6 +4,7 @@ import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
@@ -36,6 +37,7 @@ import java.util.List;
 
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.TRANSFORMATION;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_FACET_MIN_LENGTH;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_PREFIX_EMPTY;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_ELEM_FACTORY;
 import static org.xdef.model.XMNode.XMATTRIBUTE;
@@ -168,7 +170,7 @@ public class XsdNodeFactory {
      * @return  if reference and parser are unknown, then null
      *          else <xs:simpleContent><xs:extension base="...">...</xs:extension></xs:simpleContent>
      */
-    public XmlSchemaSimpleContent createSimpleContentWithExtension(final XData xDataText) {
+    public XmlSchemaSimpleContent createTextBasedSimpleContent(final XData xDataText) {
         SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xDataText, "Simple-content with extension");
 
         QName qName = null;
@@ -182,6 +184,8 @@ public class XsdNodeFactory {
             }
         }
 
+        boolean extension = true;
+
         if (qName == null) {
             if (xDataText.getRefTypeName() != null) {
                 final String refTypeName = XsdNameFactory.createLocalSimpleTypeName(xDataText);
@@ -190,7 +194,20 @@ public class XsdNodeFactory {
                 qName = new QName(nsUri, refTypeName);
                 SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
             } else {
-                qName = Xd2XsdParserMapping.getDefaultSimpleParserQName(xDataText, adapterCtx);
+                qName = Xd2XsdParserMapping.getDefaultParserQName(xDataText, adapterCtx, false);
+                final XDValue parseMethod = xDataText.getParseMethod();
+                if (parseMethod instanceof XDParser) {
+                    // Restriction facets
+                    final XDNamedValue[] items = ((XDParser) parseMethod).getNamedParams().getXDNamedItems();
+                    // Check if restriction contains only min-length equals 1 and string is optional => then use xs:extension instead of xs:restriction
+                    if (items.length == 0 ||
+                            (items.length == 1 && Constants.XSD_STRING.equals(qName) &&
+                            XSD_FACET_MIN_LENGTH.equals(items[0].getName()) && items[0].getValue().intValue() == 1 && xDataText.isOptional())) {
+                        extension = true;
+                    } else {
+                        extension = false;
+                    }
+                }
             }
 
             if (qName == null) {
@@ -205,11 +222,24 @@ public class XsdNodeFactory {
         }
 
         if (qName != null) {
-            final XmlSchemaSimpleContentExtension contentExtension = createEmptySimpleContentExtension(qName);
-            final XmlSchemaSimpleContent content = createSimpleContent(contentExtension);
-            SchemaLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xDataText, "Simple-content extending type. QName=" + qName);
+            XmlSchemaContent schemaContent;
+            if (extension) {
+                schemaContent = createEmptySimpleContentExtension(qName);
+                SchemaLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xDataText, "Simple-content extension type. QName=" + qName);
+            } else {
+                schemaContent = createEmptySimpleContentRestriction(qName);
+                SchemaLogger.printG(LOG_INFO, XSD_ELEM_FACTORY, xDataText, "Simple-content restriction type. QName=" + qName);
+
+                // Copy facets
+                final XmlSchemaSimpleTypeContent simpleTypeContent = createSimpleTypeContent(xDataText, null);
+                if (simpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
+                    ((XmlSchemaSimpleContentRestriction)schemaContent).getFacets().addAll(((XmlSchemaSimpleTypeRestriction)simpleTypeContent).getFacets());
+                }
+            }
+
+            final XmlSchemaSimpleContent content = createSimpleContent(schemaContent);
             if (uniqueConstraint != null) {
-                contentExtension.setAnnotation(XsdNodeFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath() + " (" + xDataText.getValueTypeName() + ")", adapterCtx));
+                schemaContent.setAnnotation(XsdNodeFactory.createAnnotation("Original part of uniqueSet: " + uniqueConstraint.getPath() + " (" + xDataText.getValueTypeName() + ")", adapterCtx));
             }
             return content;
         }
@@ -313,7 +343,25 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD complex type node with complex extension on top level of XSD document
+     * Creates XSD complex type node with simple content on top level of XSD document
+     * @param complexTypeName       complex type name
+     * @param schemaContent         simple content
+     * @return  <xs:complexType name="@{paramref simpleTypeName}">
+     *              <xs:simpleContent>
+     *                      <xs:extension base="@{paramref extQName}"></xs:extension>
+     *              </xs:simpleContent>
+     *          </xs:complexType>
+     */
+    public XmlSchemaComplexType createComplexTypeWithSimpleContentTop(final String complexTypeName, final XmlSchemaContent schemaContent) {
+        final XmlSchemaComplexType complexType = createEmptyComplexType(true);
+        final XmlSchemaSimpleContent simpleContent = createSimpleContent(schemaContent);
+        complexType.setContentModel(simpleContent);
+        complexType.setName(complexTypeName);
+        return complexType;
+    }
+
+    /**
+     * Creates XSD complex type node with simple extension on top level of XSD document
      * @param complexTypeName       complex type name
      * @param extQName              simple extension QName
      * @return  <xs:complexType name="@{paramref simpleTypeName}">
@@ -375,6 +423,18 @@ public class XsdNodeFactory {
     public XmlSchemaSimpleContentExtension createEmptySimpleContentExtension(final QName baseType) {
         SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Simple content extension. BaseType=" + baseType);
         final XmlSchemaSimpleContentExtension contentExtension = new XmlSchemaSimpleContentExtension();
+        contentExtension.setBaseTypeName(baseType);
+        return contentExtension;
+    }
+
+    /**
+     * Creates empty XSD simple content restriction node
+     * @param baseType      simple restriction base
+     * @return <xs:restriction base="@{paramref baseType}"/>
+     */
+    public XmlSchemaSimpleContentRestriction createEmptySimpleContentRestriction(final QName baseType) {
+        SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, "Simple content restriction. BaseType=" + baseType);
+        final XmlSchemaSimpleContentRestriction contentExtension = new XmlSchemaSimpleContentRestriction();
         contentExtension.setBaseTypeName(baseType);
         return contentExtension;
     }
