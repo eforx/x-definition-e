@@ -49,8 +49,7 @@
         </xs:element>
       </xs:sequence>
       <xs:attribute name="a"
-        type="a_Type"
-        use="optional"/>
+        type="a_Type"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

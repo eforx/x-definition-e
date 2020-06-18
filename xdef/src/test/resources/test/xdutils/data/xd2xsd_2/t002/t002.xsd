@@ -20,16 +20,14 @@
             <xs:simpleContent>
               <xs:extension base="xs:int">
                 <xs:attribute name="b"
-                  type="b_Type"
-                  use="optional"/>
+                  type="b_Type"/>
               </xs:extension>
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
       </xs:sequence>
       <xs:attribute name="a"
-        type="a_Type"
-        use="optional"/>
+        type="a_Type"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

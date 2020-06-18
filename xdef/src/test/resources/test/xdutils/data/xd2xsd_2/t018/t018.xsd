@@ -18,14 +18,14 @@
         <xs:element ref="a:a2"/>
         <xs:element form="unqualified" name="a3">
           <xs:complexType>
-            <xs:attribute form="unqualified" name="attr1" use="optional">
+            <xs:attribute form="unqualified" name="attr1">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:minLength value="1"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute name="attr2" type="tns:attr2_Type1" use="optional"/>
+            <xs:attribute name="attr2" type="tns:attr2_Type1"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>

@@ -95,9 +95,10 @@ public class XsdNodeFactory {
         XmlSchemaAttribute attr = new XmlSchemaAttribute(schema, topLevel);
 
         if (topLevel == false) {
-            if (xData.isOptional() || xData.getOccurence().isOptional()) {
-                attr.setUse(XmlSchemaUse.OPTIONAL);
-            } else if (xData.isRequired() || xData.getOccurence().isRequired()) {
+//            if (xData.isOptional() || xData.getOccurence().isOptional()) {
+//                attr.setUse(XmlSchemaUse.OPTIONAL);
+//            }
+            if (xData.isRequired() || xData.getOccurence().isRequired()) {
                 attr.setUse(XmlSchemaUse.REQUIRED);
             }
         }

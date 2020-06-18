@@ -7,15 +7,15 @@
   <xs:import namespace="http://b" schemaLocation="t015.xsd"/>
   <xs:element name="a1">
     <xs:complexType>
-      <xs:attribute form="unqualified" name="atr1" use="optional">
+      <xs:attribute form="unqualified" name="atr1">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:minLength value="1"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ref="a:atr2" use="optional"/>
-      <xs:attribute name="atr3" use="optional">
+      <xs:attribute ref="a:atr2"/>
+      <xs:attribute name="atr3">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:minLength value="1"/>

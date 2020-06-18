@@ -7,26 +7,26 @@
   <xs:import namespace="http://b" schemaLocation="t018.xsd"/>
   <xs:element name="a1">
     <xs:complexType>
-      <xs:attribute form="unqualified" name="attr1" use="optional">
+      <xs:attribute form="unqualified" name="attr1">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:minLength value="1"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ref="a:attr2" use="optional"/>
+      <xs:attribute ref="a:attr2"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="a2">
     <xs:complexType>
-      <xs:attribute name="attr1" use="optional">
+      <xs:attribute name="attr1">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:minLength value="1"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ref="a:attr2" use="optional"/>
+      <xs:attribute ref="a:attr2"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>
