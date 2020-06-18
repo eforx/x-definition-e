@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  targetNamespace="http://b"
- xmlns:a="http://a"
- xmlns:tns="http://b"
-  attributeFormDefault="qualified"
-  elementFormDefault="qualified">
-  <xs:import namespace="http://a"
-    schemaLocation="t018_1.xsd"/>
+           xmlns:a="http://a"
+           xmlns:tns="http://b"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://b">
+  <xs:import namespace="http://a" schemaLocation="t018_1.xsd"/>
   <xs:simpleType name="attr2_Type1">
     <xs:restriction base="xs:int">
       <xs:minInclusive value="0"/>
@@ -18,16 +16,16 @@
       <xs:sequence>
         <xs:element ref="a:a1"/>
         <xs:element ref="a:a2"/>
-        <xs:element name="a3"
-          form="unqualified">
+        <xs:element form="unqualified" name="a3">
           <xs:complexType>
-            <xs:attribute name="attr1"
-              type="xs:string"
-              use="optional"
-              form="unqualified"/>
-            <xs:attribute name="attr2"
-              type="tns:attr2_Type1"
-              use="optional"/>
+            <xs:attribute form="unqualified" name="attr1" use="optional">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:minLength value="1"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="attr2" type="tns:attr2_Type1" use="optional"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>
@@ -39,6 +37,5 @@
       <xs:maxInclusive value="10"/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:attribute name="attr2"
-                type="tns:attr2_Type"/>
+  <xs:attribute name="attr2" type="tns:attr2_Type"/>
 </xs:schema>

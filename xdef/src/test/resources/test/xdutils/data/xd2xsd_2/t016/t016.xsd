@@ -46,7 +46,9 @@
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="duration_user_Type">
-    <xs:restriction base="xs:string"/>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+    </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="byte_Type">
     <xs:restriction base="xs:int">
@@ -180,9 +182,13 @@
         <xs:element name="yearMonth"
           maxOccurs="unbounded"
           type="xs:gYearMonth"/>
-        <xs:element name="duration"
-          maxOccurs="unbounded"
-          type="xs:string"/>
+        <xs:element maxOccurs="unbounded" name="duration">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element maxOccurs="unbounded" name="byte">
           <xs:simpleType>
             <xs:restriction base="xs:int">

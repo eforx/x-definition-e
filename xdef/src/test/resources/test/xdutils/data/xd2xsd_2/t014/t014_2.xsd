@@ -1,13 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  targetNamespace="http://c"
-  xmlns:tns="http://c"
-  elementFormDefault="qualified">
+           xmlns:tns="http://c"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://c">
   <xs:element name="a2">
     <xs:complexType>
-      <xs:attribute name="atr1"
-        type="xs:string"
-        use="optional"/>
+      <xs:attribute name="atr1" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
 </xs:schema>

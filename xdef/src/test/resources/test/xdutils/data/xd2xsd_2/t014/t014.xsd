@@ -1,28 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  targetNamespace="http://b"
-  xmlns:tns="http://b"
-  elementFormDefault="qualified"
-  xmlns:a="http://a"
-  xmlns:b="http://c"
-  xmlns:c="http://d">
-  <xs:import namespace="http://a"
-             schemaLocation="t014_1.xsd"/>
-  <xs:import namespace="http://c"
-             schemaLocation="t014_2.xsd"/>
-  <xs:import namespace="http://d"
-    schemaLocation="t014_3.xsd"/>
+           xmlns:a="http://a"
+           xmlns:b="http://c"
+           xmlns:c="http://d"
+           xmlns:tns="http://b"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://b">
+  <xs:import namespace="http://a" schemaLocation="t014_1.xsd"/>
+  <xs:import namespace="http://c" schemaLocation="t014_2.xsd"/>
+  <xs:import namespace="http://d" schemaLocation="t014_3.xsd"/>
   <xs:element name="elem">
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="a:a1"/>
         <xs:element ref="b:a2"/>
-        <xs:element name="a3"
-          form="unqualified">
+        <xs:element form="unqualified" name="a3">
           <xs:complexType>
-            <xs:attribute name="atr1"
-              type="xs:string"
-              use="optional"/>
+            <xs:attribute name="atr1" use="optional">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:minLength value="1"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ref="c:a4"/>

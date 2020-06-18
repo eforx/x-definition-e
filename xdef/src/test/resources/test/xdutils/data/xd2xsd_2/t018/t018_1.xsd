@@ -1,29 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  targetNamespace="http://a"
-   xmlns:a="http://b"
-   xmlns:tns="http://a"
-  attributeFormDefault="qualified"
-  elementFormDefault="qualified">
-  <xs:import namespace="http://b"
-    schemaLocation="t018.xsd"/>
+           xmlns:a="http://b"
+           xmlns:tns="http://a"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://a">
+  <xs:import namespace="http://b" schemaLocation="t018.xsd"/>
   <xs:element name="a1">
     <xs:complexType>
-      <xs:attribute name="attr1"
-        type="xs:string"
-        use="optional"
-        form="unqualified"/>
-      <xs:attribute ref="a:attr2"
-        use="optional"/>
+      <xs:attribute form="unqualified" name="attr1" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute ref="a:attr2" use="optional"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="a2">
     <xs:complexType>
-      <xs:attribute name="attr1"
-        type="xs:string"
-        use="optional"/>
-      <xs:attribute ref="a:attr2"
-        use="optional"/>
+      <xs:attribute name="attr1" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute ref="a:attr2" use="optional"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

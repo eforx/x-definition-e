@@ -1,20 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  targetNamespace="http://www.w3schools.com"
-  xmlns:tns="http://www.w3schools.com"
-  elementFormDefault="qualified">
+           xmlns:tns="http://www.w3schools.com"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://www.w3schools.com">
   <xs:element name="note">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="to"
-          form="unqualified"
-          type="xs:string"/>
-        <xs:element name="from"
-          type="xs:string"/>
-        <xs:element name="heading"
-          type="xs:string"/>
-        <xs:element name="body"
-          type="xs:string"/>
+        <xs:element form="unqualified" name="to">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="from">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="heading">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="body">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
