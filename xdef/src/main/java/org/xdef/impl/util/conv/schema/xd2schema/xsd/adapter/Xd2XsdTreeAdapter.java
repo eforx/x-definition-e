@@ -798,10 +798,10 @@ public class Xd2XsdTreeAdapter {
 
         if (refNode == null || refNode.getXsdNode() == null) {
             adapterCtx.getReportWriter().error(XSD.XSD010, xChildrenNodes[0].getXDPosition());
-            SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no reference in XSD has been found! Path=" + xChildrenNodes[0].getXDPosition());
+            SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "X-definition mixed type is reference, but no XSD node reference has been found internally! PathXdefinition=" + xChildrenNodes[0].getXDPosition());
         } else if (!refNode.isXsdGroup()) {
             adapterCtx.getReportWriter().error(XSD.XSD011, xChildrenNodes[0].getXDPosition());
-            SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! Path=" + xChildrenNodes[0].getXDPosition());
+            SchemaLogger.printP(LOG_ERROR, TRANSFORMATION, defEl, "XSD mixed type reference is not complex type! PathXdefinition=" + xChildrenNodes[0].getXDPosition());
         } else {
             final XmlSchemaGroup group = refNode.toXsdGroup();
             final XmlSchemaGroupRef groupRef = xsdFactory.createGroupRef(group.getQName());

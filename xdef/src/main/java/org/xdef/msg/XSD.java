@@ -7,13 +7,13 @@ public interface XSD {
 	public static final long XSD001 = 1180499968L;
 	/** Input XSD document is not set! */
 	public static final long XSD002 = 1180499969L;
-	/** Reference to node type element is expected! */
+	/** Reference to node type element is expected. */
 	public static final long XSD003 = 1180499970L;
 	/** Element referencing to unknown namespace! NamespacePrefix="&amp;{0}" */
 	public static final long XSD004 = 1180499971L;
-	/** X-definition name duplication */
+	/** X-definition name duplication. */
 	public static final long XSD005 = 1180499972L;
-	/** Expected parser type or multiple parsers used! */
+	/** Parser not found or multiple parsers has been found. */
 	public static final long XSD006 = 1180499973L;
 	/** Referenced schema does not exist! Name="&amp;{0}" */
 	public static final long XSD007 = 1180499974L;
@@ -21,9 +21,9 @@ public interface XSD {
 	public static final long XSD008 = 1180499975L;
 	/** Referenced schema does not exist! Namespace="&amp;{0}" */
 	public static final long XSD009 = 1180499976L;
-	/** X-definition mixed type is reference, but no reference in XSD has been found! Path="&amp;{0}" */
+	/** X-definition mixed type is reference, but no XSD node reference has been found internally! PathXdefinition="&amp;{0}" */
 	public static final long XSD010 = 1180499977L;
-	/** XSD mixed type reference is not complex type! Path="&amp;{0}" */
+	/** XSD mixed type reference is not complex type! PathXdefinition="&amp;{0}" */
 	public static final long XSD011 = 1180499978L;
 	/** Required schema import has not been found! SchemaName="&amp;{0}" */
 	public static final long XSD012 = 1180499979L;
@@ -31,9 +31,9 @@ public interface XSD {
 	public static final long XSD013 = 1180499980L;
 	/** Target namespace of x-definition is already defined. XDefinition="&amp;{0}" */
 	public static final long XSD014 = 1180499981L;
-	/** Root node of unique set has not been found! UniqueSet="&amp;{0}", XPath="&amp;{1}" */
+	/** Root node of unique set has not been found. UniqueSet="&amp;{0}", XPath="&amp;{1}" */
 	public static final long XSD015 = 1180499982L;
-	/** Root node of unique set is not element!. UniqueSet="&amp;{0}", XPath="&amp;{1}" */
+	/** Root node of unique set is not element. UniqueSet="&amp;{0}", XPath="&amp;{1}" */
 	public static final long XSD016 = 1180499983L;
 	/** XDefinition node has to be only pre-processed! */
 	public static final long XSD017 = 1180499984L;
@@ -71,7 +71,7 @@ public interface XSD {
 	public static final long XSD033 = 1180500000L;
 	/** Unique set does not contain variable with given name. Unique="&amp;{0}", VarName="&amp;{1}" */
 	public static final long XSD034 = 1180500001L;
-	/** Error occurs while creating XSD documentation node: "&amp;{0}" */
+	/** Error occurs while creating XSD documentation node. Error="&amp;{0}" */
 	public static final long XSD035 = 1180500002L;
 	/** Schema location already exists for namespace URI. NamespaceURI="&amp;{0}" */
 	public static final long XSD036 = 1180500003L;
@@ -83,7 +83,7 @@ public interface XSD {
 	public static final long XSD039 = 1180500006L;
 	/** Node does not exist in system! System="&amp;{0}", Path="&amp;{1}" */
 	public static final long XSD040 = 1180500007L;
-	/** Schema type has been expected */
+	/** Schema type node has been expected */
 	public static final long XSD041 = 1180500008L;
 	/** !Lossy transformation! Remove simple content from element due to existence of complex content. Use mixed attr */
 	public static final long XSD042 = 1180500009L;
@@ -101,7 +101,7 @@ public interface XSD {
 	public static final long XSD201 = 1180500015L;
 	/** Unsuccessful loading of XSD document. Name="&amp;{0}" */
 	public static final long XSD202 = 1180500016L;
-	/** Group reference is using multiple occurence - prohibited in x-definition. */
+	/** Group reference is using multiple occurence - unsupported in x-definition. */
 	public static final long XSD203 = 1180500017L;
 	/** Declaration type is not set! */
 	public static final long XSD204 = 1180500018L;
