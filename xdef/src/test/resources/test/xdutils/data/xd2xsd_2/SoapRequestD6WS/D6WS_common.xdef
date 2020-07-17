@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xd:def  xmlns:xd     ="http://www.syntea.cz/xdef/3.1"  
+         impl-version ="2020/07.0" impl-date="2020-06-04"
+         xmlns        ="http://ws.ckp.cz/pis/dn/D6WS/2020/07"
+         xd:name      ="D6WS_common">
+
+ <xd:declaration scope="local">
+   type  alkoholDech           string(1,18);
+   type  alkoholKrev           string(1,11);
+   type  castkaKc              long(0,999_999_999);
+   type  celkovaSkodaKc        long(0,999_999_999);
+   type  cisloDN               num(5);
+   type  cisloDokladu          string(1,36);
+   type  cisloDokladuPojisteni string(1,35);
+   type  cisloOrientacni       string(1,10);
+   type  cisloPopisne          string(1,10);
+   type  cisloZK               string(1,40);
+   type  cj                    string(1,50);
+   type  delka                 dec(14,7);
+   type  druhPredmetu          string(1,255);
+   type  druhProvozu           string(1,30);
+   type  druhSoupravy          enum('VLAK');
+   type  druhVozidla           string(1,30);
+   type  druhZvirete           string(1,255);
+   type  evidCislo             string(1,20);
+   type  hlavniPricina         tab('CC_HlavniPricinaDN','HlavniPricinaDN');
+   type  ic                    num(1,12);
+   type  identifier            long(1,999_999_999_999);
+   type  identSouboru          long(1,9_999_999_999);
+   type  jmeno                 string(1,36);
+   type  kodPojistitele        num(4);
+   type  kodUtvaruPolicie      num(6);
+   type  linka                 string(1,20);
+   type  linkaPoradi           string(1,10);
+   type  mesicSTKDo            xdatetime('MM/yyyy');
+   type  mistoNarozeni         string(1,60);
+   type  mistoUhradyHP         string(1,255);
+   type  mistoVydani           string(1,50);
+   type  mpz                   tab('CC_Stat','KODSTATU');
+   type  nazevDN               string(1,255);
+   type  nazevFirmy            string(1,100);
+   type  nazevPredmetu         string(1,255);
+   type  nazevZvirete          string(1,255);
+   type  obec                  string(1,50);
+   type  okres                 tab('CC_Okres','Okres');
+   type  opravneni             string(1,60);
+   type  osobniStav            string(1,30);
+   type  oznSegmentu           string(1,5);
+   type  pachatel              enum('PACHATEL DN');
+   type  platnostSTK           enum('PLATNÁ','NEPLATNÁ','NEZJIŠTĚNO');
+   type  podtypParametru       tab('DNKL_PodtypParametru','PodtypParametru');
+   type  pohlavi               enum('M','Ž');
+   type  pojisteniText         enum('DOKLAD O POJIŠTĚNÍ NEPŘEDLOŽEN','POTVRZENÍ NEPŘEDLOŽENO',
+                                    'NEPODLEHÁ POJIŠTĚNÍ','SMLOUVA NEUZAVŘENA');
+   type  pojistneHPKc          int(0,99_999);
+   type  pokutaKc              string(1,7);
+   type  pokutaZapl            enum('NEZAPLACENA','ZAPLACENA');
+   type  poskozeny             enum('POŠKOZENÝ');
+   type  praxeRizeni           int(0,99);
+   type  prijmeni              string(1,36);
+   type  pricina               string();
+   type  profese               string(1,50);
+   type  psc                   string(1,10);
+   type  rc                    string(8,11);
+   type  roleOsoby             tab('DNKL_RoleOsoby','RoleOsoby');
+   type  sirka                 dec(14,7);
+   type  spoj                  string(1,50);
+   type  spz                   string(1,20);
+   type  stat                  tab('CC_Stat','NazevStatuCZ');
+   type  stavBrzd              tab('DN_StavBrzd','StavBrzdPopis');
+   type  system                enum('WGS-84');
+   type  telefon               string(1,28);
+   type  text255               string(1,255);
+   type  text400               string(1,400);
+   type  text4000              string(1,4000);
+   type  text600               string(1,600);
+   type  typBrzd               tab('DN_TypBrzd','TypBrzdPopis');
+   type  typDokladu            string(1,60);
+   type  typParametru          tab('DNKL_TypParametru','TypParametru');
+   type  typKritickehoFaktoru  string(1,50);
+   type  typPravidla           string(1,50); 
+   type  typSoupravy           string(1,40);
+   type  typUcastnika          string(1,40);
+   type  typVozidla            string(1,50);
+   type  ulice                 string(1,50);
+   type  vin                   string(1,26);
+   type  vydalZK               string(1,255);
+   type  xsDate                xdatetime('yyyy-MM-dd');
+   type  xsDateTime            xdatetime('yyyy-MM-ddTHH:mm:ss');
+   type  xsYear                xdatetime('yyyy');
+   type  zdravotniPojistovna   string(1,100);
+   type  znackaVozidla         string(1,30);
+   type  zpracovatel           string(1,60);
+   type  zraneni               tab('DN_Zraneni','Zraneni');
+ </xd:declaration>
+
+ <!-- Vstupní struktury (v abecedním pořadí)     -->
+ <!-- ========================================== -->
+ <Get_NewDNSet               
+         AfterTransId          ="? identifier()"
+         FromDate              ="? xsDate()"
+ />
+    
+ <!-- Výstupní struktury (v abecedním pořadí)    -->
+ <!-- ========================================== -->
+ <NewDNSet
+         LastTransId           ="? identifier()">
+     <ZaznamDN               xd:script="0..; ref ZaznamDN" />
+ </NewDNSet>
+
+ <ZaznamDN
+         PlatnostOd          ="  xsDate()">
+    <AlternativniObraz       xd:script="0.."
+         PlatnostOd          ="  xsDate()"
+    />
+    <xd:mixed>
+      <Protokol              xd:script="1;    ref ProtokolDN" />
+      <Rozhodnuti            xd:script="0..1; ref RozhodnutiDN" />
+      <Vyliceni              xd:script="1"> text4000() </Vyliceni>
+      <ObjStranka            xd:script="1;    ref ObjStrankaDN" />
+      <Vozidlo               xd:script="0..;  ref VozidloDN" />
+      <Tramvaj               xd:script="0..;  ref TramvajDN" />
+      <Trolejbus             xd:script="0..;  ref TrolejbusDN" />
+      <Vlak                  xd:script="0..;  ref VlakDN" />
+      <Povoz                 xd:script="0..;  ref PovozDN" />
+      <Predmet               xd:script="0..;  ref PredmetDN" />
+      <Zvire                 xd:script="0..;  ref ZvireDN" />
+      <Ucastnik              xd:script="0..;  ref UcastnikDN" />
+      <KlasifikaceDN         xd:script="0..;  ref KlasifikaceDN" />
+    </xd:mixed>
+ </ZaznamDN>
+
+
+ <!-- Dílčí věcné struktury (v abecedním pořadí) -->
+ <!-- ========================================== -->
+ <Adresa
+         CisloOrientacni     ="? cisloOrientacni()"
+         CisloPopisne        ="? cisloPopisne()"
+         Obec                ="? obec()"
+         Okres               ="? okres()"
+         PSC                 ="? psc()"
+         Stat                ="? stat()"
+         Telefon1            ="? telefon()"
+         Telefon2            ="? telefon()"
+         Ulice               ="? ulice()"
+ />
+
+ <Doklad
+         CisloDokladu        ="? cisloDokladu()"
+         DatumVydani         ="? xsDate()"
+         MistoVydani         ="? mistoVydani()"
+         Opravneni           ="? opravneni()"
+         StatVydani          ="? stat()"
+         TypDokladu          ="  typDokladu()"
+ />
+
+ <Firma
+         IC                  ="? ic()" 
+         NazevFirmy          ="  nazevFirmy()">
+     <Sidlo                  xd:script="0..1; ref Adresa" />
+ </Firma>
+
+ <IdentDN
+         CisloDN             ="? cisloDN()"
+         CJ                  ="? cj()"
+         KodUtvaruPolicie    ="? kodUtvaruPolicie()"
+         RokDN               ="? xsYear()"
+ />
+
+ <Id_Vozidlo
+         CisloZK             ="? cisloZK()"
+         KodPojistitele      ="? kodPojistitele()"
+         MPZ                 ="? mpz()"
+         SPZ                 ="? spz()"
+         VIN                 ="? vin"
+ />
+
+ <KlasifikaceDN            xd:script="occurs 0.."
+         PodtypParametru     ="? podtypParametru()" 
+         TypParametru        ="  typParametru()">
+   <Osoba                  xd:script="occurs 0..1"
+         Role                ="  roleOsoby()">
+     <refOsoba             xd:script="0..1">rc()</refOsoba>
+     <refSPZ               xd:script="0..1">string(1,20)</refSPZ>
+   </Osoba>
+   <KritickyFaktor         xd:script="0.."
+         TypKritickehoFaktoru="? typKritickehoFaktoru()"
+         TypPravidla         ="? typPravidla()"> 
+     <Detail               xd:script="0..">string(1,2048)</Detail>
+   </KritickyFaktor>
+ </KlasifikaceDN>
+
+ <ObjStrankaDN
+         CelkovaSkodaKc      ="? celkovaSkodaKc()"
+         CisloPopisne        ="? cisloPopisne()"
+         DatumCasDN          ="  xsDateTime()"
+         DatumCasDoDN        ="? xsDateTime()"
+         HlavniPricina       ="? hlavniPricina()"
+         Obec                ="? obec()"
+         Okres               ="  okres()"
+         Pricina             ="? pricina()"
+         Ulice               ="? ulice()">
+     <Misto xd:script        ="0..1"> text255() </Misto>
+     <GPS                    xd:script="0..1"
+         Delka               ="  delka()"
+         Sirka               ="  sirka()"
+         System              ="  system()"
+     />
+     <RizikovyFaktor         xd:script="occurs 0.."
+         KodFaktoru          ="  tab('CC_RizikovyFaktorDN','KodRizikovehoFaktoru')"
+     />
+ </ObjStrankaDN>
+
+ <Osoba
+         DatumNarozeni       ="? xsDate()"
+         Jmeno               ="? jmeno()"
+         MistoNarozeni       ="? mistoNarozeni()"
+         OsobniStav          ="? osobniStav()"
+         Pohlavi             ="? pohlavi()"
+         Prijmeni            ="  prijmeni()"
+         Profese             ="? profese()"
+         RC                  ="? rc()"
+         RodnePrijmeni       ="? prijmeni()"
+         StatNarozeni        ="? stat()"
+         StatniPrislusnost   ="? stat()">
+    <xd:mixed>
+      <Pobyt                 xd:script="0..1; ref Adresa" />
+      <JinyPobyt             xd:script="0..1; ref Adresa" />
+    </xd:mixed>
+ </Osoba>
+
+ <PovozDN
+         DruhPovozu          ="  druhProvozu()"
+         OznSegmentu         ="  oznSegmentu()">
+    <xd:mixed>
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Vlastnik              xd:script="0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </PovozDN>
+
+ <PredmetDN
+         DruhPredmetu        ="? druhPredmetu()"
+         NazevPredmetu       ="  nazevPredmetu()"
+         OznSegmentu         ="  oznSegmentu()">
+    <xd:mixed>
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <Vlastnik              xd:script="0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </PredmetDN>
+
+ <ProtokolDN
+         CisloDN             ="  cisloDN()"
+         CJ                  ="  cj()"
+         DatumCasOznameni    ="  xsDateTime()"
+         KodUtvaruPolicie    ="  kodUtvaruPolicie()"
+         NazevDN             ="  nazevDN()"
+         RokDN               ="  xsYear()"
+         Zpracovatel         ="  zpracovatel()"
+ />
+
+ <RozhodnutiDN
+         DatumRozhodnuti     ="? xsDate()">
+         text255()
+ </RozhodnutiDN>
+
+ <Skoda 
+         Kc                  ="? castkaKc()">
+         ? text4000()
+ </Skoda>
+
+ <TramvajDN
+         CisloDokladuPojisteni="? cisloDokladuPojisteni()"
+         DruhVozidla         ="  druhVozidla()"
+         EvidCislo           ="? evidCislo()"
+         KodPojistitele      ="? kodPojistitele()"
+         Linka               ="  linka()"
+         LinkaPoradi         ="? linkaPoradi()"
+         OznSegmentu         ="  oznSegmentu()"
+         PojisteniText       ="? pojisteniText()"
+         StavBrzd            ="? stavBrzd()"
+         TypBrzd             ="? typBrzd()"
+         TypVozidla          ="? typVozidla()">
+    <xd:mixed>
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Vlastnik              xd:script="0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </TramvajDN>
+
+ <TrolejbusDN
+         CisloDokladuPojisteni="? cisloDokladuPojisteni()"
+         DruhVozidla         ="  druhVozidla()"
+         EvidCislo           ="? evidCislo()"
+         KodPojistitele      ="? kodPojistitele()"
+         Linka               ="  linka()"
+         LinkaPoradi         ="? linkaPoradi()"
+         OznSegmentu         ="  oznSegmentu()"
+         PojisteniText       ="? pojisteniText()"
+         StavBrzd            ="? stavBrzd()"
+         TypBrzd             ="? typBrzd()"
+         TypVozidla          ="? typVozidla()">
+    <xd:mixed>
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Vlastnik              xd:script="0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </TrolejbusDN>
+
+ <UcastnikDN
+         AlkoholDech         ="? alkoholDech()"
+         AlkoholKrev         ="? alkoholKrev()"
+         OznSegmentu         ="  oznSegmentu()"
+         Pachatel            ="? pachatel()"
+         PokutaKc            ="? pokutaKc()"
+         PokutaZapl          ="? pokutaZapl()"
+         Poskozeny           ="? poskozeny()"
+         PraxeRizeni         ="? praxeRizeni()"
+         TypUcastnika        ="  string(1,40)"
+         ZdravPojistovna     ="? zdravotniPojistovna()"
+         Zraneni             ="? zraneni()">
+    <xd:mixed>
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Osoba                 xd:script="0..1; ref Osoba" />
+      <Firma                 xd:script="0..1; ref Firma" />
+      <Doklad                xd:script="0..;  ref Doklad" />
+      <PoruseniZakProvoz     xd:script="0..1"> text400() </PoruseniZakProvoz>
+      <PoruseniZakPrest      xd:script="0..1"> text400() </PoruseniZakPrest>
+      <PoruseniZakTrest      xd:script="0..1"> text600() </PoruseniZakTrest>
+      <PoruseniZakOst        xd:script="0..1"> text400() </PoruseniZakOst>
+      <Vazba                 xd:script="0..1"> text400() </Vazba>
+    </xd:mixed>
+ </UcastnikDN>
+
+ <VlakDN
+         DruhSoupravy        ="  druhSoupravy()"
+         OznSegmentu         ="  oznSegmentu()"
+         Spoj                ="? spoj()"
+         TypSoupravy         ="  typSoupravy()">
+    <xd:mixed>
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Vlastnik              xd:script="0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </VlakDN>
+
+ <VozidloDN
+         CisloDokladuPojisteni="? cisloDokladuPojisteni()"
+         CisloZK             ="? cisloZK()"
+         DatumUhradyHP       ="? xsDate()"
+         DruhVozidla         ="  druhVozidla()"
+         KodPojistitele      ="? kodPojistitele()"
+         MesicSTKDo          ="? mesicSTKDo()"
+         MistoUhradyHP       ="? mistoUhradyHP()"
+         MPZ                 ="? mpz()"
+         OznSegmentu         ="  oznSegmentu()"
+         PlatnostSTK         ="? platnostSTK()"
+         PlatnostZKDo        ="? xsDate()"
+         PlatnostZKOd        ="? xsDate()"
+         PojisteniText       ="? pojisteniText()"
+         PojistneHPKc        ="? pojistneHPKc()"
+         RokVyroby           ="? xsYear()"
+         SPZ                 ="? spz()"
+         StavBrzd            ="? stavBrzd()"
+         VIN                 ="? vin()"
+         VydalZK             ="? vydalZK()"
+         TypBrzd             ="? typBrzd()"
+         TypVozidla          ="? typVozidla()"
+         ZnackaVozidla       ="? znackaVozidla()">
+    <xd:mixed >
+      <Skoda                 xd:script="0..1; ref Skoda" />
+      <JinaSkoda             xd:script="0..1; ref Skoda" />
+      <Drzitel               xd:script="0..1"> text255() </Drzitel>
+    </xd:mixed>
+ </VozidloDN>
+
+ <ZvireDN
+         DruhZvirete         ="  druhZvirete()" 
+         NazevZvirete        ="  nazevZvirete()"
+         OznSegmentu         ="  oznSegmentu()">
+    <xd:mixed>
+      <Skoda                 xd:script="occurs 0..1; ref Skoda" />
+      <Vlastnik              xd:script="occurs 0..1"> text255() </Vlastnik>
+    </xd:mixed>
+ </ZvireDN>
+</xd:def>

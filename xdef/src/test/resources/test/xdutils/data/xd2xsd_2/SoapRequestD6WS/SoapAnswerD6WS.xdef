@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xd:def  xmlns:xd     ="http://www.syntea.cz/xdef/3.1"
+         impl-version ="2020/07.0" impl-date="2020-06-04"    
+         xmlns:s      ="http://schemas.xmlsoap.org/soap/envelope/"
+         xmlns:w      ="http://www.syntea.cz/gam/or/xd/2020/06"
+         xmlns        ="http://ws.ckp.cz/pis/dn/D6WS/2020/07"
+         xd:name      ="SoapAnswerD6WS"
+         xd:root      ="s:Envelope">
+
+ <s:Envelope> 
+   <s:Header>
+      <w:Request               xd:script="1;  ref WS_common#w:Request" />
+      <w:Answer                xd:script="1;  ref WS_common#w:Answer"  />
+   </s:Header>
+   <s:Body>
+     <xd:choice>
+       <w:PingStatus           xd:script="1;  ref WS_common#w:PingStatus" />
+       <NewDNSet               xd:script="1;  ref D6WS_common#NewDNSet" />
+       <s:Fault                xd:script="1" >
+          <faultcode           xd:script="1" >string()</faultcode>
+          <faultstring         xd:script="1" >string()</faultstring>
+          <detail              xd:script="1" >
+            <w:Chyby           xd:script="1; ref WS_common#w:Chyby" />
+          </detail>
+       </s:Fault>
+     </xd:choice>
+   </s:Body>
+ </s:Envelope> 
+</xd:def>

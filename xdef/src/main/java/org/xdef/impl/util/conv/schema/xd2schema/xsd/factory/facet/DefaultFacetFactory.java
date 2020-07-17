@@ -4,6 +4,7 @@ import org.apache.ws.commons.schema.*;
 import org.xdef.XDContainer;
 import org.xdef.XDNamedValue;
 import org.xdef.XDValue;
+import org.xdef.impl.code.DefLong;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class DefaultFacetFactory extends AbstractXsdFacetFactory {
      */
     protected void setValue(final XmlSchemaFacet facet, final XDValue xdValue) {
         if (DECIMAL_INTEGER.equals(valueType)) {
-            facet.setValue(xdValue.intValue());
+            facet.setValue((xdValue instanceof DefLong) ? xdValue.longValue() : xdValue.intValue());
         } else if (DECIMAL_FLOATING.equals(valueType)) {
             facet.setValue(xdValue.doubleValue());
         } else {

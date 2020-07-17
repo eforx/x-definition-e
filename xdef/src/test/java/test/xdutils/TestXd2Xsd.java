@@ -384,7 +384,9 @@ public class TestXd2Xsd extends TesterXdSchema {
         convertXd2Xsd("t016", Arrays.asList(new String[] {"t016"}), Arrays.asList(new String[] {"t016e"}));
         convertXd2Xsd("t019", Arrays.asList(new String[] {"t019"}), null);
         convertXd2Xsd("t020", Arrays.asList(new String[] {"t020"}), null);
+        convertXd2Xsd("longRestriction", null, null);
 
+        convertXd2XsdNoRef ("SoapRequestD6WS", null, null);
         convertXd2XsdNoRef ("ATTR_CHLD_to_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_CHLD_valid_1"}), null);
         convertXd2XsdNoRef ("ATTR_CHLD_to_ATTR", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_valid_1"}), null);
         convertXd2XsdNoRef ("ATTR_CHLD_to_ATTR_CHLD", Arrays.asList(new String[] {"ATTR_CHLD_to_ATTR_CHLD_valid_1"}), null);

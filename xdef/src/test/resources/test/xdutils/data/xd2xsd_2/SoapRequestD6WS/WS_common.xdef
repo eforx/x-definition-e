@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xd:def  xmlns:xd     ="http://www.syntea.cz/xdef/3.1"  
+         impl-version ="2020_06.0" impl-date="2020-06-05"    
+         xmlns        ="http://www.syntea.cz/gam/or/xd/2020/06"
+         xd:name      ="WS_common">
+
+ <xd:declaration scope="local">
+    type batchID             long(1,99_999_999);
+    type booleanYN           enum('Y','N');
+    type booleanY            enum('Y');
+    type errorCode           num(4);
+    type errorDescription    string(1,255);
+    type errorType           enum('W','D','F');
+    type errorValue          string(1,255);
+    type errorXPath          string(1,255);
+    type identZpravy         long(1,999_999_999_999);
+    type ip                  string(7,15);
+    type mode                enum('STD','TST','DEV');
+    type name                string(1,30);
+    type operationForm       enum('DIR','TRY');
+    type refMsgID            string(1,20);
+    type segmentSize         long(1,999_999);
+    type seqRec              long(1,99_999_999);
+    type userID              string(1,30);
+    type version             string(1,30);
+    type xsDateTime          xdatetime('yyyy-MM-ddTHH:mm:ss');
+ </xd:declaration>
+
+ <Answer
+         Mode                ="  mode()" 
+         NextMsgID           ="? refMsgID()" 
+         RequestAccepted     ="  booleanYN()" 
+         RequestPending      ="? booleanYN()" 
+         SegmentSize         ="? segmentSize()"
+ />
+
+ <Chyby>
+   <Chyba                  xd:script="1.. ; ref Chyba" />
+ </Chyby>
+
+ <Chyba
+         Hodnota             ="? errorValue()"
+         KodChyby            ="  errorCode()" 
+         Popis               ="? errorDescription()"
+         Typ                 ="  errorType()" 
+         Xpath               ="? errorXPath()"
+ />
+
+ <Get_NextAnswerSegment />
+
+ <KonecDavky/>
+
+ <Ping/>        
+ 
+ <PingFlow
+         Flow                ="? name()" 
+ />        
+
+ <PingStatus>        
+   <Program                xd:script="1.."
+         InstallationDate    ="? xsDateTime()"
+         Name                ="? name()"
+         Version             ="? version()"
+   />
+   <Db                     xd:script="0.."
+         InstallationDate    ="? xsDateTime()"
+         Part                ="? name()"
+         Version             ="? version()"
+   />
+ </PingStatus>
+
+ <Request
+         BatchID             ="? batchID()"
+         IdentZpravy         ="  identZpravy()"
+         IP                  ="? ip()"
+         ListVersion         ="? version()"
+         Mode                ="  mode()"
+         OperationForm       ="? operationForm()"
+         RefMsgID            ="? refMsgID()"
+         Segment             ="? booleanY()"
+         SeqRec              ="? seqRec()"
+         UserID              ="? userID()"
+ />
+
+ <ZacatekDavky/>
+</xd:def>
