@@ -33,6 +33,7 @@ import org.xdef.impl.code.DefLong;
 import org.xdef.impl.code.DefParseResult;
 import org.xdef.XDValueID;
 import org.xdef.proc.XXData;
+import org.xdef.sys.FileReportWriter;
 import org.xdef.sys.SUtils;
 import org.xdef.xml.KXmlUtils;
 
@@ -58,6 +59,7 @@ public final class TestXdef extends XDTester {
 		StringWriter strw;
 		String tempDir = getTempDir();
 		_myX = 1;
+		Properties props = new Properties();
 		try {
 			XDFactory.getXDBuilder(null).compileXD(); // no sources
 			fail("Exception not thrown");
@@ -86,7 +88,7 @@ public final class TestXdef extends XDTester {
 			Object[][] params = new Object[1][2];
 			params[0][0] = new ByteArrayInputStream(xdef.getBytes("UTF-8"));
 			params[0][1] = "Osoba xdef";
-			xp = XDFactory.compileXD(new Properties(), (Object[]) params);
+			xp = XDFactory.compileXD(props, (Object[]) params);
 			assertEq("<a/>", parse(xp, "a", "<a/>", reporter));
 			assertNoErrors(reporter);
 
@@ -98,7 +100,7 @@ public final class TestXdef extends XDTester {
 "<b/>\n"+
 "</x:def>").getBytes("UTF-8"));
 			params[1][1] = "Osoba2 xdef";
-			xp = XDFactory.compileXD(new Properties(), (Object[]) params);
+			xp = XDFactory.compileXD(props, (Object[]) params);
 			assertEq("<a/>", parse(xp, "a", "<a/>", reporter));
 			assertNoErrors(reporter);
 			assertEq("<b/>", parse(xp, "b", "<b/>", reporter));
@@ -112,7 +114,7 @@ public final class TestXdef extends XDTester {
 "<b/>\n"+
 "</x:def>").getBytes("UTF-8"));
 			params[1][1] = "Osoba2 xdef";
-			xp = XDFactory.compileXD(new Properties(), (Object[]) params,
+			xp = XDFactory.compileXD(props, (Object[]) params,
 "<x:def xmlns:x ='" + _xdNS + "' name='c' root='c'>\n"+
 "<c/>\n"+
 "</x:def>");
@@ -3045,6 +3047,16 @@ public final class TestXdef extends XDTester {
 			assertEq(xml, parse(xp, "", xml, reporter));
 			assertNoErrors(reporter);
 		} catch (Exception ex) {fail(ex);}
+		try { // test FileReportWriter as parameter of compilation.
+			xdef =
+"<xd:def xmlns:xd='" + XDConstants.XDEF40_NS_URI + "'>\n"+
+"  <A a='xxxx()'/>\n"+
+"</xd:def>";
+			FileReportWriter frw = new FileReportWriter(tempDir + "a.rep");
+			xp = XDFactory.compileXD(frw, null, xdef);
+			assertTrue(frw.getReportReader().printToString().contains(
+				"XDEF443"));
+		} catch (Exception ex) {fail(ex);}
 		try { // test DOCTYPE not allowed
 			setProperty(XDConstants.XDPROPERTY_DOCTYPE, "false");
 			xdef =
@@ -3238,6 +3250,43 @@ public final class TestXdef extends XDTester {
 "  xd:include='classpath://org.xdef.impl.compile.XdefOfXdef*.xdef'/>");
 		} catch (Exception ex) {fail(ex);}
 
+//Test default property "xdef_warning"s and values "true" and "false".
+		props.clear();
+		xml = "<a a='y' b='z'/>";
+		xdef =
+"<xd:def xmlns:xd=\"http://www.xdef.org/xdef/4.0\" name=\"X\" root=\"a\">\n"+
+" <a a=\"list('x','y')\" b=\"x()\">\n"+
+" </a>\n"+
+"</xd:def>";
+		try {
+			xp = XDFactory.compileXD(props, xdef, TestXdef.class);// no property
+			xd = xp.createXDDocument();
+			xd.xparse(xml, null);
+			fail("Error not thrown");
+		} catch (Exception ex) {
+			s = ex.getMessage();
+			if (s == null || !s.contains("XDEF998")) {fail(ex);}
+		}
+		try {
+			props.setProperty(XDConstants.XDPROPERTY_WARNINGS,// xdef_warnings
+				XDConstants.XDPROPERTYVALUE_WARNINGS_TRUE); // true
+			xp = XDFactory.compileXD(null, xdef, TestXdef.class);
+			xd = xp.createXDDocument();
+			xd.xparse(xml, null);
+			fail("Error not thrown");
+		} catch (Exception ex) {
+			s = ex.getMessage();
+			if (s == null || !s.contains("XDEF998")) {fail(ex);}
+		}
+		try {
+			props.setProperty(XDConstants.XDPROPERTY_WARNINGS,// xdef_warnings
+				XDConstants.XDPROPERTYVALUE_WARNINGS_FALSE); // false
+			xp = XDFactory.compileXD(props, xdef, TestXdef.class);
+			xd = xp.createXDDocument();
+			xd.xparse(xml, null);
+		} catch (Exception ex) {fail(ex);}
+		props.clear();
+
 		resetTester();
 		try {
 			SUtils.deleteAll(tempDir, true); //delete all generated data
@@ -3349,6 +3398,7 @@ public final class TestXdef extends XDTester {
 		public String parserName() {return "licheCislo";}
 	}
 	final public static XDParser licheCislo() {return new LicheCislo();}
+	public static boolean x(XXData x) {return true;}
 
 	/** Run test
 	 * @param args the command line arguments

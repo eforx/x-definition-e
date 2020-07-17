@@ -1,10 +1,34 @@
 # Version ${version}, release-date ${release.date}
 
+# Version 40.0.2, release-date 2020-06-19
+* improved generation of X-definition from XML data in
+  org.xdef.util.GenXDefinition.
+* the utility org.xdef.util.GUIEditor now supports also JSON data.
+  of date time values. Eg.: Mon May 11 23:39:07 CEST 2020.
+* corrected bug in v org.xdef.XDFactory when for the compilation of
+  X-definition is specified a org.xdef.sys.ReportWriter of other type
+  then org.xdef.ArrayReporter.
+* corrected bug in parsing of datetime by mask with variants when
+  the simpler variant precedes the more complex one.
+* in X-script implemented new validation method SHA1(...).
+* in X-script implemented new validation method printableDate(...) for the
+  printable format.
+* implemented new X-script type of variable uniqueSetKey which holds the key
+  of an item in uniqueSet table.
+* in X-script is implemented new method getActualKey() on uniqueSet objects. The
+  result of this method is object uniqueSetKey which holds the actual item
+  in the uniqueSet table (i.e. after invoking methods ID(), SET(), IDREF(),
+  CHECK()).
+* in X-script is implemented new method resetKey() of uniqueSetKey objects.
+  This method sets the actual value of key to the value which is saved
+  in an uniqueSetKey object.
+
 # Version 40.0.1, release-date 2020-05-15
 * improved error reporting.
 * corrected bug when a JSON string value contains some of escape characters.
 * The default value of property xdef_warnings was changed to true.
-* The parameters with type Class in the method XDFactory.compileXD are deprecated.
+* The parameters with the type Class in the method org.xdef.XDFactory.compileXD
+  are deprecated.
 
 # Version 40.0.0, release-date 2020-04-24
 * new implementation of processing of JSON data.
@@ -41,7 +65,7 @@
   value of the environmental variable. The names of properties and environment
   variables are changed, the dots (".") in a names are replaced by
   underlines ("&lowbar;"), e.g. "_xdef.debug_" is now "_xdef&lowbar;debug_"
-  (see _XDConstants_).
+  (see org.xdef.XDConstants).
   However, since the names with dots are deprecated, they are still accepted.
 * corrected bug when it is specified attribute "_xd:text_" and a text node
   follows the last one element in a sequence.

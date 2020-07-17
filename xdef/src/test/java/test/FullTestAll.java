@@ -1,5 +1,6 @@
 package test;
 
+import org.xdef.XDFactory;
 import org.xdef.impl.code.DefXQueryExpr;
 
 /** Execute all tests verbose.
@@ -8,9 +9,10 @@ import org.xdef.impl.code.DefXQueryExpr;
 public class FullTestAll {
 	/** @param args the command line arguments. */
 	public static void main(String... args) {
+		System.out.println("Build: " + XDFactory.getXDVersion());
 		System.out.println("Testing java version: "
-			+System.getProperty("java.version") + " (with"
-			+ (DefXQueryExpr.isXQueryImplementation() ? "" : "out")
+			+ System.getProperty("java.version") + " ("
+			+ (DefXQueryExpr.isXQueryImplementation() ? "with" : "without")
 			+ " Saxon library) ...");
 		XDTester.setFulltestMode(true);
 		test.common.TestAll.runTests(args);
