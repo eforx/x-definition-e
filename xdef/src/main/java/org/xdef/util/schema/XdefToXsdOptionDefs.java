@@ -8,7 +8,7 @@ public class XdefToXsdOptionDefs {
     public final static Options cli() {
         Options options = new Options();
 
-        Option input = new Option("i", XdefToXsdOptions.INPUT, true, "input x-definition file");
+        Option input = new Option("i", XdefToXsdOptions.INPUT_DIR, true, "input directory path containing x-definition file(s)");
         input.setRequired(true);
         options.addOption(input);
 

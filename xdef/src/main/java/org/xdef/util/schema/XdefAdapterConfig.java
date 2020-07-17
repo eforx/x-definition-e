@@ -7,7 +7,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class XdefAdapterConfig {
-    private String inputFileName;
+    private String inputDirectory;
     private String inputRoot;
     private String outputDirectory;
     private String outputFileExt = ".xsd";
@@ -20,12 +20,12 @@ public class XdefAdapterConfig {
     private boolean useDefaultFeatures = true;
     EnumSet<Xd2XsdFeature> features;
 
-    public String getInputFileName() {
-        return inputFileName;
+    public String getInputDirectory() {
+        return inputDirectory;
     }
 
-    public void setInputFileName(String inputFileName) {
-        this.inputFileName = inputFileName;
+    public void setInputDirectory(String inputDirectory) {
+        this.inputDirectory = inputDirectory;
     }
 
     public String getInputRoot() {
@@ -115,7 +115,7 @@ public class XdefAdapterConfig {
     @Override
     public String toString() {
         return "XdefAdapterConfig{" +
-                "inputFileName='" + inputFileName + '\'' +
+                "inputFileName='" + inputDirectory + '\'' +
                 ", inputRootModel='" + inputRoot + '\'' +
                 ", outputDirectory='" + outputDirectory + '\'' +
                 ", outputFileExt='" + outputFileExt + '\'' +

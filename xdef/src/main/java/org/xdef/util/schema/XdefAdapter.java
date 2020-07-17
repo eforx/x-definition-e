@@ -11,6 +11,8 @@ import org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.XdPool2XsdAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
+import org.xdef.sys.ArrayReporter;
+import org.xdef.sys.ReportWriter;
 import org.xdef.sys.SUtils;
 
 import javax.xml.transform.stream.StreamSource;
@@ -108,12 +110,27 @@ public class XdefAdapter {
             final XdPool2XsdAdapter adapter = createXdPoolAdapter();
 
             // Load x-definition files
-            final File[] defFiles = SUtils.getFileGroup(config.getInputFileName());
+            String directory = config.getInputDirectory();
+            int dirIndex = config.getInputDirectory().lastIndexOf('\\');
+            if (dirIndex > 0 && dirIndex < config.getInputDirectory().length() - 1) {
+                directory += '\\';
+            } else if (dirIndex == -1) {
+                dirIndex = config.getInputDirectory().lastIndexOf('/');
+                if (dirIndex > 0 && dirIndex < config.getInputDirectory().length() - 1) {
+                    directory += '/';
+                }
+            }
+
+            System.out.println("Directory: " + (directory + "*.xdef"));
+
+            final File[] defFiles = SUtils.getFileGroup(directory + "*.xdef");
             final Properties props = new Properties();
             props.setProperty(XDConstants.XDPROPERTY_IGNORE_UNDEF_EXT, XDConstants.XDPROPERTYVALUE_IGNORE_UNDEF_EXT_TRUE);
-            final XDBuilder xb = XDFactory.getXDBuilder(props);
+            final ReportWriter repWriter = new ArrayReporter();
+            final XDBuilder xb = XDFactory.getXDBuilder(repWriter, props);
             xb.setSource(defFiles);
             final XDPool inputXD = xb.compileXD();
+            adapter.setReportWriter(repWriter);
 
             // Convert XD -> XSD Schema
             final XmlSchemaCollection outputXmlSchemaCollection = adapter.createSchemas(inputXD);
@@ -125,7 +142,8 @@ public class XdefAdapter {
 
             return outputXmlSchemaCollection;
         } catch (Exception ex) {
-            System.out.println(ex);
+            System.err.println(ex);
+            System.err.println(ex.getCause());
         }
 
         return null;

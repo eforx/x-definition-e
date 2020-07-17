@@ -76,9 +76,9 @@ public class XdefToXsd {
     }
 
     private static void checkPaths(final CommandLine cmd) {
-        File f = new File(cmd.getOptionValue(XdefToXsdOptions.INPUT));
-        if (!f.exists() || !f.isFile()) {
-            throw new RuntimeException("Input file \"" + cmd.getOptionValue(XdefToXsdOptions.INPUT) + "\" does not exist!");
+        File f = new File(cmd.getOptionValue(XdefToXsdOptions.INPUT_DIR));
+        if (!f.exists() || !f.isDirectory()) {
+            throw new RuntimeException("Input directory \"" + cmd.getOptionValue(XdefToXsdOptions.INPUT_DIR) + "\" does not exist!");
         }
 
         f = new File(cmd.getOptionValue(XdefToXsdOptions.OUTPUT_DIR));
@@ -108,7 +108,7 @@ public class XdefToXsd {
     private static XdefAdapterConfig createConfig(final CommandLine cmd) {
         XdefAdapterConfig config = new XdefAdapterConfig();
 
-        config.setInputFileName(cmd.getOptionValue(XdefToXsdOptions.INPUT));
+        config.setInputDirectory(cmd.getOptionValue(XdefToXsdOptions.INPUT_DIR));
         config.setOutputDirectory(cmd.getOptionValue(XdefToXsdOptions.OUTPUT_DIR));
         config.setInputRoot(cmd.getOptionValue(XdefToXsdOptions.INPUT_ROOT));
         if (cmd.hasOption(XdefToXsdOptions.OUTPUT_FILE_PREFIX)) {

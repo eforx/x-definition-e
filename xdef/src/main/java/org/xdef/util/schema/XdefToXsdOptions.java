@@ -1,7 +1,7 @@
 package org.xdef.util.schema;
 
 public interface XdefToXsdOptions {
-    String INPUT = "input";
+    String INPUT_DIR = "inputDir";
     String INPUT_ROOT = "root";
 
     String OUTPUT_DIR = "outputDir";
