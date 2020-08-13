@@ -104,7 +104,7 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
         }
 
         SchemaLogger.printP(LOG_INFO, POSTPROCESSING, xDef,"Creating nodes ...");
-        final XmlSchema schema = adapterCtx.findSchema(xDef.getName(), true, POSTPROCESSING);
+        final XmlSchema schema = adapterCtx.findSchema(XsdNameUtils.getSchemaName(xDef), true, POSTPROCESSING);
         final Xd2XsdExtraSchemaAdapter postProcessingAdapter = new Xd2XsdExtraSchemaAdapter(xDef);
         postProcessingAdapter.setAdapterCtx(adapterCtx);
         postProcessingAdapter.setReportWriter(reportWriter);

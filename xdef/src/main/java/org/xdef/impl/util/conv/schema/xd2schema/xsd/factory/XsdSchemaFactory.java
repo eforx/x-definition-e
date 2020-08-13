@@ -10,6 +10,7 @@ import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMNode;
 import org.xdef.msg.XSD;
@@ -49,9 +50,11 @@ public class XsdSchemaFactory {
             targetNamespace = new Pair<String, String>(null, null);
         }
 
-        adapterCtx.addSchemaName(xDef.getName());
+        final String schemaName = XsdNameUtils.getSchemaName(xDef);
 
-        final XmlSchema xmlSchema = new XmlSchema(targetNamespace.getValue(), xDef.getName(), adapterCtx.getXmlSchemaCollection());
+        adapterCtx.addSchemaName(schemaName);
+
+        final XmlSchema xmlSchema = new XmlSchema(targetNamespace.getValue(), schemaName, adapterCtx.getXmlSchemaCollection());
         initSchemaNamespace(xmlSchema, xDef, targetNamespace);
         initSchemaFormDefault(xmlSchema, xDef, targetNamespace);
         return xmlSchema;

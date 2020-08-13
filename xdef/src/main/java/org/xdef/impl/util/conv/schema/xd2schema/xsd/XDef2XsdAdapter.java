@@ -13,6 +13,7 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.adapter.Xd2XsdTreeAdapter;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdSchemaFactory;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNamespaceUtils;
 import org.xdef.model.XMDefinition;
 import org.xdef.model.XMElement;
@@ -68,7 +69,7 @@ public class XDef2XsdAdapter extends AbstractXd2XsdAdapter implements XDef2Schem
             schema = createXsdSchema();
             poolPostProcessing = false;
         } else {
-            schema = adapterCtx.findSchema(xDef.getName(), false, INITIALIZATION);
+            schema = adapterCtx.findSchema(XsdNameUtils.getSchemaName(xDef), false, INITIALIZATION);
         }
 
         final XsdNodeFactory xsdFactory = new XsdNodeFactory(schema, adapterCtx);

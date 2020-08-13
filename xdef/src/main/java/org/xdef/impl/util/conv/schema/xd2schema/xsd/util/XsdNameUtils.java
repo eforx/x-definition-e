@@ -6,12 +6,17 @@ import org.xdef.XDNamedValue;
 import org.xdef.XDParser;
 import org.xdef.XDValue;
 import org.xdef.impl.XData;
+import org.xdef.impl.XDefinition;
 import org.xdef.impl.XElement;
+import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.UniqueConstraint;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdAdapterCtx;
+import org.xdef.model.XMDefinition;
 
 import javax.xml.namespace.QName;
 
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.*;
 
 /**
@@ -305,4 +310,19 @@ public class XsdNameUtils {
 
         return name;
     }
+
+    /**
+     * Creates XML schema name
+     * @param xDef   x-definition
+     * @return  XML schema name
+     */
+    public static String getSchemaName(final XMDefinition xDef) {
+        if (xDef.getName() == null || xDef.getName().isEmpty()) {
+            SchemaLogger.printP(LOG_WARN, INITIALIZATION, xDef, "Initialize XSD document - X-definition name is blank.");
+            return "blank_name";
+        }
+
+        return xDef.getName();
+    }
+
 }
