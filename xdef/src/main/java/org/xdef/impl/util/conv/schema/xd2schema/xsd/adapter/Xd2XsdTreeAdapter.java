@@ -168,7 +168,7 @@ public class Xd2XsdTreeAdapter {
             }
             case XNode.XMTEXT: {
                 SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xNode, "Creating simple (text) content ...");
-                return xsdFactory.createTextBasedSimpleContent((XData)xNode);
+                return xsdFactory.createTextBasedSimpleContent((XData)xNode, topLevel);
             }
             case XNode.XMELEMENT: {
                 return createElement((XElement) xNode, topLevel);
@@ -280,7 +280,7 @@ public class Xd2XsdTreeAdapter {
                     qName = Xd2XsdParserMapping.findDefaultParserQName(parserName, adapterCtx);
                     attr.setSchemaTypeName(qName);
                 } else {
-                    final XmlSchemaSimpleType simpleType = xsdFactory.createSimpleType(xData, attr.getName());
+                    final XmlSchemaSimpleType simpleType = xsdFactory.createAttributeSimpleType(xData, attr.getName());
                     if (simpleType.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
                         postProcessor.simpleTypeRestrictionToAttr((XmlSchemaSimpleTypeRestriction)simpleType.getContent(), attr);
                     }
@@ -636,7 +636,7 @@ public class Xd2XsdTreeAdapter {
             SchemaLogger.printP(LOG_DEBUG, TRANSFORMATION, xDataText, "Content of element contains only XSD datatype" +
                     "Element=" + xsdElem.getName() + ", DataType=" + qName.getLocalPart());
         } else {
-            xsdElem.setType(xsdFactory.createSimpleType(xDataText, xsdElem.getName()));
+            xsdElem.setType(xsdFactory.createAnonymousSimpleType(xDataText, xsdElem.getName()));
         }
     }
 
@@ -685,7 +685,7 @@ public class Xd2XsdTreeAdapter {
                     groupRefNodes = true;
                 }
             } else if (childrenKind == XNode.XMTEXT) { // Simple value node
-                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, false);
+                XmlSchemaSimpleContent simpleContent = (XmlSchemaSimpleContent) convertTreeInt(xnChild, topLevel);
                 if (complexType.getContentModel() != null) {
                     adapterCtx.getReportWriter().warning(XSD.XSD023);
                     SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Complex type already has simple content!");

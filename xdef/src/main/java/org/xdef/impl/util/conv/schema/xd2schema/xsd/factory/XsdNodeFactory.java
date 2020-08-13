@@ -152,16 +152,29 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Creates XSD simple-type node
+     * Creates XSD simple-type node (attribute)
      * @param xData             x-definition attribute/text node
      * @param nodeName          simple-type name
      * @return <xs:simpleType>...</xs:simpleType>
      */
-    public XmlSchemaSimpleType createSimpleType(final XData xData, final String nodeName) {
-        SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type. NodeName=" + nodeName);
+    public XmlSchemaSimpleType createAttributeSimpleType(final XData xData, final String nodeName) {
+        SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type attribute. NodeName=" + nodeName);
         final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
         itemType.setContent(createSimpleTypeContent(xData, nodeName));
         itemType.setName(XsdNameFactory.createLocalSimpleTypeName(xData));
+        return itemType;
+    }
+
+    /**
+     * Creates XSD anonymous simple-type node
+     * @param xData             x-definition attribute/text node
+     * @param nodeName          simple-type name
+     * @return <xs:simpleType>...</xs:simpleType>
+     */
+    public XmlSchemaSimpleType createAnonymousSimpleType(final XData xData, final String nodeName) {
+        SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xData, "Simple-type anonymous (text node). NodeName=" + nodeName);
+        final XmlSchemaSimpleType itemType = createEmptySimpleType(false);
+        itemType.setContent(createSimpleTypeContent(xData, nodeName));
         return itemType;
     }
 
@@ -171,7 +184,7 @@ public class XsdNodeFactory {
      * @return  if reference and parser are unknown, then null
      *          else <xs:simpleContent><xs:extension base="...">...</xs:extension></xs:simpleContent>
      */
-    public XmlSchemaSimpleContent createTextBasedSimpleContent(final XData xDataText) {
+    public XmlSchemaSimpleContent createTextBasedSimpleContent(final XData xDataText, boolean topLevel) {
         SchemaLogger.printG(LOG_TRACE, XSD_ELEM_FACTORY, xDataText, "Simple-content with extension");
 
         QName qName = null;
@@ -188,13 +201,17 @@ public class XsdNodeFactory {
         boolean extension = true;
 
         if (qName == null) {
-            if (xDataText.getRefTypeName() != null) {
+            if (xDataText.getRefTypeName() != null && topLevel) {
                 final String refTypeName = XsdNameFactory.createLocalSimpleTypeName(xDataText);
                 final String nsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refTypeName);
                 final String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
                 qName = new QName(nsUri, refTypeName);
                 SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using reference. nsUri=" + nsUri + ", localName=" + refTypeName);
             } else {
+                if (!topLevel) {
+                    SchemaLogger.printG(LOG_DEBUG, XSD_ELEM_FACTORY, xDataText, "Simple-content using reference on non top-level - anonymous will be created.");
+                }
+
                 qName = Xd2XsdParserMapping.getDefaultParserQName(xDataText, adapterCtx, false);
                 final XDValue parseMethod = xDataText.getParseMethod();
                 if (parseMethod instanceof XDParser) {
