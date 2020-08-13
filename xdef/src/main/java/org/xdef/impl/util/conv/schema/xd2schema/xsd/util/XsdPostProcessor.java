@@ -47,7 +47,7 @@ public class XsdPostProcessor {
         final List<SchemaNode> nodesToRemove = new ArrayList<SchemaNode>();
 
         for (Map.Entry<String, Map<String, SchemaNode>> systemRefEntry : adapterCtx.getNodes().entrySet()) {
-            SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references. System=" + systemRefEntry.getKey());
+            SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references - phase 1. System=" + systemRefEntry.getKey());
 
             final XmlSchema xmlSchema = adapterCtx.findSchema(systemRefEntry.getKey(), true, POSTPROCESSING);
             final XsdNodeFactory xsdFactory = new XsdNodeFactory(xmlSchema, adapterCtx);
@@ -68,6 +68,18 @@ public class XsdPostProcessor {
                         elementRootRef(node, xsdFactory);
                     }
                 }
+            }
+        }
+
+        for (SchemaNode node : nodesToRemove) {
+            adapterCtx.removeNode((XNode)node.getXdNode());
+            Xd2XsdUtils.removeNode(node.toXsdElem().getParent(), node.toXsdElem());
+        }
+
+        for (Map.Entry<String, Map<String, SchemaNode>> systemRefEntry : adapterCtx.getNodes().entrySet()) {
+            SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_PROCESOR,"Updating references - phase 2. System=" + systemRefEntry.getKey());
+            for (Map.Entry<String, SchemaNode> refEntry : systemRefEntry.getValue().entrySet()) {
+                final SchemaNode node = refEntry.getValue();
 
                 updateRefType(node);
 
@@ -76,11 +88,6 @@ public class XsdPostProcessor {
                 }
             }
         }
-
-        for (SchemaNode node : nodesToRemove) {
-            adapterCtx.removeNode((XNode)node.getXdNode());
-            Xd2XsdUtils.removeNode(node.toXsdElem().getParent(), node.toXsdElem());
-        }
     }
 
     /**
@@ -88,7 +95,7 @@ public class XsdPostProcessor {
      * @param node  node to be decomposed
      */
     private void elementRootDecomposition(final SchemaNode node) {
-        SchemaLogger.printP(LOG_INFO, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
+        SchemaLogger.printP(LOG_DEBUG, POSTPROCESSING, (XNode)node.getXdNode(), "Decomposition of root element with pointers ...");
 
         final XmlSchemaElement xsdElem = node.toXsdElem();
 
@@ -275,19 +282,23 @@ public class XsdPostProcessor {
      * @param node  XSD node
      */
     private static void updateRefType(final SchemaNode node) {
+        SchemaLogger.printP(LOG_DEBUG, POSTPROCESSING, node.getXdNode(), "Updating reference type");
+
         if (node.getReference() != null) {
             if (node.getReference().isXsdElem() && node.isXsdElem() && node.toXsdElem().getRef().getTargetQName() == null) {
                 // Reference element to element
+                SchemaLogger.printP(LOG_TRACE, POSTPROCESSING, node.getXdNode(), "Update reference to element");
                 XmlSchemaElement xsdElem = node.toXsdElem();
                 xsdElem.getRef().setNamedObject(null);
                 xsdElem.getRef().setTargetQName(xsdElem.getSchemaTypeName());
                 xsdElem.setSchemaTypeName(null);
             } else if (node.getReference().isXsdComplexType() && node.isXsdElem() && node.toXsdElem().getTargetQName() != null) {
                 // Reference element to complex type
+                SchemaLogger.printP(LOG_TRACE, POSTPROCESSING, node.getXdNode(), "Update reference to complex type");
                 XmlSchemaElement xsdElem = node.toXsdElem();
                 xsdElem.setSchemaTypeName(xsdElem.getTargetQName());
                 xsdElem.getRef().setTargetQName(null);
-                xsdElem.setName(node.getXdName());
+                xsdElem.setName(node.getXdLocalName());
             }
         }
     }

@@ -598,7 +598,7 @@ public class Xd2XsdTreeAdapter {
                 }
             }
 
-            return new QName(nsUri, xElem.getName());
+            return new QName(nsUri, refLocalName);
         } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refXPos, schema)) {
             final XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, TRANSFORMATION);
             final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);

@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.xdef.impl.XElement;
 import org.xdef.impl.XNode;
+import org.xdef.impl.util.conv.schema.schema2xd.xsd.util.XdNameUtils;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.model.XMNode;
@@ -209,6 +210,13 @@ public class SchemaNode {
      */
     public String getXdName() {
         return xdNode.getName();
+    }
+
+    /**
+     * @return x-definition node local name
+     */
+    public String getXdLocalName() {
+        return XdNameUtils.getLocalName(xdNode.getName());
     }
 
     /**
