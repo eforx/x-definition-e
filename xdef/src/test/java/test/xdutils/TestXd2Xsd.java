@@ -18,7 +18,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.*;
 
-import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.LOG_WARN;
+import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 
 public class TestXd2Xsd extends TesterXdSchema {
 
@@ -39,17 +39,17 @@ public class TestXd2Xsd extends TesterXdSchema {
         SchemaLogger.setLogLevel(LOG_WARN);
     }
 
-    private File getInputXDefFile(final String fileName) throws FileNotFoundException {
-        return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xdef");
+    private File getInputXDefFile(final String path, final String fileName) throws FileNotFoundException {
+        return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + path, fileName, ".xdef");
     }
 
-    private XDPool compileXd(final String fileName) throws FileNotFoundException {
-        return compile(getInputXDefFile(fileName), this.getClass());
+    private XDPool compileXd(final String path, final String fileName) throws FileNotFoundException {
+        return compile(getInputXDefFile(path, fileName), this.getClass());
     }
 
-    private XmlSchemaCollection getRefXsd(final String fileName) throws FileNotFoundException {
+    private XmlSchemaCollection getRefXsd(final String path, final String fileName) throws FileNotFoundException {
         XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
-        schemaCollection.setBaseUri(_inputFilesRoot.getAbsolutePath() + "\\" + fileName);
+        schemaCollection.setBaseUri(_inputFilesRoot.getAbsolutePath() + "\\" + path);
         schemaCollection.read(createRefFileReader(fileName, ".xsd"));
 
         return schemaCollection;
@@ -66,8 +66,8 @@ public class TestXd2Xsd extends TesterXdSchema {
         return res;
     }
 
-    private File getRefSchemaFile(final String fileName) throws FileNotFoundException {
-        return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + fileName, fileName, ".xsd");
+    private File getRefSchemaFile(final String path, final String fileName) throws FileNotFoundException {
+        return getFile(_inputFilesRoot.getAbsolutePath() + "\\" + path, fileName, ".xsd");
     }
 
     private XdPool2XsdAdapter createXdAdapter(Set<Xd2XsdFeature> additionalFeatures) {
@@ -116,7 +116,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         }
     }
 
-    private void validateSchemas(final String fileName,
+    private void validateSchemas(final String path, final String fileName,
                                  final XmlSchemaCollection refSchemaCollection,
                                  final XmlSchemaCollection outputSchemaCollection,
                                  final Set<String> schemaNames,
@@ -151,7 +151,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         boolean xsdRootChecked = false;
 
         for (String schemaName : schemaNames) {
-            String refSourceName = ("file:/" + _inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + schemaName + ".xsd").replace('\\', '/');
+            String refSourceName = ("file:/" + _inputFilesRoot.getAbsolutePath() + "\\" + path + "\\" + schemaName + ".xsd").replace('\\', '/');
             XmlSchema[] refSchemas = refSchemaCollection.getXmlSchema(refSourceName);
             if (refSchemas.length == 0 && xsdRootChecked == false) {
                 refSchemas = refSchemaCollection.getXmlSchema(null);
@@ -233,7 +233,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         }
     }
 
-    private void validateXmlAgainstXDef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) throws FileNotFoundException {
+    private void validateXmlAgainstXDef(final String path, final String fileName, List<String> validTestingData, List<String> invalidTestingData) throws FileNotFoundException {
 
         final Properties props = new Properties();
         // Do not check deprecated
@@ -243,7 +243,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         if (validTestingData != null) {
             for (String testingFile : validTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                File xDefFile = getInputXDefFile(fileName);
+                File xDefFile = getInputXDefFile(path, fileName);
                 ArrayReporter reporter = new ArrayReporter();
                 XDDocument xdDocument = XValidate.validate(props, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(xdDocument != null, "XML is not valid against x-definition. Test=" + fileName + ", File=" + testingFile);
@@ -255,7 +255,7 @@ public class TestXd2Xsd extends TesterXdSchema {
         if (invalidTestingData != null) {
             for (String testingFile : invalidTestingData) {
                 File xmlDataFile = getXmlDataFile(fileName, testingFile);
-                File xDefFile = getInputXDefFile(fileName);
+                File xDefFile = getInputXDefFile(path, fileName);
                 ArrayReporter reporter = new ArrayReporter();
                 XValidate.validate(props, xmlDataFile, (File[])Arrays.asList(xDefFile).toArray(), fileName, reporter);
                 assertTrue(reporter.errors(), "Error does not occurs on x-definition validation (but it should). Test=" + fileName + ", File=" + testingFile);
@@ -263,9 +263,9 @@ public class TestXd2Xsd extends TesterXdSchema {
         }
     }
 
-    private void validateXmlAgainstXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData, boolean validateRef, boolean invalidXsd) throws FileNotFoundException {
+    private void validateXmlAgainstXsd(final String path, final String fileName, List<String> validTestingData, List<String> invalidTestingData, boolean validateRef, boolean invalidXsd) throws FileNotFoundException {
         File outputXsdFile = getOutputSchemaFile(fileName);
-        File refXsdFile = validateRef ? getRefSchemaFile(fileName) : null;
+        File refXsdFile = validateRef ? getRefSchemaFile(path, fileName) : null;
 
         // Validate valid XML file against XSD schema
         if (validTestingData != null) {
@@ -301,35 +301,40 @@ public class TestXd2Xsd extends TesterXdSchema {
     }
 
     private void convertXd2XsdNoSupport(final String fileName, List<String> validTestingData, List<String> invalidTestingData, String exMsg) {
-        convertXd2Xsd(fileName, validTestingData, invalidTestingData, false, exMsg, false, null);
+        convertXd2Xsd(fileName, fileName, validTestingData, invalidTestingData, false, exMsg, false, null);
     }
 
     private void convertXd2XsdInvalidXsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXd2Xsd(fileName, validTestingData, invalidTestingData, false, null, true, null);
+        convertXd2Xsd(fileName, fileName, validTestingData, invalidTestingData, false, null, true, null);
     }
 
     private void convertXd2XsdNoRef(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXd2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, null);
+        convertXd2Xsd(fileName, fileName, validTestingData, invalidTestingData, false, null, false, null);
     }
 
     private void convertXd2XsdWithFeatures(final String fileName, List<String> validTestingData, List<String> invalidTestingData, Set<Xd2XsdFeature> features) {
-        convertXd2Xsd(fileName, validTestingData, invalidTestingData, false, null, false, features);
+        convertXd2Xsd(fileName, fileName, validTestingData, invalidTestingData, false, null, false, features);
     }
 
     private void convertXd2Xsd(final String fileName, List<String> validTestingData, List<String> invalidTestingData) {
-        convertXd2Xsd(fileName, validTestingData, invalidTestingData, true, null, false, null);
+        convertXd2Xsd(fileName, fileName, validTestingData, invalidTestingData, true, null, false, null);
     }
 
-    private void convertXd2Xsd(final String fileName, List<String> validTestingData,
-                                   List<String> invalidTestingData,
-                                   boolean validateAgainstRefXsd,
-                                   String exMsg, boolean invalidXsd,
-                                   Set<Xd2XsdFeature> features) {
+    private void convertXd2XsdInternal(final String path, final String fileName) {
+        convertXd2Xsd("internal\\" + path, fileName, null, null, false, null, false, null);
+    }
+
+    private void convertXd2Xsd(final String path, final String fileName,
+                               List<String> validTestingData, List<String> invalidTestingData,
+                               boolean validateAgainstRefXsd,
+                               String exMsg, boolean invalidXsd,
+                               Set<Xd2XsdFeature> features) {
+
         try {
             XdPool2XsdAdapter adapter = createXdAdapter(features);
 
             // Load x-definition files
-            File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + fileName + "\\" + fileName + "*.xdef");
+            File[] defFiles = SUtils.getFileGroup(_inputFilesRoot.getAbsolutePath() + "\\" + path + "\\*.xdef");
             final Properties props = new Properties();
             // Do not check deprecated
             props.setProperty(XDConstants.XDPROPERTY_WARNINGS, XDConstants.XDPROPERTYVALUE_WARNINGS_FALSE);
@@ -344,15 +349,17 @@ public class TestXd2Xsd extends TesterXdSchema {
 
             // Compare output XSD schemas to XSD references
             if (validateAgainstRefXsd) {
-                validateSchemas(fileName, getRefXsd(fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
+                validateSchemas(path, fileName, getRefXsd(path, fileName), outputXmlSchemaCollection, adapter.getSchemaNames(), expectedShemaCount);
             } else {
                 writeOutputSchemas(outputXmlSchemaCollection, adapter.getSchemaNames());
             }
 
-            validateXmlAgainstXDef(fileName, validTestingData, invalidTestingData);
+            validateXmlAgainstXDef(path, fileName, validTestingData, invalidTestingData);
 
             // Validate XML files against output XSD schemas and reference XSD schemas
-            validateXmlAgainstXsd(fileName, validTestingData, invalidTestingData, validateAgainstRefXsd, invalidXsd);
+            if ((validTestingData != null && !validTestingData.isEmpty()) || (invalidTestingData != null && !invalidTestingData.isEmpty())) {
+                validateXmlAgainstXsd(path, fileName, validTestingData, invalidTestingData, validateAgainstRefXsd, invalidXsd);
+            }
         } catch (Exception ex) {
             if (exMsg != null) {
                 assertEq(exMsg, ex.getMessage());
@@ -369,6 +376,10 @@ public class TestXd2Xsd extends TesterXdSchema {
     @Override
     public void test() {
         init();
+
+//        convertXd2XsdInternal("2020_08_03_tomas\\3.2", "2020_08_03");
+
+//                convertXd2XsdNoRef ("SoapRequestD6WS", null, null);
 
         // ============ XDef ============
 

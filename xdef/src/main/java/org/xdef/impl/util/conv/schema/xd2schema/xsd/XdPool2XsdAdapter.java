@@ -24,6 +24,7 @@ import java.util.Set;
 import static org.xdef.impl.util.conv.schema.util.SchemaLoggerDefs.*;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.INITIALIZATION;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
+import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdDefinitions.XSD_NAMESPACE_URI_EMPTY;
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdLoggerDefs.XSD_DPOOL_ADAPTER;
 
 /**
@@ -136,7 +137,7 @@ public class XdPool2XsdAdapter extends AbstractXd2XsdAdapter implements XdPool2S
         }
 
         for (String xDefName : xDefsWithoutNs) {
-            final String nsUri = XsdNamespaceUtils.createNsUriFromXDefName(xDefName);
+            final String nsUri = XSD_NAMESPACE_URI_EMPTY;
             adapterCtx.addSchemaLocation(nsUri, new XsdSchemaImportLocation(nsUri, xDefName));
             SchemaLogger.print(LOG_DEBUG, PREPROCESSING, XSD_DPOOL_ADAPTER,"Creating nsUri from x-definition name. XDefinition=" + xDefName + ", NamespaceURI=" + nsUri);
         }

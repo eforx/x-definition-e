@@ -89,6 +89,16 @@ public class XsdSchemaImportLocation {
         return hash(namespaceUri, path, fileName, fileExt);
     }
 
+    @Override
+    public String toString() {
+        return "XsdSchemaImportLocation{" +
+                "namespaceUri='" + namespaceUri + '\'' +
+                ", path='" + path + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileExt='" + fileExt + '\'' +
+                '}';
+    }
+
     private static boolean equals(Object a, Object b) {
         return (a == b) || (a != null && a.equals(b));
     }

@@ -94,6 +94,15 @@ public class XsdNamespaceUtils {
     }
 
     /**
+     * Checks if x-definition node name contains reference
+     * @param name  x-definition node name
+     * @return  true if x-definition node name contains reference
+     */
+    public static boolean containsReference(final String name) {
+        return name.indexOf('#') != -1;
+    }
+
+    /**
      * Parse x-definition name (XSD system identifier) from given x-definition node position
      * @param xPos  x-definition node pos
      * @return  x-definition name if it is part of name, otherwise null

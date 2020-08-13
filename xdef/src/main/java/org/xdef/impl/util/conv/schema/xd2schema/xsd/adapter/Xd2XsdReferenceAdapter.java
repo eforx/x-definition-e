@@ -15,10 +15,10 @@ import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.*;
 import org.xdef.model.XMElement;
 import org.xdef.model.XMNode;
 import org.xdef.msg.XSD;
-import org.xdef.sys.ReportWriter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.AlgPhase.PREPROCESSING;
@@ -250,9 +250,11 @@ public class Xd2XsdReferenceAdapter {
 
                         // Post-processing
                         if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
-                            XsdSchemaImportLocation importLocation = adapterCtx.findSchemaImport(nsUri);
-                            if (importLocation != null) {
-                                adapterCtx.addExtraSchemaLocation(nsUri, importLocation);
+                            final List<XsdSchemaImportLocation> importLocations = adapterCtx.findSchemaLocations(nsUri);
+                            if (!importLocations.isEmpty()) {
+                                for (XsdSchemaImportLocation importLocation : importLocations) {
+                                    adapterCtx.addExtraSchemaLocation(nsUri, importLocation);
+                                }
                             } else {
                                 addPostProcessingSchemaImport(nsPrefix, nsUri, true);
                             }
@@ -320,9 +322,11 @@ public class Xd2XsdReferenceAdapter {
 
             // Post-processing
             if (nsUri != null && !nsUri.isEmpty()) {
-                final XsdSchemaImportLocation importLocation = adapterCtx.findSchemaImport(nsUri);
-                if (importLocation != null) {
-                    adapterCtx.addExtraSchemaLocation(nsUri, importLocation);
+                final List<XsdSchemaImportLocation> importLocations = adapterCtx.findSchemaLocations(nsUri);
+                if (!importLocations.isEmpty()) {
+                    for (XsdSchemaImportLocation importLocation : importLocations) {
+                        adapterCtx.addExtraSchemaLocation(nsUri, importLocation);
+                    }
                 }
             }
         } else {
@@ -371,17 +375,23 @@ public class Xd2XsdReferenceAdapter {
      */
     private void addSchemaInclude(final String refPos) {
         final String refSystemId = XsdNamespaceUtils.getSystemIdFromXPos(refPos);
+        XmlSchema refSchema = adapterCtx.findSchema(refSystemId, true, PREPROCESSING);
+        final String refNsPrefix = XsdNamespaceUtils.getReferenceNamespacePrefix(refPos);
+        final String nsUri = refSchema.getNamespaceContext().getNamespaceURI(refNsPrefix);
 
         if (refSystemId == null || !namespaceIncludes.add(refSystemId)) {
             return;
         }
 
-        if (adapterCtx.existsSchemaLocation(refSystemId)) {
-            SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add schema include. SchemaName=" + refSystemId);
-            xsdFactory.createSchemaInclude(schema, adapterCtx.findSchemaImport(refSystemId).buildLocation(refSystemId));
+        final List<XsdSchemaImportLocation> importLocations = adapterCtx.findSchemaLocations(nsUri);
+        if (!importLocations.isEmpty()) {
+            for (XsdSchemaImportLocation importLocation : importLocations) {
+                SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add schema include. schemaName=" + importLocation.getFileName() + ", namespaceURI=" + nsUri);
+                xsdFactory.createSchemaInclude(schema, importLocation.buildLocation(XsdNamespaceUtils.getSystemIdFromXPos(refPos)));
+            }
         } else {
             adapterCtx.getReportWriter().warning(XSD.XSD012, refSystemId);
-            SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! SchemaName=" + refSystemId);
+            SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema include has not been found! namespaceURI=" + nsUri);
         }
     }
 
@@ -395,12 +405,15 @@ public class Xd2XsdReferenceAdapter {
             return;
         }
 
-        if (adapterCtx.existsSchemaLocation(nsUri)) {
-            SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.findSchemaImport(nsUri).buildLocation(XsdNamespaceUtils.getSystemIdFromXPos(refPos)));
+        final List<XsdSchemaImportLocation> importLocations = adapterCtx.findSchemaLocations(nsUri);
+        if (!importLocations.isEmpty()) {
+            for (XsdSchemaImportLocation importLocation : importLocations) {
+                SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. schemaName=" + importLocation.getFileName() + ", namespaceURI=" + nsUri);
+                xsdFactory.createSchemaImport(schema, nsUri, importLocation.buildLocation(XsdNamespaceUtils.getSystemIdFromXPos(refPos)));
+            }
         } else {
             adapterCtx.getReportWriter().warning(XSD.XSD013, nsUri);
-            SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! NamespaceURI=" + nsUri);
+            SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! namespaceURI=" + nsUri);
         }
     }
 
@@ -414,15 +427,26 @@ public class Xd2XsdReferenceAdapter {
             return;
         }
 
-        if (adapterCtx.existsSchemaLocation(nsUri)) {
-            SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-            xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.findSchemaImport(nsUri).buildLocation(null));
+        List<XsdSchemaImportLocation> importLocations = adapterCtx.findSchemaLocations(nsUri);
+        if (!importLocations.isEmpty()) {
+            for (XsdSchemaImportLocation importLocation : importLocations) {
+                SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. schemaName=" + importLocation.getFileName() + ", namespaceURI=" + nsUri);
+                xsdFactory.createSchemaImport(schema, nsUri, importLocation.buildLocation(null));
+            }
         } else {
             if (!adapterCtx.isPostProcessingNamespace(nsUri)) {
                 addPostProcessingSchemaImport(nsPrefix, nsUri, false);
             } else if (isPostProcessingPhase) {
-                SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. NamespaceURI=" + nsUri);
-                xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.findPostProcessingSchemaImport(nsUri).buildLocation(null));
+                importLocations = adapterCtx.findPostProcessingSchemaLocations(nsUri);
+                if (!importLocations.isEmpty()) {
+                    for (XsdSchemaImportLocation importLocation : importLocations) {
+                        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add namespace import. schemaName=" + importLocation.getFileName() + ", namespaceURI=" + nsUri);
+                        xsdFactory.createSchemaImport(schema, nsUri, importLocation.buildLocation(null));
+                    }
+                } else {
+                    adapterCtx.getReportWriter().warning(XSD.XSD013, nsUri);
+                    SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required schema import has not been found! namespaceURI=" + nsUri);
+                }
             }
         }
     }
@@ -437,9 +461,14 @@ public class Xd2XsdReferenceAdapter {
             return;
         }
 
-        adapterCtx.addExtraSchemaLocation(nsPrefix, nsUri);
-        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external namespace import. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
-        xsdFactory.createSchemaImport(schema, nsUri, adapterCtx.findPostProcessingSchemaImport(nsUri).buildLocation(null));
+        final XsdSchemaImportLocation importLocation = adapterCtx.addExtraSchemaLocation(nsPrefix, nsUri);
+        if (importLocation != null) {
+            SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external namespace import. schemaName=" + schemaName + ", namespaceURI=" + nsUri);
+            xsdFactory.createSchemaImport(schema, nsUri, importLocation.buildLocation(null));
+        } else {
+            adapterCtx.getReportWriter().warning(XSD.XSD013, nsUri);
+            SchemaLogger.printP(LOG_WARN, PREPROCESSING, "Required postprocessing schema import has not been found! schemaName=" + schemaName + ", namespaceURI=" + nsUri);
+        }
     }
 
 }

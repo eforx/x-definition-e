@@ -6,6 +6,7 @@ package org.xdef.impl.util.conv.schema.xd2schema.xsd.definition;
 public interface Xd2XsdDefinitions {
 
     String XSD_NAMESPACE_PREFIX_EMPTY = "";
+    String XSD_NAMESPACE_URI_EMPTY = "";
     String XSD_DEFAULT_SCHEMA_NAMESPACE_PREFIX = "xs";
 
     /**

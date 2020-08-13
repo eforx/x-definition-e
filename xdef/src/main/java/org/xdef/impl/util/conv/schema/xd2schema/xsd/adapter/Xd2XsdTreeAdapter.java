@@ -371,7 +371,7 @@ public class Xd2XsdTreeAdapter {
 
         if (XsdNamespaceUtils.isNodeInDifferentNamespace(xElem.getName(), xElem.getNSUri(), schema)) {
             xsdElem.getRef().setTargetQName(refQName);
-            SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Element referencing to different namespace." +
+            SchemaLogger.printP(LOG_INFO, TRANSFORMATION, xElem, "Element referencing to different namespace. " +
                     "Name=" + xElem.getName() + ", RefQName=" + xsdElem.getRef().getTargetQName());
         } else if (XsdNamespaceUtils.isRefInDifferentNamespacePrefix(refXPos, schema)) {
             xsdElem.getRef().setTargetQName(refQName);
@@ -504,13 +504,14 @@ public class Xd2XsdTreeAdapter {
         // Post-processing
         if (XsdNamespaceUtils.isValidNsUri(nsUri)) {
             xsdElem.getRef().setTargetQName(new QName(nsUri, localName));
-            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaImport(nsUri);
+            final String currSchemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaLocation(nsUri, currSchemaName);
             if (importLocation != null) {
                 final String refSystemId = importLocation.getFileName();
                 adapterCtx.addNodeToPostProcessing(nsUri, xElem);
                 final String refNodePath = SchemaNode.getPostProcessingReferenceNodePath(xElem.getXDPosition());
                 final String refNodePos = SchemaNode.getPostProcessingNodePos(refSystemId, refNodePath);
-                SchemaNodeFactory.createElemRefAndDefDiffNamespace(xElem, xsdElem, schemaName, nodePath, refSystemId, refNodePos, refNodePath, adapterCtx);
+                SchemaNodeFactory.createElemRefAndDefDiffNamespace(xElem, xsdElem, currSchemaName, nodePath, refSystemId, refNodePos, refNodePath, adapterCtx);
             } else {
                 adapterCtx.getReportWriter().warning(XSD.XSD021, nsUri);
                 SchemaLogger.printP(LOG_WARN, TRANSFORMATION, xElem, "Element is in different namespace which is not marked for post-processing! Namespace=" + nsUri);
@@ -554,7 +555,8 @@ public class Xd2XsdTreeAdapter {
         if (isPostProcessingPhase) {
             String nsPrefix = XsdNamespaceUtils.getNamespacePrefix(xElem.getName());
             String nsUri = schema.getNamespaceContext().getNamespaceURI(nsPrefix);
-            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaImport(nsUri);
+            final String currSchemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
+            final XsdSchemaImportLocation importLocation = adapterCtx.findPostProcessingSchemaLocation(nsUri, currSchemaName);
             if (importLocation != null) {
                 final String systemId = importLocation.getFileName();
                 adapterCtx.addOrUpdateNodeInDiffNs(node, systemId);

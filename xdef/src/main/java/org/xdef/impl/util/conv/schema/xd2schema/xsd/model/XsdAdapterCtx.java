@@ -36,17 +36,13 @@ public class XsdAdapterCtx {
 
     /**
      * Schemas location based on x-definition
-     * Key:     namespace URI
-     * Value:   location
      */
-    private Map<String, XsdSchemaImportLocation> schemaLocationsCtx = null;
+    private SchemaNsLocationMap schemaLocationsCtx = null;
 
     /**
      * Schemas locations which are created in post-processing
-     * Key:     schema namespace URI
-     * Value:   schema location
      */
-    private Map<String, XsdSchemaImportLocation> extraSchemaLocationsCtx = null;
+    private SchemaNsLocationMap extraSchemaLocationsCtx = null;
 
     /**
      * Collection of created XSD documents
@@ -63,7 +59,9 @@ public class XsdAdapterCtx {
     /**
      * Nodes which will be created in post-procession
      * Key:     namespace URI
-     * Value:   node name, x-definition node
+     * Value:
+     *          Value: node name
+     *          Key: x-definition node
      */
     private Map<String, Map<String, XNode>> nodesToBePostProcessed;
 
@@ -103,8 +101,8 @@ public class XsdAdapterCtx {
      */
     public void init() {
         schemaNames = new HashSet<String>();
-        schemaLocationsCtx = new HashMap<String, XsdSchemaImportLocation>();
-        extraSchemaLocationsCtx = new HashMap<String, XsdSchemaImportLocation>();
+        schemaLocationsCtx = new SchemaNsLocationMap(reportWriter, "schemaLocations");
+        extraSchemaLocationsCtx = new SchemaNsLocationMap(reportWriter, "extraSchemaLocations");
         xmlSchemaCollection = new XmlSchemaCollection();
         nodes = new HashMap<String, Map<String, SchemaNode>>();
         nodesToBePostProcessed = new HashMap<String, Map<String, XNode>>();
@@ -117,7 +115,7 @@ public class XsdAdapterCtx {
         return schemaNames;
     }
 
-    public Map<String, XsdSchemaImportLocation> getExtraSchemaLocationsCtx() {
+    public SchemaNsLocationMap getExtraSchemaLocationsCtx() {
         return extraSchemaLocationsCtx;
     }
 
@@ -158,14 +156,7 @@ public class XsdAdapterCtx {
      * @param importLocation    XSD document location definition
      */
     public void addSchemaLocation(final String nsUri, final XsdSchemaImportLocation importLocation) {
-        if (schemaLocationsCtx.containsKey(nsUri)) {
-            reportWriter.warning(XSD.XSD036, nsUri);
-            SchemaLogger.printG(LOG_WARN, XSD_ADAPTER_CTX, "Schema location already exists for namespace URI. NamespaceURI=" + nsUri);
-            return;
-        }
-
-        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add schema location. NamespaceURI=" + nsUri + ", Path=" + importLocation.buildLocation(null));
-        schemaLocationsCtx.put(nsUri, importLocation);
+        schemaLocationsCtx.addSchemaLocation(nsUri, importLocation);
     }
 
     /**
@@ -173,8 +164,8 @@ public class XsdAdapterCtx {
      * @param nsUri     XSD document namespace URI
      * @return true if schema exists
      */
-    public boolean existsSchemaLocation(final String nsUri) {
-        return schemaLocationsCtx.containsKey(nsUri);
+    public boolean existsSchemaLocation(final String nsUri, final String xsdName) {
+        return schemaLocationsCtx.findSchemaImport(nsUri, xsdName) != null;
     }
 
     /**
@@ -182,8 +173,17 @@ public class XsdAdapterCtx {
      * @param nsUri     XSD document namespace URI
      * @return XSD document location if exists, otherwise null
      */
-    public XsdSchemaImportLocation findSchemaImport(final String nsUri) {
-        return schemaLocationsCtx.get(nsUri);
+    public XsdSchemaImportLocation findSchemaLocation(final String nsUri, final String xsdName) {
+        return schemaLocationsCtx.findSchemaImport(nsUri, xsdName);
+    }
+
+    /**
+     * Finds XSD document locations if exists by given namespace URI
+     * @param nsUri     XSD document namespace URI
+     * @return XSD document location if exists, otherwise null
+     */
+    public List<XsdSchemaImportLocation> findSchemaLocations(final String nsUri) {
+        return schemaLocationsCtx.findSchemaImports(nsUri);
     }
 
     /**
@@ -191,8 +191,17 @@ public class XsdAdapterCtx {
      * @param nsUri     XSD document namespace URI
      * @return XSD document location if exists, otherwise null
      */
-    public XsdSchemaImportLocation findPostProcessingSchemaImport(final String nsUri) {
-        return extraSchemaLocationsCtx.get(nsUri);
+    public XsdSchemaImportLocation findPostProcessingSchemaLocation(final String nsUri, final String schemaName) {
+        return extraSchemaLocationsCtx.findSchemaImport(nsUri, schemaName);
+    }
+
+    /**
+     * Finds XSD document location if exists by given namespace URI
+     * @param nsUri     XSD document namespace URI
+     * @return XSD document location if exists, otherwise null
+     */
+    public List<XsdSchemaImportLocation> findPostProcessingSchemaLocations(final String nsUri) {
+        return extraSchemaLocationsCtx.findSchemaImports(nsUri);
     }
 
     /**
@@ -200,15 +209,8 @@ public class XsdAdapterCtx {
      * @param nsPrefix          XSD document namespace prefix
      * @param nsUri             XSD document namespace URI
      */
-    public void addExtraSchemaLocation(final String nsPrefix, final String nsUri) {
-        if (extraSchemaLocationsCtx.containsKey(nsUri)) {
-            SchemaLogger.printG(LOG_DEBUG, XSD_ADAPTER_CTX, "Extra schema location already exists for namespace URI. NamespaceURI=" + nsUri);
-            return;
-        }
-
-        final String schemaName = XsdNamespaceUtils.createExtraSchemaNameFromNsPrefix(nsPrefix);
-        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external schema to post-process queue. NamespaceURI=" + nsUri + ", SchemaName=" + schemaName);
-        extraSchemaLocationsCtx.put(nsUri, new XsdSchemaImportLocation(nsUri, schemaName));
+    public XsdSchemaImportLocation addExtraSchemaLocation(final String nsPrefix, final String nsUri) {
+        return extraSchemaLocationsCtx.addSchemaLocation(nsPrefix, nsUri);
     }
 
     /**
@@ -217,13 +219,7 @@ public class XsdAdapterCtx {
      * @param importLocation    XSD document location definition
      */
     public void addExtraSchemaLocation(final String nsUri, final XsdSchemaImportLocation importLocation) {
-        if (extraSchemaLocationsCtx.containsKey(nsUri)) {
-            SchemaLogger.printG(LOG_DEBUG, XSD_ADAPTER_CTX, "Extra schema location already exists for namespace URI. NamespaceURI=" + nsUri);
-            return;
-        }
-
-        SchemaLogger.printP(LOG_INFO, PREPROCESSING, "Add external schema to post-process queue. NamespaceURI=" + nsUri);
-        extraSchemaLocationsCtx.put(nsUri, importLocation);
+        extraSchemaLocationsCtx.addSchemaLocation(nsUri, importLocation);
     }
 
     /**
@@ -289,27 +285,32 @@ public class XsdAdapterCtx {
     }
 
     /**
-     * Finds XSD document by given namespace URI
+     * Finds XSD document name by given namespace URI
      * @param nsUri         XSD document namespace URI
      * @param shouldExists  flag, it non-existing schema should throw exception
      * @param phase         phase of transforming algorithm (just for logging purposes)
-     * @return  XSD document if exists
+     * @return  XSD document name if XSD document exists
      *          null if XSD document does not exist and {@paramref shouldExists} value is false
      */
-    public XmlSchema findSchemaByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
-        final String schemaName = findSchemaNameByNamespace(nsUri, shouldExists, phase);
-        XmlSchema schema = null;
-        if (schemaName != null) {
-            schema = findSchema(schemaName, false, phase);
+    public Set<String> findSchemaNamesByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
+        SchemaNameLocationMap schemaLocations = schemaLocationsCtx.get(nsUri);
+
+        Set<String> schemaNames = null;
+        if (schemaLocations == null) {
+            schemaLocations = extraSchemaLocationsCtx.get(nsUri);
         }
 
-        if (schema == null && shouldExists) {
+        if (schemaLocations != null) {
+            schemaNames = schemaLocations.keySet();
+        }
+
+        if (schemaNames == null && shouldExists) {
             reportWriter.warning(XSD.XSD039, nsUri);
             SchemaLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
             throw new SRuntimeException(XSD.XSD009, nsUri);
         }
 
-        return schema;
+        return schemaNames;
     }
 
     /**
@@ -320,24 +321,13 @@ public class XsdAdapterCtx {
      * @return  XSD document name if XSD document exists
      *          null if XSD document does not exist and {@paramref shouldExists} value is false
      */
-    public String findSchemaNameByNamespace(final String nsUri, boolean shouldExists, final AlgPhase phase) {
-        XsdSchemaImportLocation schemaLocation = schemaLocationsCtx.get(nsUri);
-        String schemaName = null;
-        if (schemaLocation == null) {
-            schemaLocation = extraSchemaLocationsCtx.get(nsUri);
+    public boolean hasSchemaNameWithNamespaceAndName(final String nsUri, final String schemaName, boolean shouldExists, final AlgPhase phase) {
+        final Set<String> schemaNames = findSchemaNamesByNamespace(nsUri, shouldExists, phase);
+        if (schemaNames == null || schemaNames.isEmpty()) {
+            return false;
         }
 
-        if (schemaLocation != null) {
-            schemaName = schemaLocation.getFileName();
-        }
-
-        if (schemaName == null && shouldExists) {
-            reportWriter.warning(XSD.XSD039, nsUri);
-            SchemaLogger.printP(LOG_WARN, phase, "Schema with required name not found! Namespace=" + nsUri);
-            throw new SRuntimeException(XSD.XSD009, nsUri);
-        }
-
-        return schemaName;
+        return schemaNames.contains(schemaName);
     }
 
     /**

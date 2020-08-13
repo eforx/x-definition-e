@@ -25,7 +25,7 @@ public interface XSD {
 	public static final long XSD010 = 1180499977L;
 	/** XSD mixed type reference is not complex type! PathXdefinition="&amp;{0}" */
 	public static final long XSD011 = 1180499978L;
-	/** Required schema import has not been found! SchemaName="&amp;{0}" */
+	/** Required schema include has not been found! SchemaName="&amp;{0}" */
 	public static final long XSD012 = 1180499979L;
 	/** Required schema import has not been found! NamespaceURI="&amp;{0}" */
 	public static final long XSD013 = 1180499980L;

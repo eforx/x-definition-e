@@ -8,8 +8,11 @@ import org.xdef.impl.XDefinition;
 import org.xdef.impl.util.conv.schema.util.SchemaLogger;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.definition.Xd2XsdFeature;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.factory.XsdNodeFactory;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNameLocationMap;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNode;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.SchemaNsLocationMap;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.UniqueConstraint;
+import org.xdef.impl.util.conv.schema.xd2schema.xsd.model.XsdSchemaImportLocation;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.Xd2XsdUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdNameUtils;
 import org.xdef.impl.util.conv.schema.xd2schema.xsd.util.XsdPostProcessor;
@@ -127,21 +130,25 @@ public class Xd2XsdPostProcessingAdapter extends AbstractXd2XsdAdapter {
     private void processQNames(final Set<String> updatedNamespaces) {
         SchemaLogger.print(LOG_INFO, POSTPROCESSING, XSD_PP_ADAPTER,"Processing qualified names ...");
         for (String schemaNs : updatedNamespaces) {
-            if (adapterCtx.isPostProcessingNamespace(schemaNs) && !adapterCtx.existsSchemaLocation(schemaNs)) {
-                continue;
-            }
 
-            final String schemaName = adapterCtx.findSchemaNameByNamespace(schemaNs, true, POSTPROCESSING);
-            final XmlSchema schema = adapterCtx.findSchema(schemaName, true, POSTPROCESSING);
-            final Map<String, SchemaNode> nodes = adapterCtx.getNodes().get(schemaName);
-            if (nodes != null && !nodes.isEmpty()) {
-                for (SchemaNode n : nodes.values()) {
-                    if (n.isXsdAttr()) {
-                        XsdNameUtils.resolveAttributeQName(schema, n.toXsdAttr(), n.getXdName());
-                        XsdNameUtils.resolveAttributeSchemaTypeQName(schema, n.toXsdAttr());
-                    } else if (n.isXsdElem()) {
-                        XsdNameUtils.resolveElementQName(schema, n.toXdElem(), n.toXsdElem(), adapterCtx);
-                        XsdNameUtils.resolveElementSchemaTypeQName(schema, n.toXsdElem());
+            final Set<String> schemaNames = adapterCtx.findSchemaNamesByNamespace(schemaNs, true, POSTPROCESSING);
+
+            for (String schemaName : schemaNames) {
+                if (adapterCtx.isPostProcessingNamespace(schemaNs) && !adapterCtx.existsSchemaLocation(schemaNs, schemaName)) {
+                    continue;
+                }
+
+                final XmlSchema schema = adapterCtx.findSchema(schemaName, true, POSTPROCESSING);
+                final Map<String, SchemaNode> nodes = adapterCtx.getNodes().get(schemaName);
+                if (nodes != null && !nodes.isEmpty()) {
+                    for (SchemaNode n : nodes.values()) {
+                        if (n.isXsdAttr()) {
+                            XsdNameUtils.resolveAttributeQName(schema, n.toXsdAttr(), n.getXdName());
+                            XsdNameUtils.resolveAttributeSchemaTypeQName(schema, n.toXsdAttr());
+                        } else if (n.isXsdElem()) {
+                            XsdNameUtils.resolveElementQName(schema, n.toXdElem(), n.toXsdElem(), adapterCtx);
+                            XsdNameUtils.resolveElementSchemaTypeQName(schema, n.toXsdElem());
+                        }
                     }
                 }
             }

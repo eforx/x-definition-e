@@ -15,3 +15,4 @@
 /.settings/
 /.wtpmodules/
 /nb-configuration.xml
+/xdef/src/test/resources/test/xdutils/data/xd2xsd_2/internal/*
